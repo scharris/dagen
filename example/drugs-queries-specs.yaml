@@ -1,0 +1,42 @@
+defaultSchema: xdagentest
+querySpecs:
+  - queryName: drugs query
+    resultsRepresentations:
+      - JSON_OBJECT_ROWS
+      - MULTI_COLUMN_ROWS
+      - JSON_ARRAY_ROW
+    generateResultTypes: yes
+    tableOutputSpec:
+      table: drug
+      tableOutputFields:
+        - databaseFieldName: name
+        - databaseFieldName: mesh_id
+          outputName: meshId
+        - databaseFieldName: drugbank_id
+          outputName: drugbankId
+        - databaseFieldName: cid
+        - databaseFieldName: therapeutic_indications
+          outputName: therapeuticIndications
+      childTableSpecs:
+        - collectionFieldName: references
+          tableOutputSpec:
+            table: drug_reference
+            parentTableSpecs:
+              - tableOutputSpec:
+                  table: reference
+                  tableOutputFields:
+                    - databaseFieldName: publication
+      parentTableSpecs:
+        # Wrapper field is optional, omit to include fields inline in containing table output.
+        - wrapperFieldName: compound
+          childForeignKeyFields:
+            - compound_id
+          tableOutputSpec:
+            table: compound
+            tableOutputFields:
+              - databaseFieldName: display_name
+                outputName: displayName
+              - databaseFieldName: nctr_isis_id
+                outputName: nctrIsisId
+          omitChildRowWhenUnwrappedParentMissing: true
+      filter: '$d : not $d.id = 2' # "<alias-var> : <expr using alias-var>", both sides trimmed
