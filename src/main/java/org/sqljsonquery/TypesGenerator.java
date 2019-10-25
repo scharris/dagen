@@ -1,6 +1,8 @@
 package org.sqljsonquery;
 
 import java.util.*;
+
+import static gov.fda.nctr.dbmd.DBMD.ForeignKeyScope.REGISTERED_TABLES_ONLY;
 import static java.util.stream.Collectors.*;
 import static java.util.function.Function.identity;
 
@@ -39,10 +41,10 @@ public class TypesGenerator
       );
       Map<String,Field> dbFieldsByName = relMd.getFields().stream().collect(toMap(Field::getName, identity()));
 
-      // TODO: Ensure that the class name is unique here across generated types, maybe put in subpackage by query name.
-      String className = camelCase(tos.getTable());
+      // TODO: Ensure that the type name is unique here across all generated types, maybe put in subpackage by query name.
+      String typeName = camelCase(tos.getTable());
 
-      GeneratedTypeBuilder typeBuilder = new GeneratedTypeBuilder(className);
+      GeneratedTypeBuilder typeBuilder = new GeneratedTypeBuilder(typeName);
 
       // Add this table's own directly contained database fields to the generated type.
       for ( TableOutputField tof : tos.getTableOutputFields() )
@@ -73,9 +75,11 @@ public class TypesGenerator
          List<GeneratedType> parentGenTypes = makeResultTypeDefinitions(parentTableSpec.getTableOutputSpec());
          GeneratedType parentType = parentGenTypes.get(0);
 
+         boolean nullableFk = !someFkFieldKnownNotNullable(relId, parentTableSpec);
+
          if ( parentTableSpec.getWrapperFieldName().isPresent() )
          {
-            typeBuilder.addParentReferenceField(parentTableSpec.getWrapperFieldName().get(), parentType);
+            typeBuilder.addParentReferenceField(parentTableSpec.getWrapperFieldName().get(), parentType, nullableFk);
             generatedTypes.addAll(parentGenTypes);
          }
          else
@@ -91,6 +95,25 @@ public class TypesGenerator
       generatedTypes.add(0, typeBuilder.build()); // The tos's top table type must be at the head of the returned list.
 
       return generatedTypes;
+   }
+
+   private boolean someFkFieldKnownNotNullable(RelId childRelId, ParentTableSpec parentTableSpec)
+   {
+      RelId parentRelId = dbmd.identifyTable(parentTableSpec.getTableOutputSpec().getTable(), defaultSchema);
+      Optional<Set<String>> specFkFields = parentTableSpec.getChildForeignKeyFieldsSet();
+      ForeignKey fk = dbmd.getForeignKeyFromTo(childRelId, parentRelId, specFkFields, REGISTERED_TABLES_ONLY).orElseThrow(
+         () -> new RuntimeException("foreign key to parent not found")
+      );
+
+      RelMetadata childRelMd = dbmd.getRelationMetadata(childRelId).orElseThrow(
+         () -> new RuntimeException("child table metadata not found")
+      );
+
+      List<String> fkFieldNames = fk.getSourceFieldNames();
+
+      return
+         childRelMd.getFields().stream()
+         .anyMatch(f -> fkFieldNames.contains(f.getName()) && !(f.getNullable().orElse(true)));
    }
 
 }

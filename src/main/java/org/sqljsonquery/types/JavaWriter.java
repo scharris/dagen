@@ -9,6 +9,8 @@ import java.sql.Types;
 import static java.util.Collections.emptyMap;
 
 import org.sqljsonquery.SqlJsonQuery;
+
+import static org.sqljsonquery.types.JavaWriter.NullableFieldRepr.*;
 import static org.sqljsonquery.util.Files.newFileOrStdoutWriter;
 import static org.sqljsonquery.util.Optionals.opt;
 import static org.sqljsonquery.util.StringFuns.camelCase;
@@ -18,22 +20,25 @@ import static org.sqljsonquery.util.StringFuns.indentLines;
 public class JavaWriter implements SourceCodeWriter
 {
    private String targetPackage;
-
    private Optional<Path> srcOutputBaseDir;
-
    // overridden field types by (query name, generated type name, field name in generated type)
    private Map<String,String> fieldTypeOverrides;
+   private NullableFieldRepr nullableFieldRepr;
+
+   public enum NullableFieldRepr { OPTWRAPPED, ANNOTATED, BARETYPE }
 
    public JavaWriter
    (
       String targetPackage,
       Optional<Path> srcOutputBaseDir,
-      Optional<Map<String,String>> fieldTypeOverrides
+      Optional<Map<String,String>> fieldTypeOverrides,
+      NullableFieldRepr nullableFieldRepr
    )
    {
       this.targetPackage = targetPackage;
       this.srcOutputBaseDir = srcOutputBaseDir;
       this.fieldTypeOverrides = new HashMap<>(fieldTypeOverrides.orElse(emptyMap()));
+      this.nullableFieldRepr = nullableFieldRepr;
    }
 
    @Override
@@ -119,7 +124,7 @@ public class JavaWriter implements SourceCodeWriter
       for ( ParentReferenceField parentRefField : generatedType.getParentReferenceFields() )
       {
          sb.append("   public ");
-         sb.append(parentRefField.generatedType.getUnqualifiedClassName());
+         sb.append(getParentRefDeclaredType(parentRefField));
          sb.append(" ");
          sb.append(parentRefField.getName());
          sb.append(";\n");
@@ -137,51 +142,88 @@ public class JavaWriter implements SourceCodeWriter
       String generatedTypeName
    )
    {
+      boolean notNull = !(f.getNullable().orElse(true));
+
       // Check if there's a type override specified for this field.
       String typeOverrideKey = queryName + "/" + generatedTypeName + "." + f.getName();
       if ( fieldTypeOverrides.containsKey(typeOverrideKey) )
          return fieldTypeOverrides.get(typeOverrideKey);
 
-      switch (f.getJdbcTypeCode())
+      switch ( f.getJdbcTypeCode() )
       {
          case Types.TINYINT:
          case Types.SMALLINT:
-            return "int";
+            return notNull ? "int" : nullableType("Integer");
          case Types.INTEGER:
          case Types.BIGINT:
-            return !f.getPrecision().isPresent() || f.getPrecision().get() > 9 ? "long": "int";
+         {
+            boolean needsLong = !f.getPrecision().isPresent() || f.getPrecision().get() > 9;
+            if ( notNull ) return needsLong ? "long": "int";
+            else return needsLong ? nullableType("Long"): nullableType("Integer");
+         }
          case Types.DECIMAL:
          case Types.NUMERIC:
             if ( f.getFractionalDigits().equals(opt(0) ) )
-               return !f.getPrecision().isPresent() || f.getPrecision().get() > 9 ? "long": "int";
+            {
+               boolean needsLong = !f.getPrecision().isPresent() || f.getPrecision().get() > 9;
+               if ( notNull ) return needsLong ? "long": "int";
+               else return needsLong ? nullableType("Long"): nullableType("Integer");
+            }
             else
-               return "BigDecimal";
+               return notNull ? "BigDecimal" : nullableType("BigDecimal");
          case Types.FLOAT:
          case Types.REAL:
          case Types.DOUBLE:
-            return "double";
+            return notNull ? "double" : nullableType("Double");
          case Types.CHAR:
          case Types.VARCHAR:
          case Types.LONGVARCHAR:
          case Types.CLOB:
-            return "String";
+            return notNull ? "String" : nullableType("String");
          case Types.BIT:
          case Types.BOOLEAN:
-            return "boolean";
+            return notNull ? "boolean" : nullableType("Boolean");
          case Types.DATE:
-            return "LocalDate";
+            return notNull ? "LocalDate" : nullableType("LocalDate");
          case Types.TIME:
-            return "LocalTime";
+            return notNull ? "LocalTime" : nullableType("LocalTime");
          case Types.TIMESTAMP:
-            return "Instant";
+            return notNull ? "Instant" : nullableType("Instant");
          case Types.OTHER:
             if ( f.getDatabaseType().toLowerCase().startsWith("json") )
-               return "String";
+               return notNull ? "String" : nullableType("String");
             else
                throw new RuntimeException("unsupported type for database field " + f);
          default:
             throw new RuntimeException("unsupported type for database field " + f);
       }
+   }
+
+   private String getParentRefDeclaredType(ParentReferenceField parentRefField)
+   {
+      return
+         !parentRefField.isNullable() ?
+            parentRefField.generatedType.getUnqualifiedClassName()
+            : nullableType(parentRefField.generatedType.getUnqualifiedClassName());
+   }
+
+   private String nullableType(String baseType)
+   {
+      StringBuilder sb = new StringBuilder();
+
+      if ( nullableFieldRepr == ANNOTATED )
+         sb.append("@Null ");
+      else if ( nullableFieldRepr == OPTWRAPPED  )
+         sb.append("Optional<");
+      else if ( nullableFieldRepr != BARETYPE )
+         throw new RuntimeException("unexpected nullable field repr: " + nullableFieldRepr);
+
+      sb.append(baseType);
+
+      if ( nullableFieldRepr == OPTWRAPPED  )
+         sb.append(">");
+
+      return sb.toString();
    }
 
 }

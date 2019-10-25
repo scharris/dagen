@@ -30,9 +30,9 @@ public class GeneratedTypeBuilder
    }
    public void addChildCollectionFields(List<ChildCollectionField> fs) { childCollectionFields.addAll(fs); }
 
-   public void addParentReferenceField(String fieldName, GeneratedType parentType)
+   public void addParentReferenceField(String fieldName, GeneratedType parentType, boolean nullable)
    {
-      parentReferenceFields.add(new ParentReferenceField(fieldName, parentType));
+      parentReferenceFields.add(new ParentReferenceField(fieldName, parentType, nullable));
    }
    public void addParentReferenceFields(List<ParentReferenceField> fs) { parentReferenceFields.addAll(fs); }
 

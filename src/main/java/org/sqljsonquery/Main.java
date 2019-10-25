@@ -19,6 +19,7 @@ import org.sqljsonquery.spec.QueriesSpec;
 import org.sqljsonquery.spec.ResultsRepr;
 import org.sqljsonquery.types.JavaWriter;
 import org.sqljsonquery.types.SourceCodeWriter;
+import static org.sqljsonquery.types.JavaWriter.NullableFieldRepr;
 
 
 public class Main
@@ -29,10 +30,15 @@ public class Main
                  "[<src-output-base-dir> <queries-output-dir>]");
       ps.println("If output directories are not provided, then all output is written to standard out.");
       ps.println("Options:");
-      ps.println("   -p<java-package>");
       ps.println("   -l<language>: Output language, currently must be \"Java\".");
-      ps.println("   -f<language>: Field declaration override file, having lines of the form: ");
-      ps.println("        <queryName>.<generated-type-name>.<field-name>: <field type decl>");
+      ps.println("   -p<java-package>: The Java package for the generated query classes.");
+      ps.println("   -n<nullable-fields-option>: How nullable fields should be represented in Java.");
+      ps.println("       Valid options are:");
+      ps.println("         optwrapped : wrap the type with Optional<>");
+      ps.println("         annotated  : annotate with @Null");
+      ps.println("         baretype   : leave as bare type (Object variant for native types)");
+      ps.println("   -f<field-type-overrides-file>: Field types override file, having lines of the form: ");
+      ps.println("        <queryName>/<generated-type-name>.<field-name>: <field type decl>");
    }
 
    public static void main(String[] allArgs)
@@ -115,19 +121,21 @@ public class Main
    {
       String language = "";
       String targetPackage = "";
+      NullableFieldRepr nullableFieldRepr = NullableFieldRepr.ANNOTATED;
       Optional<Map<String,String>> fieldTypeOverrides = Optional.empty();
       for ( String opt : args.optional )
       {
          if ( opt.startsWith("-p") ) targetPackage = opt.substring(2);
          if ( opt.startsWith("-l") ) language = opt.substring(2);
          if ( opt.startsWith("-f") ) fieldTypeOverrides = opt(readFieldTypeOverrides(Paths.get(opt.substring(2))));
+         if ( opt.startsWith("-n") ) nullableFieldRepr = NullableFieldRepr.valueOf(opt.substring(2).toUpperCase());
       }
 
       switch ( language )
       {
          case "":
          case "Java":
-            return new JavaWriter(targetPackage, srcOutputBaseDir, fieldTypeOverrides);
+            return new JavaWriter(targetPackage, srcOutputBaseDir, fieldTypeOverrides, nullableFieldRepr);
          default:
             throw new RuntimeException("target language not supported");
       }
