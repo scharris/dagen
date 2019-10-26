@@ -14,6 +14,15 @@ public final class Files
          : new BufferedWriter(new OutputStreamWriter(System.out));
    }
 
+   public static OutputStream outputStream(String pathOrDash) throws IOException
+   {
+      if ( "-".equals(pathOrDash) )
+         return System.out;
+      else
+         return new FileOutputStream(pathOrDash);
+   }
+
+
    private Files() {}
 }
 

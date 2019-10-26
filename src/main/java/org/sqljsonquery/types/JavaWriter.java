@@ -9,7 +9,6 @@ import java.sql.Types;
 import static java.util.Collections.emptyMap;
 
 import org.sqljsonquery.SqlJsonQuery;
-
 import static org.sqljsonquery.types.JavaWriter.NullableFieldRepr.*;
 import static org.sqljsonquery.util.Files.newFileOrStdoutWriter;
 import static org.sqljsonquery.util.Optionals.opt;

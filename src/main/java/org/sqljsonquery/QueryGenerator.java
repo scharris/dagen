@@ -6,13 +6,12 @@ import static java.util.stream.Collectors.*;
 import static java.util.Optional.empty;
 import static java.util.function.Function.identity;
 
-import gov.fda.nctr.dbmd.*;
-import static gov.fda.nctr.dbmd.DBMD.ForeignKeyScope.REGISTERED_TABLES_ONLY;
-
 import org.sqljsonquery.util.*;
 import static org.sqljsonquery.util.StringFuns.*;
 import static org.sqljsonquery.util.CollFuns.*;
 import static org.sqljsonquery.util.Optionals.opt;
+import org.sqljsonquery.dbmd.*;
+import static org.sqljsonquery.dbmd.ForeignKeyScope.REGISTERED_TABLES_ONLY;
 import org.sqljsonquery.spec.ResultsRepr;
 import org.sqljsonquery.spec.TableOutputSpec;
 import org.sqljsonquery.spec.QueriesSpec;
@@ -32,7 +31,7 @@ import org.sqljsonquery.types.GeneratedType;
 
 public class QueryGenerator
 {
-   private final DBMD dbmd;
+   private final DatabaseMetadata dbmd;
    private final Optional<String> defaultSchema;
    private final SqlDialect sqlDialect;
    private final int indentSpaces;
@@ -55,7 +54,7 @@ public class QueryGenerator
 
    public QueryGenerator
    (
-      DBMD dbmd,
+      DatabaseMetadata dbmd,
       Optional<String> defaultSchema
    )
    {
@@ -390,7 +389,7 @@ public class QueryGenerator
       else return DbmsType.ISO;
    }
 
-   private static SqlDialect getSqlDialect(DBMD dbmd, int indentSpaces)
+   private static SqlDialect getSqlDialect(DatabaseMetadata dbmd, int indentSpaces)
    {
       DbmsType dbmsType = getDbmsType(dbmd.getDbmsName());
       switch ( dbmsType )

@@ -1,4 +1,4 @@
-defaultSchema: xdagentest
+defaultSchema: public
 querySpecs:
   - queryName: drugs query
     resultsRepresentations:

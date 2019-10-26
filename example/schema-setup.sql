@@ -1,3 +1,12 @@
+/* Database setup (Postgres)
+postgres=# create user drugsuser with password 'drugspassword';
+postgres=# create database drugs owner drugsuser;
+^D
+psql -U drugsuser drugs
+drugs> \i schema-setup.sql
+(Or just paste the file contents.)
+ */
+
 create table compound
 (
     id                 integer not null

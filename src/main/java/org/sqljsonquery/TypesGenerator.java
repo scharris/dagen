@@ -4,10 +4,10 @@ import java.util.*;
 import static java.util.stream.Collectors.*;
 import static java.util.function.Function.identity;
 
-import gov.fda.nctr.dbmd.*;
-import static gov.fda.nctr.dbmd.DBMD.ForeignKeyScope.REGISTERED_TABLES_ONLY;
 
 import static org.sqljsonquery.util.StringFuns.*;
+import org.sqljsonquery.dbmd.*;
+import static org.sqljsonquery.dbmd.ForeignKeyScope.REGISTERED_TABLES_ONLY;
 import org.sqljsonquery.spec.TableOutputSpec;
 import org.sqljsonquery.spec.TableOutputField;
 import org.sqljsonquery.spec.ChildTableSpec;
@@ -18,13 +18,13 @@ import org.sqljsonquery.types.GeneratedTypeBuilder;
 
 public class TypesGenerator
 {
-   private final DBMD dbmd;
+   private final DatabaseMetadata dbmd;
    private final Optional<String> defaultSchema;
 
 
    public TypesGenerator
    (
-      DBMD dbmd,
+      DatabaseMetadata dbmd,
       Optional<String> defaultSchema
    )
    {

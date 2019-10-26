@@ -1,4 +1,4 @@
-schemaName: "xdagentest"
+schemaName: "public"
 dbmsName: "PostgreSQL"
 dbmsVersion: "12.0"
 dbmsMajorVersion: 12
@@ -6,7 +6,7 @@ dbmsMinorVersion: 0
 caseSensitivity: "INSENSITIVE_STORED_LOWER"
 relationMetadatas:
 - relationId:
-    schema: "xdagentest"
+    schema: "public"
     name: "advisory"
   relationType: "Table"
   relationComment: null
@@ -20,7 +20,6 @@ relationMetadatas:
     length: null
     precision: 10
     fractionalDigits: 0
-    radix: 10
   - name: "drug_id"
     databaseType: "int4"
     nullable: false
@@ -30,7 +29,6 @@ relationMetadatas:
     length: null
     precision: 10
     fractionalDigits: 0
-    radix: 10
   - name: "advisory_type_id"
     databaseType: "int4"
     nullable: false
@@ -40,7 +38,6 @@ relationMetadatas:
     length: null
     precision: 10
     fractionalDigits: 0
-    radix: 10
   - name: "text"
     databaseType: "varchar"
     nullable: false
@@ -50,9 +47,8 @@ relationMetadatas:
     length: 2000
     precision: null
     fractionalDigits: null
-    radix: null
 - relationId:
-    schema: "xdagentest"
+    schema: "public"
     name: "advisory_type"
   relationType: "Table"
   relationComment: null
@@ -66,7 +62,6 @@ relationMetadatas:
     length: null
     precision: 10
     fractionalDigits: 0
-    radix: 10
   - name: "name"
     databaseType: "varchar"
     nullable: false
@@ -76,7 +71,6 @@ relationMetadatas:
     length: 50
     precision: null
     fractionalDigits: null
-    radix: null
   - name: "authority_id"
     databaseType: "int4"
     nullable: false
@@ -86,9 +80,8 @@ relationMetadatas:
     length: null
     precision: 10
     fractionalDigits: 0
-    radix: 10
 - relationId:
-    schema: "xdagentest"
+    schema: "public"
     name: "authority"
   relationType: "Table"
   relationComment: null
@@ -102,7 +95,6 @@ relationMetadatas:
     length: null
     precision: 10
     fractionalDigits: 0
-    radix: 10
   - name: "name"
     databaseType: "varchar"
     nullable: false
@@ -112,7 +104,6 @@ relationMetadatas:
     length: 200
     precision: null
     fractionalDigits: null
-    radix: null
   - name: "url"
     databaseType: "varchar"
     nullable: true
@@ -122,7 +113,6 @@ relationMetadatas:
     length: 500
     precision: null
     fractionalDigits: null
-    radix: null
   - name: "description"
     databaseType: "varchar"
     nullable: true
@@ -132,9 +122,8 @@ relationMetadatas:
     length: 2000
     precision: null
     fractionalDigits: null
-    radix: null
 - relationId:
-    schema: "xdagentest"
+    schema: "public"
     name: "brand"
   relationType: "Table"
   relationComment: null
@@ -148,7 +137,6 @@ relationMetadatas:
     length: null
     precision: 10
     fractionalDigits: 0
-    radix: 10
   - name: "brand_name"
     databaseType: "varchar"
     nullable: false
@@ -158,7 +146,6 @@ relationMetadatas:
     length: 200
     precision: null
     fractionalDigits: null
-    radix: null
   - name: "language_code"
     databaseType: "varchar"
     nullable: true
@@ -168,7 +155,6 @@ relationMetadatas:
     length: 10
     precision: null
     fractionalDigits: null
-    radix: null
   - name: "manufacturer_id"
     databaseType: "int4"
     nullable: true
@@ -178,9 +164,8 @@ relationMetadatas:
     length: null
     precision: 10
     fractionalDigits: 0
-    radix: 10
 - relationId:
-    schema: "xdagentest"
+    schema: "public"
     name: "compound"
   relationType: "Table"
   relationComment: null
@@ -194,7 +179,6 @@ relationMetadatas:
     length: null
     precision: 10
     fractionalDigits: 0
-    radix: 10
   - name: "display_name"
     databaseType: "varchar"
     nullable: true
@@ -204,7 +188,6 @@ relationMetadatas:
     length: 50
     precision: null
     fractionalDigits: null
-    radix: null
   - name: "nctr_isis_id"
     databaseType: "varchar"
     nullable: true
@@ -214,7 +197,6 @@ relationMetadatas:
     length: 100
     precision: null
     fractionalDigits: null
-    radix: null
   - name: "smiles"
     databaseType: "varchar"
     nullable: true
@@ -224,7 +206,6 @@ relationMetadatas:
     length: 2000
     precision: null
     fractionalDigits: null
-    radix: null
   - name: "canonical_smiles"
     databaseType: "varchar"
     nullable: true
@@ -234,7 +215,6 @@ relationMetadatas:
     length: 2000
     precision: null
     fractionalDigits: null
-    radix: null
   - name: "cas"
     databaseType: "varchar"
     nullable: true
@@ -244,7 +224,6 @@ relationMetadatas:
     length: 50
     precision: null
     fractionalDigits: null
-    radix: null
   - name: "mol_formula"
     databaseType: "varchar"
     nullable: true
@@ -254,7 +233,6 @@ relationMetadatas:
     length: 2000
     precision: null
     fractionalDigits: null
-    radix: null
   - name: "mol_weight"
     databaseType: "numeric"
     nullable: true
@@ -264,7 +242,6 @@ relationMetadatas:
     length: null
     precision: 131089
     fractionalDigits: 0
-    radix: 10
   - name: "mol_file"
     databaseType: "text"
     nullable: true
@@ -274,7 +251,6 @@ relationMetadatas:
     length: 2147483647
     precision: null
     fractionalDigits: null
-    radix: null
   - name: "inchi"
     databaseType: "varchar"
     nullable: true
@@ -284,7 +260,6 @@ relationMetadatas:
     length: 2000
     precision: null
     fractionalDigits: null
-    radix: null
   - name: "inchi_key"
     databaseType: "varchar"
     nullable: true
@@ -294,7 +269,6 @@ relationMetadatas:
     length: 27
     precision: null
     fractionalDigits: null
-    radix: null
   - name: "standard_inchi"
     databaseType: "varchar"
     nullable: true
@@ -304,7 +278,6 @@ relationMetadatas:
     length: 2000
     precision: null
     fractionalDigits: null
-    radix: null
   - name: "standard_inchi_key"
     databaseType: "varchar"
     nullable: true
@@ -314,9 +287,8 @@ relationMetadatas:
     length: 27
     precision: null
     fractionalDigits: null
-    radix: null
 - relationId:
-    schema: "xdagentest"
+    schema: "public"
     name: "drug"
   relationType: "Table"
   relationComment: null
@@ -330,7 +302,6 @@ relationMetadatas:
     length: null
     precision: 10
     fractionalDigits: 0
-    radix: 10
   - name: "name"
     databaseType: "varchar"
     nullable: false
@@ -340,7 +311,6 @@ relationMetadatas:
     length: 500
     precision: null
     fractionalDigits: null
-    radix: null
   - name: "compound_id"
     databaseType: "int4"
     nullable: false
@@ -350,7 +320,6 @@ relationMetadatas:
     length: null
     precision: 10
     fractionalDigits: 0
-    radix: 10
   - name: "mesh_id"
     databaseType: "varchar"
     nullable: true
@@ -360,7 +329,6 @@ relationMetadatas:
     length: 7
     precision: null
     fractionalDigits: null
-    radix: null
   - name: "drugbank_id"
     databaseType: "varchar"
     nullable: true
@@ -370,7 +338,6 @@ relationMetadatas:
     length: 7
     precision: null
     fractionalDigits: null
-    radix: null
   - name: "cid"
     databaseType: "int4"
     nullable: true
@@ -380,7 +347,6 @@ relationMetadatas:
     length: null
     precision: 10
     fractionalDigits: 0
-    radix: 10
   - name: "therapeutic_indications"
     databaseType: "varchar"
     nullable: true
@@ -390,7 +356,6 @@ relationMetadatas:
     length: 4000
     precision: null
     fractionalDigits: null
-    radix: null
   - name: "spl"
     databaseType: "xml"
     nullable: true
@@ -400,9 +365,8 @@ relationMetadatas:
     length: null
     precision: null
     fractionalDigits: null
-    radix: null
 - relationId:
-    schema: "xdagentest"
+    schema: "public"
     name: "drug_functional_category"
   relationType: "Table"
   relationComment: null
@@ -416,7 +380,6 @@ relationMetadatas:
     length: null
     precision: 10
     fractionalDigits: 0
-    radix: 10
   - name: "functional_category_id"
     databaseType: "int4"
     nullable: false
@@ -426,7 +389,6 @@ relationMetadatas:
     length: null
     precision: 10
     fractionalDigits: 0
-    radix: 10
   - name: "authority_id"
     databaseType: "int4"
     nullable: false
@@ -436,7 +398,6 @@ relationMetadatas:
     length: null
     precision: 10
     fractionalDigits: 0
-    radix: 10
   - name: "seq"
     databaseType: "int4"
     nullable: true
@@ -446,9 +407,8 @@ relationMetadatas:
     length: null
     precision: 10
     fractionalDigits: 0
-    radix: 10
 - relationId:
-    schema: "xdagentest"
+    schema: "public"
     name: "drug_reference"
   relationType: "Table"
   relationComment: null
@@ -462,7 +422,6 @@ relationMetadatas:
     length: null
     precision: 10
     fractionalDigits: 0
-    radix: 10
   - name: "reference_id"
     databaseType: "int4"
     nullable: false
@@ -472,7 +431,6 @@ relationMetadatas:
     length: null
     precision: 10
     fractionalDigits: 0
-    radix: 10
   - name: "priority"
     databaseType: "int4"
     nullable: true
@@ -482,9 +440,8 @@ relationMetadatas:
     length: null
     precision: 10
     fractionalDigits: 0
-    radix: 10
 - relationId:
-    schema: "xdagentest"
+    schema: "public"
     name: "functional_category"
   relationType: "Table"
   relationComment: null
@@ -498,7 +455,6 @@ relationMetadatas:
     length: null
     precision: 10
     fractionalDigits: 0
-    radix: 10
   - name: "name"
     databaseType: "varchar"
     nullable: false
@@ -508,7 +464,6 @@ relationMetadatas:
     length: 500
     precision: null
     fractionalDigits: null
-    radix: null
   - name: "description"
     databaseType: "varchar"
     nullable: true
@@ -518,7 +473,6 @@ relationMetadatas:
     length: 2000
     precision: null
     fractionalDigits: null
-    radix: null
   - name: "parent_functional_category_id"
     databaseType: "int4"
     nullable: true
@@ -528,9 +482,8 @@ relationMetadatas:
     length: null
     precision: 10
     fractionalDigits: 0
-    radix: 10
 - relationId:
-    schema: "xdagentest"
+    schema: "public"
     name: "manufacturer"
   relationType: "Table"
   relationComment: null
@@ -544,7 +497,6 @@ relationMetadatas:
     length: null
     precision: 10
     fractionalDigits: 0
-    radix: 10
   - name: "name"
     databaseType: "varchar"
     nullable: false
@@ -554,9 +506,8 @@ relationMetadatas:
     length: 200
     precision: null
     fractionalDigits: null
-    radix: null
 - relationId:
-    schema: "xdagentest"
+    schema: "public"
     name: "reference"
   relationType: "Table"
   relationComment: null
@@ -570,7 +521,6 @@ relationMetadatas:
     length: null
     precision: 10
     fractionalDigits: 0
-    radix: 10
   - name: "publication"
     databaseType: "varchar"
     nullable: false
@@ -580,113 +530,112 @@ relationMetadatas:
     length: 2000
     precision: null
     fractionalDigits: null
-    radix: null
 foreignKeys:
 - sourceRelationId:
-    schema: "xdagentest"
+    schema: "public"
     name: "advisory"
   targetRelationId:
-    schema: "xdagentest"
+    schema: "public"
     name: "advisory_type"
   foreignKeyComponents:
-  - primaryKeyFieldName: "id"
-    foreignKeyFieldName: "advisory_type_id"
+  - foreignKeyFieldName: "advisory_type_id"
+    primaryKeyFieldName: "id"
 - sourceRelationId:
-    schema: "xdagentest"
+    schema: "public"
     name: "advisory"
   targetRelationId:
-    schema: "xdagentest"
+    schema: "public"
     name: "drug"
   foreignKeyComponents:
-  - primaryKeyFieldName: "id"
-    foreignKeyFieldName: "drug_id"
+  - foreignKeyFieldName: "drug_id"
+    primaryKeyFieldName: "id"
 - sourceRelationId:
-    schema: "xdagentest"
+    schema: "public"
     name: "advisory_type"
   targetRelationId:
-    schema: "xdagentest"
+    schema: "public"
     name: "authority"
   foreignKeyComponents:
-  - primaryKeyFieldName: "id"
-    foreignKeyFieldName: "authority_id"
+  - foreignKeyFieldName: "authority_id"
+    primaryKeyFieldName: "id"
 - sourceRelationId:
-    schema: "xdagentest"
+    schema: "public"
     name: "brand"
   targetRelationId:
-    schema: "xdagentest"
+    schema: "public"
     name: "drug"
   foreignKeyComponents:
-  - primaryKeyFieldName: "id"
-    foreignKeyFieldName: "drug_id"
+  - foreignKeyFieldName: "drug_id"
+    primaryKeyFieldName: "id"
 - sourceRelationId:
-    schema: "xdagentest"
+    schema: "public"
     name: "brand"
   targetRelationId:
-    schema: "xdagentest"
+    schema: "public"
     name: "manufacturer"
   foreignKeyComponents:
-  - primaryKeyFieldName: "id"
-    foreignKeyFieldName: "manufacturer_id"
+  - foreignKeyFieldName: "manufacturer_id"
+    primaryKeyFieldName: "id"
 - sourceRelationId:
-    schema: "xdagentest"
+    schema: "public"
     name: "drug"
   targetRelationId:
-    schema: "xdagentest"
+    schema: "public"
     name: "compound"
   foreignKeyComponents:
-  - primaryKeyFieldName: "id"
-    foreignKeyFieldName: "compound_id"
+  - foreignKeyFieldName: "compound_id"
+    primaryKeyFieldName: "id"
 - sourceRelationId:
-    schema: "xdagentest"
+    schema: "public"
     name: "drug_functional_category"
   targetRelationId:
-    schema: "xdagentest"
+    schema: "public"
     name: "authority"
   foreignKeyComponents:
-  - primaryKeyFieldName: "id"
-    foreignKeyFieldName: "authority_id"
+  - foreignKeyFieldName: "authority_id"
+    primaryKeyFieldName: "id"
 - sourceRelationId:
-    schema: "xdagentest"
+    schema: "public"
     name: "drug_functional_category"
   targetRelationId:
-    schema: "xdagentest"
+    schema: "public"
     name: "drug"
   foreignKeyComponents:
-  - primaryKeyFieldName: "id"
-    foreignKeyFieldName: "drug_id"
+  - foreignKeyFieldName: "drug_id"
+    primaryKeyFieldName: "id"
 - sourceRelationId:
-    schema: "xdagentest"
+    schema: "public"
     name: "drug_functional_category"
   targetRelationId:
-    schema: "xdagentest"
+    schema: "public"
     name: "functional_category"
   foreignKeyComponents:
-  - primaryKeyFieldName: "id"
-    foreignKeyFieldName: "functional_category_id"
+  - foreignKeyFieldName: "functional_category_id"
+    primaryKeyFieldName: "id"
 - sourceRelationId:
-    schema: "xdagentest"
+    schema: "public"
     name: "drug_reference"
   targetRelationId:
-    schema: "xdagentest"
+    schema: "public"
     name: "drug"
   foreignKeyComponents:
-  - primaryKeyFieldName: "id"
-    foreignKeyFieldName: "drug_id"
+  - foreignKeyFieldName: "drug_id"
+    primaryKeyFieldName: "id"
 - sourceRelationId:
-    schema: "xdagentest"
+    schema: "public"
     name: "drug_reference"
   targetRelationId:
-    schema: "xdagentest"
+    schema: "public"
     name: "reference"
   foreignKeyComponents:
-  - primaryKeyFieldName: "id"
-    foreignKeyFieldName: "reference_id"
+  - foreignKeyFieldName: "reference_id"
+    primaryKeyFieldName: "id"
 - sourceRelationId:
-    schema: "xdagentest"
+    schema: "public"
     name: "functional_category"
   targetRelationId:
-    schema: "xdagentest"
+    schema: "public"
     name: "functional_category"
   foreignKeyComponents:
-  - primaryKeyFieldName: "id"
-    foreignKeyFieldName: "parent_functional_category_id"
+  - foreignKeyFieldName: "parent_functional_category_id"
+    primaryKeyFieldName: "id"

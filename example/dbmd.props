@@ -1,0 +1,10 @@
+jdbc-driver-class=org.postgresql.Driver
+jdbc-connect-url=jdbc:postgresql://localhost:5432/drugs
+user=drugsuser
+password=drugspassword
+relations-owner=public
+# output-format=yaml|json
+output-format=yaml
+# date-mapping => DATES_AS_DRIVER_REPORTED | DATES_AS_TIMESTAMPS | DATES_AS_DATES
+date-mapping=DATES_AS_DRIVER_REPORTED
+#exclude-relations-fqname-regex

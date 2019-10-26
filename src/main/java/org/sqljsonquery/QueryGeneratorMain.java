@@ -10,11 +10,11 @@ import static java.util.Optional.empty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
-import gov.fda.nctr.dbmd.DBMD;
 
 import org.sqljsonquery.util.Pair;
 import static org.sqljsonquery.util.Optionals.opt;
 import static org.sqljsonquery.util.Files.newFileOrStdoutWriter;
+import org.sqljsonquery.dbmd.DatabaseMetadata;
 import org.sqljsonquery.spec.QueriesSpec;
 import org.sqljsonquery.spec.ResultsRepr;
 import org.sqljsonquery.types.JavaWriter;
@@ -22,7 +22,7 @@ import org.sqljsonquery.types.SourceCodeWriter;
 import static org.sqljsonquery.types.JavaWriter.NullableFieldRepr;
 
 
-public class Main
+public class QueryGeneratorMain
 {
    private static void printUsage(PrintStream ps)
    {
@@ -75,7 +75,7 @@ public class Main
          ObjectMapper yamlMapper = new ObjectMapper(new YAMLFactory());
          yamlMapper.registerModule(new Jdk8Module());
 
-         DBMD dbmd = yamlMapper.readValue(dbmdIS, DBMD.class);
+         DatabaseMetadata dbmd = yamlMapper.readValue(dbmdIS, DatabaseMetadata.class);
          QueriesSpec queriesSpec = yamlMapper.readValue(queriesSpecIS, QueriesSpec.class);
 
          Optional<Path> srcOutputBaseDirPath = outputDirs.map(Pair::fst);

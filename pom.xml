@@ -30,9 +30,9 @@
       <version>2.8.10</version>
     </dependency>
     <dependency>
-      <groupId>gov.fda.nctr</groupId>
-      <artifactId>dbmd</artifactId>
-      <version>3.0.7-SNAPSHOT</version>
+      <groupId>org.postgresql</groupId>
+      <artifactId>postgresql</artifactId>
+      <version>42.2.8</version>
     </dependency>
   </dependencies>
 

@@ -2,7 +2,7 @@ package org.sqljsonquery.types;
 
 import java.util.Optional;
 
-import gov.fda.nctr.dbmd.Field;
+import org.sqljsonquery.dbmd.Field;
 
 
 public class DatabaseField

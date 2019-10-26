@@ -3,7 +3,7 @@ package org.sqljsonquery.types;
 import java.util.ArrayList;
 import java.util.List;
 
-import gov.fda.nctr.dbmd.Field;
+import org.sqljsonquery.dbmd.Field;
 
 
 public class GeneratedTypeBuilder

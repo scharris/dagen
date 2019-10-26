@@ -1,6 +1,8 @@
 package org.sqljsonquery.util;
 
+import java.util.Optional;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 
 public final class StringFuns
@@ -75,6 +77,12 @@ public final class StringFuns
          return s.substring(1, s.length()-1);
       return s;
    }
+
+   public static boolean matches(Optional<Pattern> pat, String s)
+   {
+      return pat.map(p -> p.matcher(s).matches()).orElse(false);
+   }
+
 
    private StringFuns() {}
 }

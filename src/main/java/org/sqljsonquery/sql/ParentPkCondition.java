@@ -5,8 +5,8 @@ import java.util.List;
 import static java.util.Collections.unmodifiableList;
 import static java.util.stream.Collectors.joining;
 
-import gov.fda.nctr.dbmd.DBMD;
-import gov.fda.nctr.dbmd.ForeignKey;
+import org.sqljsonquery.dbmd.DatabaseMetadata;
+import org.sqljsonquery.dbmd.ForeignKey;
 
 
 public class ParentPkCondition implements ParentChildCondition
@@ -24,7 +24,7 @@ public class ParentPkCondition implements ParentChildCondition
 
    public List<ForeignKey.Component> getMatchedFields() { return matchedFields; }
 
-   public String asEquationConditionOn(String parentAlias, DBMD dbmd)
+   public String asEquationConditionOn(String parentAlias, DatabaseMetadata dbmd)
    {
       return
          matchedFields.stream()
