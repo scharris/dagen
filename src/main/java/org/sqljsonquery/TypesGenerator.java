@@ -43,10 +43,7 @@ public class TypesGenerator
       GeneratedTypeBuilder typeBuilder = new GeneratedTypeBuilder(typeName);
 
       RelId relId = dbmd.identifyTable(tos.getTable(), defaultSchema);
-      RelMetadata relMd = dbmd.getRelationMetadata(relId).orElseThrow(() ->
-         new RuntimeException("Metadata for table " + relId + " not found.")
-      );
-      Map<String,Field> dbFieldsByName = relMd.getFields().stream().collect(toMap(Field::getName, identity()));
+      Map<String,Field> dbFieldsByName = getTableFieldsByName(relId);
 
       // Add this table's own directly contained database fields to the generated type.
       for ( TableOutputField tof : tos.getTableOutputFields() )
@@ -104,23 +101,35 @@ public class TypesGenerator
       return generatedTypes;
    }
 
+   private Map<String,Field> getTableFieldsByName(RelId relId)
+   {
+      RelMetadata relMd = dbmd.getRelationMetadata(relId).orElseThrow(() ->
+         new RuntimeException("Metadata for table " + relId + " not found.")
+      );
+
+      return relMd.getFields().stream().collect(toMap(Field::getName, identity()));
+   }
+
    private boolean someFkFieldKnownNotNullable(RelId childRelId, ParentTableSpec parentTableSpec)
    {
       RelId parentRelId = dbmd.identifyTable(parentTableSpec.getTableOutputSpec().getTable(), defaultSchema);
       Optional<Set<String>> specFkFields = parentTableSpec.getChildForeignKeyFieldsSet();
-      ForeignKey fk = dbmd.getForeignKeyFromTo(childRelId, parentRelId, specFkFields, REGISTERED_TABLES_ONLY).orElseThrow(
-         () -> new RuntimeException("foreign key to parent not found")
+      ForeignKey fk = dbmd.getForeignKeyFromTo(childRelId, parentRelId, specFkFields, REGISTERED_TABLES_ONLY).orElseThrow(() ->
+         new RuntimeException("foreign key to parent not found")
       );
 
-      RelMetadata childRelMd = dbmd.getRelationMetadata(childRelId).orElseThrow(
-         () -> new RuntimeException("child table metadata not found")
-      );
+      Map<String,Field> childFieldsByName = getTableFieldsByName(childRelId);
 
-      List<String> fkFieldNames = fk.getSourceFieldNames();
+      for ( String fkFieldName : fk.getSourceFieldNames() )
+      {
+         Field fkField = childFieldsByName.get(fkFieldName);
+         if ( fkField == null )
+            throw new RuntimeException("foreign key not found");
 
-      return
-         childRelMd.getFields().stream()
-         .anyMatch(f -> fkFieldNames.contains(f.getName()) && !(f.getNullable().orElse(true)));
+         if ( !fkField.getNullable().orElse(true) )
+            return true;
+      }
+      return false;
    }
 
 }
