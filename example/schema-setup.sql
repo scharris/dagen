@@ -201,14 +201,12 @@ create index brand_mfr_ix
     on brand (manufacturer_id);
 
 
-
-
 -- Test data
 
 insert into authority(id, name, url, description)
   values(1, 'FDA', 'http://www.fda.gov', 'Food and Drug Administration');
 insert into advisory_type(id, name, authority_id)
- values(1, 'Black Box Warning', 1);
+ values(1, 'Boxed Warning', 1);
 insert into advisory_type(id, name, authority_id)
  values(2, 'Caution', 1);
 insert into functional_category(id, name, description, parent_functional_category_id)
@@ -232,13 +230,20 @@ insert into manufacturer(id, name)
 
 
 insert into compound(id, display_name, nctr_isis_id, cas)
- select n, 'Test Compound ' || n , 'ISIS-' || n , '5'||n||n||n||n||'-'||n||n
- from generate_series(1,5) n
+  select n,
+    'Test Compound ' || n ,
+    'ISIS-' || n ,
+    '5'||n||n||n||n||'-'||n||n
+  from generate_series(1,5) n
 ;
 
 insert into drug(id, name, compound_id, therapeutic_indications, spl)
- select generate_series, 'Test Drug ' || generate_series, generate_series, 'Indication ' || generate_series, xmlparse(document '<document><gen-name>drug ' || generate_series || '</gen-name></document>')
- from generate_series(1,5)
+  select
+    generate_series,
+    'Test Drug ' || generate_series, generate_series,
+    'Indication ' || generate_series,
+    xmlparse(document '<document><gen-name>drug ' || generate_series || '</gen-name></document>')
+  from generate_series(1,5)
 ;
 
 

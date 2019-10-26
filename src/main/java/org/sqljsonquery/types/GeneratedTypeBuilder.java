@@ -36,6 +36,13 @@ public class GeneratedTypeBuilder
    }
    public void addParentReferenceFields(List<ParentReferenceField> fs) { parentReferenceFields.addAll(fs); }
 
+   public void addAllFieldsFrom(GeneratedType generatedType)
+   {
+      addDatabaseFields(generatedType.getDatabaseFields());
+      addChildCollectionFields(generatedType.getChildCollectionFields());
+      addParentReferenceFields(generatedType.getParentReferenceFields());
+   }
+
    public GeneratedType build()
    {
       return new GeneratedType(unqualifiedClassName, databaseFields, childCollectionFields, parentReferenceFields);

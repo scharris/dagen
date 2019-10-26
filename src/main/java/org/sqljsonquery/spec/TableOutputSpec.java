@@ -1,6 +1,7 @@
 package org.sqljsonquery.spec;
 
 import java.util.*;
+
 import static java.util.Collections.emptyList;
 import static java.util.Collections.unmodifiableList;
 import static java.util.Objects.requireNonNull;
@@ -8,13 +9,15 @@ import static java.util.Objects.requireNonNull;
 
 public final class TableOutputSpec
 {
-   private String table;
+   private String tableName; // possibly qualified
 
-   private List<TableOutputField> tableOutputFields = emptyList();
+   private List<TableOutputField> fields = emptyList();
 
-   private List<ChildTableSpec> childTableSpecs = emptyList();
+   private List<InlineParentTableSpec> inlineParents = emptyList();
 
-   private List<ParentTableSpec> parentTableSpecs = emptyList();
+   private List<WrappedParentTableSpec> wrappedParents = emptyList();
+
+   private List<ChildTableSpec> childTables = emptyList();
 
    private Optional<String> filter = Optional.empty();
 
@@ -22,35 +25,41 @@ public final class TableOutputSpec
 
    private TableOutputSpec
    (
-      String table,
-      List<TableOutputField> tableOutputFields,
-      List<ChildTableSpec> childTableSpecs,
-      List<ParentTableSpec> parentTableSpecs,
+      String tableName,
+      List<TableOutputField> fields,
+      List<InlineParentTableSpec> inlineParents,
+      List<WrappedParentTableSpec> wrappedParents,
+      List<ChildTableSpec> childTables,
       Optional<String> filter
    )
    {
-      requireNonNull(table);
-      requireNonNull(tableOutputFields);
-      requireNonNull(childTableSpecs);
-      requireNonNull(parentTableSpecs);
+      requireNonNull(tableName);
+      requireNonNull(fields);
+      requireNonNull(inlineParents);
+      requireNonNull(wrappedParents);
+      requireNonNull(childTables);
       requireNonNull(filter);
 
-      this.table = table;
-      this.tableOutputFields = unmodifiableList(new ArrayList<>(tableOutputFields));
-      this.childTableSpecs = unmodifiableList(new ArrayList<>(childTableSpecs));
-      this.parentTableSpecs = unmodifiableList(new ArrayList<>(parentTableSpecs));
+      this.tableName = tableName;
+      this.fields = unmodifiableList(new ArrayList<>(fields));
+      this.inlineParents = unmodifiableList(new ArrayList<>(inlineParents));
+      this.wrappedParents = unmodifiableList(new ArrayList<>(wrappedParents));
+      this.childTables = unmodifiableList(new ArrayList<>(childTables));
       this.filter = filter;
    }
 
    /// The table name, possibly schema-qualified, of this output specification.
-   public String getTable() { return table; }
+   public String getTableName() { return tableName; }
 
    /// The output fields which originate from fields of this table.
-   public List<TableOutputField> getTableOutputFields() { return tableOutputFields; }
+   public List<TableOutputField> getFields() { return fields; }
 
-   public List<ChildTableSpec> getChildTableSpecs() { return childTableSpecs; }
+   public List<InlineParentTableSpec> getInlineParents() { return inlineParents; }
 
-   public List<ParentTableSpec> getParentTableSpecs() { return parentTableSpecs; }
+   public List<WrappedParentTableSpec> getWrappedParents() { return wrappedParents; }
+
+   public List<ChildTableSpec> getChildTables() { return childTables; }
 
    public Optional<String> getFilter() { return filter; }
+
 }

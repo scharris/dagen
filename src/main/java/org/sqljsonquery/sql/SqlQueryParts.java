@@ -44,8 +44,17 @@ public class SqlQueryParts
    public void addFromClauseEntry(String entry) { fromEntries.add(entry); }
    public void addFromClauseEntries(List<String> entries) { fromEntries.addAll(entries); }
    public void addWhereClauseEntry(String entry) { whereEntries.add(entry); }
+   public void addWhereClauseEntries(List<String> entries) { whereEntries.addAll(entries); }
    public void addAliasToScope(String alias) { aliasesInScope.add(alias); }
    public void addAliasesToScope(Set<String> aliases) { aliasesInScope.addAll(aliases); }
+
+   public void addParts(SqlQueryParts otherParts)
+   {
+      addSelectClauseEntries(otherParts.getSelectClauseEntries());
+      addFromClauseEntries(otherParts.getFromClauseEntries());
+      addWhereClauseEntries(otherParts.getWhereClauseEntries());
+      addAliasesToScope(otherParts.getAliasesInScope());
+   }
 
    public List<Pair<String, String>> getSelectClauseEntries() { return unmodifiableList(selectEntries); }
    public List<String> getFromClauseEntries() { return unmodifiableList(fromEntries); }

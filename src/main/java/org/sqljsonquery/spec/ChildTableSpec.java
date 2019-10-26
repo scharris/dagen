@@ -7,8 +7,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 
 public final class ChildTableSpec
 {
-   private String collectionFieldName;
-   private TableOutputSpec tableOutputSpec;
+   private String childCollectionName;
+   private TableOutputSpec childTableOutputSpec;
    private Optional<List<String>> foreignKeyFields = Optional.empty();
    private Optional<String> filter = Optional.empty();
 
@@ -17,20 +17,20 @@ public final class ChildTableSpec
    public ChildTableSpec
    (
       String fieldName,
-      TableOutputSpec tableOutputSpec,
+      TableOutputSpec childTableOutputSpec,
       Optional<List<String>> fkFields,
       Optional<String> filter
    )
    {
-      this.collectionFieldName = fieldName;
-      this.tableOutputSpec = tableOutputSpec;
+      this.childCollectionName = fieldName;
+      this.childTableOutputSpec = childTableOutputSpec;
       this.foreignKeyFields = fkFields.map(Collections::unmodifiableList);
       this.filter = filter;
    }
 
-   public String getCollectionFieldName() { return collectionFieldName; }
+   public String getChildCollectionName() { return childCollectionName; }
 
-   public TableOutputSpec getTableOutputSpec() { return tableOutputSpec; }
+   public TableOutputSpec getChildTableOutputSpec() { return childTableOutputSpec; }
 
    public Optional<List<String>> getForeignKeyFields() { return foreignKeyFields; }
 

@@ -6,19 +6,13 @@ import static java.util.stream.Collectors.*;
 import static java.util.Optional.empty;
 import static java.util.function.Function.identity;
 
+import org.sqljsonquery.spec.*;
 import org.sqljsonquery.util.*;
 import static org.sqljsonquery.util.StringFuns.*;
 import static org.sqljsonquery.util.CollFuns.*;
 import static org.sqljsonquery.util.Optionals.opt;
 import org.sqljsonquery.dbmd.*;
 import static org.sqljsonquery.dbmd.ForeignKeyScope.REGISTERED_TABLES_ONLY;
-import org.sqljsonquery.spec.ResultsRepr;
-import org.sqljsonquery.spec.TableOutputSpec;
-import org.sqljsonquery.spec.QueriesSpec;
-import org.sqljsonquery.spec.QuerySpec;
-import org.sqljsonquery.spec.TableOutputField;
-import org.sqljsonquery.spec.ChildTableSpec;
-import org.sqljsonquery.spec.ParentTableSpec;
 import org.sqljsonquery.sql.ChildFkCondition;
 import org.sqljsonquery.sql.ParentChildCondition;
 import org.sqljsonquery.sql.ParentPkCondition;
@@ -92,7 +86,6 @@ public class QueryGenerator
    private String makeSqlForResultsRepr(QuerySpec querySpec, ResultsRepr resultsRepr)
    {
       TableOutputSpec tos = querySpec.getTableOutputSpec();
-
       switch (resultsRepr)
       {
          case MULTI_COLUMN_ROWS: return makeBaseQuery(tos, empty(), false).getSql();
@@ -132,7 +125,7 @@ public class QueryGenerator
       SqlQueryParts q = new SqlQueryParts();
 
       // Identify this table and make an alias for it.
-      RelId relId = dbmd.identifyTable(tableOutputSpec.getTable(), defaultSchema);
+      RelId relId = dbmd.identifyTable(tableOutputSpec.getTableName(), defaultSchema);
       parentChildCond.ifPresent(pcCond ->
          q.addAliasToScope(pcCond.getOtherTableAlias())
       );
@@ -142,7 +135,7 @@ public class QueryGenerator
       // If exporting pk fields, add any that aren't already in the output fields list to the select clause.
       Set<String> hiddenPkFields = new HashSet<>();
       if ( exportPkFields )
-         for ( String pkFieldName : getOmittedPkFieldNames(relId, tableOutputSpec.getTableOutputFields()) )
+         for ( String pkFieldName : getOmittedPkFieldNames(relId, tableOutputSpec.getFields()) )
          {
             String pkf = dbmd.quoteIfNeeded(pkFieldName);
             q.addSelectClauseEntry(alias + "." + pkf, pkf);
@@ -150,27 +143,26 @@ public class QueryGenerator
          }
 
       // Add this table's own output fields to the select clause.
-      for ( TableOutputField tof : tableOutputSpec.getTableOutputFields() )
+      for ( TableOutputField tof : tableOutputSpec.getFields() )
          q.addSelectClauseEntry(
             alias + "." + tof.getDatabaseFieldName(), // db fields must be quoted as needed in queries spec itself
             dbmd.quoteIfNeeded(tof.getFinalOutputFieldName())
          );
 
       // Add child record collections to the select clause.
-      for ( ChildTableSpec childTableSpec : tableOutputSpec.getChildTableSpecs() )
+      for ( ChildTableSpec childTableSpec : tableOutputSpec.getChildTables() )
          q.addSelectClauseEntry(
             "(\n" + indent(makeChildRecordsQuery(childTableSpec, relId, alias)) + "\n)",
-            dbmd.quoteIfNeeded(childTableSpec.getCollectionFieldName())
+            dbmd.quoteIfNeeded(childTableSpec.getChildCollectionName())
          );
 
-      // Add parent table objects, inline fields and supporting from clause entries.
-      for ( ParentTableSpec parentTableSpec :  tableOutputSpec.getParentTableSpecs() )
-      {
-         SqlQueryParts parentParts = getParentBaseQueryParts(parentTableSpec, relId, alias, q.getAliasesInScope());
-         q.addSelectClauseEntries(parentParts.getSelectClauseEntries());
-         q.addFromClauseEntries(parentParts.getFromClauseEntries());
-         q.addAliasesToScope(parentParts.getAliasesInScope());
-      }
+      // Add query parts for inline parents.
+      for ( InlineParentTableSpec inlineParentTableSpec : tableOutputSpec.getInlineParents() )
+         q.addParts(getInlineParentBaseQueryParts(inlineParentTableSpec, relId, alias, q.getAliasesInScope()));
+
+      // Add parts for wrapped parents.
+      for ( WrappedParentTableSpec wrappedParentTableSpec : tableOutputSpec.getWrappedParents() )
+         q.addParts(getWrappedParentBaseQueryParts(wrappedParentTableSpec, relId, alias));
 
       // Add parent/child relationship filter condition if any to the where clause.
       parentChildCond.ifPresent(pcCond ->
@@ -228,9 +220,9 @@ public class QueryGenerator
       String parentAlias
    )
    {
-      TableOutputSpec tos = childTableSpec.getTableOutputSpec();
+      TableOutputSpec tos = childTableSpec.getChildTableOutputSpec();
 
-      RelId relId = dbmd.identifyTable(tos.getTable(), defaultSchema);
+      RelId relId = dbmd.identifyTable(tos.getTableName(), defaultSchema);
 
       ForeignKey fk = getForeignKey(relId, parentRelId, childTableSpec.getForeignKeyFieldsSet());
 
@@ -239,66 +231,69 @@ public class QueryGenerator
       return makeJsonResultSql(tos, opt(childFkCond), true);
    }
 
-   private SqlQueryParts getParentBaseQueryParts
+   private SqlQueryParts getInlineParentBaseQueryParts
    (
-      ParentTableSpec parentTableSpec,
+      InlineParentTableSpec inlineParentTableSpec,
       RelId childRelId,
       String childAlias,
       Set<String> avoidAliases
    )
    {
-      if ( parentTableSpec.getWrapperFieldName().isPresent() )
-      {
-         // a wrapped parent only requires a SELECT clause entry
-         return new SqlQueryParts(
-            singletonList(Pair.make(
-               "(\n" + indent(makeParentRecordQuery(parentTableSpec, childRelId, childAlias)) + "\n)",
-               dbmd.quoteIfNeeded(parentTableSpec.getWrapperFieldName().get())
-            )),
-            emptyList(), emptyList(), emptySet()
-         );
-      }
-      else // inline parent fields - must add a FROM clause entry in addition to entries in the SELECT clause
-      {
-         SqlQueryParts q = new SqlQueryParts();
+      SqlQueryParts q = new SqlQueryParts();
 
-         TableOutputSpec tos = parentTableSpec.getTableOutputSpec();
-         String table = tos.getTable();
-         RelId relId = dbmd.identifyTable(table, defaultSchema);
-         ForeignKey fk = getForeignKey(childRelId, relId, parentTableSpec.getChildForeignKeyFieldsSet());
+      TableOutputSpec tos = inlineParentTableSpec.getInlineParentTableOutputSpec();
+      String table = tos.getTableName();
+      RelId relId = dbmd.identifyTable(table, defaultSchema);
+      ForeignKey fk = getForeignKey(childRelId, relId, inlineParentTableSpec.getChildForeignKeyFieldsSet());
 
-         BaseQuery fromClauseQuery = makeBaseQuery(tos, empty(), true);
+      BaseQuery fromClauseQuery = makeBaseQuery(tos, empty(), true);
 
-         String fromClauseQueryAlias = makeNameNotInSet("q", avoidAliases);
-         q.addAliasToScope(fromClauseQueryAlias);
+      String fromClauseQueryAlias = makeNameNotInSet("q", avoidAliases);
+      q.addAliasToScope(fromClauseQueryAlias);
 
-         for ( String parentCol : fromClauseQuery.getResultColumnNames() )
-            q.addSelectClauseEntry(fromClauseQueryAlias + "." + parentCol, parentCol);
+      for ( String parentCol : fromClauseQuery.getResultColumnNames() )
+         q.addSelectClauseEntry(fromClauseQueryAlias + "." + parentCol, parentCol);
 
-         ParentPkCondition parentPkCond = new ParentPkCondition(childAlias, fk.getForeignKeyComponents());
-         String join = parentTableSpec.getOmitChildRowWhenUnwrappedParentMissing() ? "join" : "left join";
-         q.addFromClauseEntry(
-            join + " (\n" +
-               indent(fromClauseQuery.getSql()) + "\n" +
+      ParentPkCondition parentPkCond = new ParentPkCondition(childAlias, fk.getForeignKeyComponents());
+      String join = inlineParentTableSpec.getOmitChildRowWhenParentMissing() ? "join" : "left join";
+      q.addFromClauseEntry(
+         join + " (\n" +
+            indent(fromClauseQuery.getSql()) + "\n" +
             ") " + fromClauseQueryAlias + " on " + parentPkCond.asEquationConditionOn(fromClauseQueryAlias, dbmd)
-         );
+      );
 
-         return q;
-      }
+      return q;
+   }
+
+   private SqlQueryParts getWrappedParentBaseQueryParts
+      (
+         WrappedParentTableSpec wrappedParentTableSpec,
+         RelId childRelId,
+         String childAlias
+      )
+   {
+      // a wrapped parent only requires a SELECT clause entry
+      return new SqlQueryParts(
+         singletonList(Pair.make(
+            "(\n" + indent(makeParentRecordQuery(wrappedParentTableSpec, childRelId, childAlias)) + "\n)",
+            dbmd.quoteIfNeeded(wrappedParentTableSpec.getWrapperFieldName())
+         )),
+         emptyList(), emptyList(), emptySet()
+      );
    }
 
    private String makeParentRecordQuery
    (
-      ParentTableSpec parentTableSpec,
+      WrappedParentTableSpec wrappedParentTableSpec,
       RelId childRelId,
       String childAlias
    )
    {
-      TableOutputSpec tos = parentTableSpec.getTableOutputSpec();
+      TableOutputSpec tos = wrappedParentTableSpec.getWrappedParentTableOutputSpec();
 
-      RelId relId = dbmd.identifyTable(tos.getTable(), defaultSchema);
+      RelId relId = dbmd.identifyTable(tos.getTableName(), defaultSchema);
 
-      ForeignKey fk = getForeignKey(childRelId, relId, parentTableSpec.getChildForeignKeyFieldsSet());
+      ForeignKey fk = getForeignKey(childRelId, relId, wrappedParentTableSpec.getChildForeignKeyFieldsSet());
 
       ParentPkCondition parentPkCond = new ParentPkCondition(childAlias, fk.getForeignKeyComponents());
 
@@ -373,7 +368,10 @@ public class QueryGenerator
    {
       return
          dbmd.getForeignKeyFromTo(childRelId, parentRelId, foreignKeyFields, REGISTERED_TABLES_ONLY)
-         .orElseThrow(() -> new RuntimeException("foreign key not found"));
+         .orElseThrow(() -> new RuntimeException(
+            "foreign key not found from " + childRelId.getName() + " to " + parentRelId.getName() +
+            " via fks " + foreignKeyFields
+         ));
    }
 
    private String indent(String s)
@@ -396,10 +394,9 @@ public class QueryGenerator
       {
          case PG: return new PostgresDialect(indentSpaces);
          case ORA: return new OracleDialect(indentSpaces);
-         default: throw new RuntimeException("dbms not supported");
+         default: throw new RuntimeException("dbms type " + dbmsType + " is currently not supported");
       }
    }
-
 
    private static class BaseQuery
    {

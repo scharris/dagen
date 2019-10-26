@@ -1,0 +1,95 @@
+defaultSchema: public
+querySpecs:
+  - queryName: drugs query
+    resultsRepresentations:
+      - JSON_OBJECT_ROWS
+      - MULTI_COLUMN_ROWS
+      - JSON_ARRAY_ROW
+    generateResultTypes: yes
+    tableOutputSpec:
+      tableName: drug
+      fields:
+        - databaseFieldName: name
+        - databaseFieldName: mesh_id
+          outputName: meshId
+        - databaseFieldName: drugbank_id
+          outputName: drugbankId
+        - databaseFieldName: cid
+        - databaseFieldName: therapeutic_indications
+          outputName: therapeuticIndications
+      childTables:
+        - childCollectionName: references
+          childTableOutputSpec:
+            tableName: drug_reference
+            inlineParents:
+              - inlineParentTableOutputSpec:
+                  tableName: reference
+                  fields:
+                    - databaseFieldName: publication
+        - childCollectionName: brands
+          childTableOutputSpec:
+            tableName: brand
+            fields:
+              - databaseFieldName: brand_name
+                outputName: brandName
+            inlineParents:
+              - inlineParentTableOutputSpec:
+                  tableName: manufacturer
+                  fields:
+                    - databaseFieldName: name
+                      outputName: manufacturer
+        - childCollectionName: advisories
+          childTableOutputSpec:
+            tableName: advisory
+            fields:
+              - databaseFieldName: text
+                outputName: advisoryText
+            inlineParents:
+              - inlineParentTableOutputSpec:
+                  tableName: advisory_type
+                  fields:
+                    - databaseFieldName: name
+                      outputName: advisoryType
+                  inlineParents:
+                    - inlineParentTableOutputSpec:
+                        tableName: authority
+                        fields:
+                          - databaseFieldName: name
+                            outputName: authority
+                          - databaseFieldName: url
+                            outputName: authorityUrl
+                          - databaseFieldName: description
+                            outputName: authorityDescription
+        - childCollectionName: functionalCategories
+          childTableOutputSpec:
+            tableName: drug_functional_category
+            inlineParents:
+              - inlineParentTableOutputSpec:
+                  tableName: functional_category
+                  fields:
+                    - databaseFieldName: name
+                      outputName: categoryName
+                    - databaseFieldName: description
+              - inlineParentTableOutputSpec:
+                  tableName: authority
+                  fields:
+                    - databaseFieldName: name
+                      outputName: authority
+                    - databaseFieldName: url
+                      outputName: authorityUrl
+                    - databaseFieldName: description
+                      outputName: authorityDescription
+      wrappedParents:
+        # Wrapper field is optional, omit to include fields inline in containing table output.
+        - wrapperFieldName: compound
+          childForeignKeyFields:
+            - compound_id
+          wrappedParentTableOutputSpec:
+            tableName: compound
+            fields:
+              - databaseFieldName: display_name
+                outputName: displayName
+              - databaseFieldName: nctr_isis_id
+                outputName: nctrIsisId
+              - databaseFieldName: cas
+      filter: '$d : not $d.id = 2' # "<alias-var> : <expr using alias-var>", both sides trimmed
