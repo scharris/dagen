@@ -1,12 +1,11 @@
 package org.sqljsonquery;
 
 import java.util.*;
-
-import static gov.fda.nctr.dbmd.DBMD.ForeignKeyScope.REGISTERED_TABLES_ONLY;
 import static java.util.stream.Collectors.*;
 import static java.util.function.Function.identity;
 
 import gov.fda.nctr.dbmd.*;
+import static gov.fda.nctr.dbmd.DBMD.ForeignKeyScope.REGISTERED_TABLES_ONLY;
 
 import static org.sqljsonquery.util.StringFuns.*;
 import org.sqljsonquery.spec.TableOutputSpec;
@@ -33,18 +32,21 @@ public class TypesGenerator
       this.defaultSchema = defaultSchema;
    }
 
-   public List<GeneratedType> makeResultTypeDefinitions(TableOutputSpec tos)
+   public List<GeneratedType> generateTypes(TableOutputSpec tos, Set<String> typeNamesInScope)
    {
+      List<GeneratedType> generatedTypes = new ArrayList<>();
+      Set<String> avoidTypeNames = new HashSet<>(typeNamesInScope);
+
+      String typeName = makeNameNotInSet(camelCase(tos.getTable()), avoidTypeNames);
+      avoidTypeNames.add(typeName);
+
+      GeneratedTypeBuilder typeBuilder = new GeneratedTypeBuilder(typeName);
+
       RelId relId = dbmd.identifyTable(tos.getTable(), defaultSchema);
       RelMetadata relMd = dbmd.getRelationMetadata(relId).orElseThrow(() ->
          new RuntimeException("Metadata for table " + relId + " not found.")
       );
       Map<String,Field> dbFieldsByName = relMd.getFields().stream().collect(toMap(Field::getName, identity()));
-
-      // TODO: Ensure that the type name is unique here across all generated types, maybe put in subpackage by query name.
-      String typeName = camelCase(tos.getTable());
-
-      GeneratedTypeBuilder typeBuilder = new GeneratedTypeBuilder(typeName);
 
       // Add this table's own directly contained database fields to the generated type.
       for ( TableOutputField tof : tos.getTableOutputFields() )
@@ -52,19 +54,21 @@ public class TypesGenerator
          Field dbField = dbFieldsByName.get(dbmd.normalizeName(tof.getDatabaseFieldName()));
          if ( dbField == null )
             throw new RuntimeException("no metadata for field " + tos.getTable() + "." + tof.getDatabaseFieldName());
+
          typeBuilder.addDatabaseField(tof.getFinalOutputFieldName(), dbField);
       }
-
-      List<GeneratedType> generatedTypes = new ArrayList<>();
 
       // Add each child table's types to the overall list of generated types, and their collection fields to this type.
       for ( ChildTableSpec childTableSpec : tos.getChildTableSpecs() )
       {
          // Generate types by traversing the child table and its parents and children.
-         List<GeneratedType> childGenTypes = makeResultTypeDefinitions(childTableSpec.getTableOutputSpec());
+         List<GeneratedType> childGenTypes = generateTypes(childTableSpec.getTableOutputSpec(), avoidTypeNames);
          GeneratedType childType = childGenTypes.get(0);
-         generatedTypes.addAll(childGenTypes);
+
          typeBuilder.addChildCollectionField(childTableSpec.getCollectionFieldName(), childType);
+
+         generatedTypes.addAll(childGenTypes);
+         childGenTypes.forEach(t -> avoidTypeNames.add(t.getTypeName()));
       }
 
       // Add each parent table's types to the overall list of generated types, and to this type either add a reference
@@ -72,23 +76,26 @@ public class TypesGenerator
       for ( ParentTableSpec parentTableSpec :  tos.getParentTableSpecs() )
       {
          // Generate types by traversing the parent table and its parents and children.
-         List<GeneratedType> parentGenTypes = makeResultTypeDefinitions(parentTableSpec.getTableOutputSpec());
-         GeneratedType parentType = parentGenTypes.get(0);
-
-         boolean nullableFk = !someFkFieldKnownNotNullable(relId, parentTableSpec);
+         List<GeneratedType> parentGenTypes = generateTypes(parentTableSpec.getTableOutputSpec(), avoidTypeNames);
+         GeneratedType parentType = parentGenTypes.get(0); // (may not be actually generated)
 
          if ( parentTableSpec.getWrapperFieldName().isPresent() )
          {
+            boolean nullableFk = !someFkFieldKnownNotNullable(relId, parentTableSpec);
             typeBuilder.addParentReferenceField(parentTableSpec.getWrapperFieldName().get(), parentType, nullableFk);
+
             generatedTypes.addAll(parentGenTypes);
+            parentGenTypes.forEach(t -> avoidTypeNames.add(t.getTypeName()));
          }
          else
-         {
+         {  // An inline/unwrapped parent has no type generated for the parent top table, we just include its fields.
             typeBuilder.addDatabaseFields(parentType.getDatabaseFields());
             typeBuilder.addChildCollectionFields(parentType.getChildCollectionFields());
             typeBuilder.addParentReferenceFields(parentType.getParentReferenceFields());
-            // An inline/unwrapped parent needs no type generated for the parent table itself.
-            generatedTypes.addAll(parentGenTypes.subList(1, parentGenTypes.size()));
+
+            List<GeneratedType> actualGenParentTypes = parentGenTypes.subList(1, parentGenTypes.size());
+            generatedTypes.addAll(actualGenParentTypes);
+            actualGenParentTypes.forEach(t -> avoidTypeNames.add(t.getTypeName()));
          }
       }
 

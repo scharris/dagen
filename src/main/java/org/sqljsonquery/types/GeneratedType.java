@@ -25,7 +25,7 @@ public class GeneratedType
       this.parentReferenceFields = unmodifiableList(new ArrayList<>(parentReferenceFields));
    }
 
-   public String getUnqualifiedClassName() { return unqualifiedClassName; }
+   public String getTypeName() { return unqualifiedClassName; }
 
    public List<DatabaseField> getDatabaseFields() { return databaseFields; }
 

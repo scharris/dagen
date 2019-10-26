@@ -97,7 +97,7 @@ public class JavaWriter implements SourceCodeWriter
    {
       StringBuilder sb = new StringBuilder();
 
-      String typeName = generatedType.getUnqualifiedClassName();
+      String typeName = generatedType.getTypeName();
 
       sb.append("public static class ");
       sb.append(typeName);
@@ -115,7 +115,7 @@ public class JavaWriter implements SourceCodeWriter
       for ( ChildCollectionField childCollField : generatedType.getChildCollectionFields() )
       {
          sb.append("   public List<");
-         sb.append(childCollField.generatedType.getUnqualifiedClassName());
+         sb.append(childCollField.generatedType.getTypeName());
          sb.append("> ");
          sb.append(childCollField.getName());
          sb.append(";\n");
@@ -203,8 +203,8 @@ public class JavaWriter implements SourceCodeWriter
    {
       return
          !parentRefField.isNullable() ?
-            parentRefField.generatedType.getUnqualifiedClassName()
-            : nullableType(parentRefField.generatedType.getUnqualifiedClassName());
+            parentRefField.generatedType.getTypeName()
+            : nullableType(parentRefField.generatedType.getTypeName());
    }
 
    private String nullableType(String baseType)

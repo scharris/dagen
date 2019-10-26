@@ -84,7 +84,7 @@ public class QueryGenerator
 
       List<GeneratedType> generatedTypes =
          querySpec.getGenerateResultTypes() ?
-            typesGenerator.makeResultTypeDefinitions(querySpec.getTableOutputSpec())
+            typesGenerator.generateTypes(querySpec.getTableOutputSpec(), emptySet())
             : emptyList();
 
       return new SqlJsonQuery(queryName, querySqls, generatedTypes);

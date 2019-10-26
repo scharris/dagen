@@ -14,8 +14,7 @@ public final class StringFuns
       else
       {
          int i = 1;
-         while(existingNames.contains(baseName + i))
-            ++i;
+         while ( existingNames.contains(baseName + i) ) ++i;
          return baseName + i;
       }
    }
