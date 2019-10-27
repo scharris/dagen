@@ -95,7 +95,8 @@ create table authority
         constraint authority_name_un
             unique,
     url         varchar(500),
-    description varchar(2000)
+    description varchar(2000),
+    weight integer default 0
 );
 
 create table advisory_type
@@ -203,12 +204,16 @@ create index brand_mfr_ix
 
 -- Test data
 
-insert into authority(id, name, url, description)
-  values(1, 'FDA', 'http://www.fda.gov', 'Food and Drug Administration');
+insert into authority(id, name, url, description, weight)
+  values(1, 'FDA', 'http://www.fda.gov', 'Food and Drug Administration', 100);
+insert into authority(id, name, url, description, weight)
+  values(2, 'Anonymous', null, 'Various People with Opinions', 0);
 insert into advisory_type(id, name, authority_id)
  values(1, 'Boxed Warning', 1);
 insert into advisory_type(id, name, authority_id)
  values(2, 'Caution', 1);
+insert into advisory_type(id, name, authority_id)
+ values(3, 'Rumor', 2);
 insert into functional_category(id, name, description, parent_functional_category_id)
   values(1, 'Category A', 'Top level category A', null);
 insert into functional_category(id, name, description, parent_functional_category_id)
@@ -237,11 +242,14 @@ insert into compound(id, display_name, nctr_isis_id, cas)
   from generate_series(1,5) n
 ;
 
-insert into drug(id, name, compound_id, therapeutic_indications, spl)
+insert into drug(id, name, compound_id, therapeutic_indications, mesh_id, cid, spl)
   select
     generate_series,
-    'Test Drug ' || generate_series, generate_series,
+    'Test Drug ' || generate_series,
+    generate_series,
     'Indication ' || generate_series,
+    'MESH' || generate_series,
+    generate_series * 99 ,
     xmlparse(document '<document><gen-name>drug ' || generate_series || '</gen-name></document>')
   from generate_series(1,5)
 ;
@@ -301,3 +309,9 @@ insert into advisory(id, drug_id, advisory_type_id, text)
  select 100*generate_series+2, generate_series, 2, 'Caution concerning drug ' || generate_series
  from generate_series(1,5)
 ;
+
+insert into advisory(id, drug_id, advisory_type_id, text)
+ select 123*generate_series, generate_series, 3, 'Heard this might be bad -anon' || generate_series
+ from generate_series(1,5)
+;
+

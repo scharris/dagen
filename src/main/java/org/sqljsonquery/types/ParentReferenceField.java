@@ -25,6 +25,13 @@ public class ParentReferenceField
 
    public boolean isNullable() { return nullable; }
 
+   public ParentReferenceField toNullable()
+   {
+      if ( nullable ) return this;
+      else return new ParentReferenceField(name, generatedType, true);
+   }
+
+
    @Override
    public String toString()
    {

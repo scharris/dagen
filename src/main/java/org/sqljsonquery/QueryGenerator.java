@@ -255,9 +255,8 @@ public class QueryGenerator
          q.addSelectClauseEntry(fromClauseQueryAlias + "." + parentCol, parentCol);
 
       ParentPkCondition parentPkCond = new ParentPkCondition(childAlias, fk.getForeignKeyComponents());
-      String join = inlineParentTableSpec.getOmitChildRowWhenParentMissing() ? "join" : "left join";
       q.addFromClauseEntry(
-         join + " (\n" +
+         "left join (\n" +
             indent(fromClauseQuery.getSql()) + "\n" +
             ") " + fromClauseQueryAlias + " on " + parentPkCond.asEquationConditionOn(fromClauseQueryAlias, dbmd)
       );

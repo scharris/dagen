@@ -59,14 +59,14 @@ public class TypesGenerator
       for ( InlineParentTableSpec inlineParentTableSpec :  tos.getInlineParents() )
       {
          // Generate types by traversing the parent table and its parents and children.
-         List<GeneratedType> parentGenTypes =
-            generateTypes(
-               inlineParentTableSpec.getInlineParentTableOutputSpec(),
-               avoidTypeNames
-            );
+         List<GeneratedType> parentGenTypes = generateTypes(inlineParentTableSpec.getParentTableOutputSpec(), avoidTypeNames);
          GeneratedType parentType = parentGenTypes.get(0); // will not be generated
 
-         typeBuilder.addAllFieldsFrom(parentType);
+         // If the parent record might be absent, then all inline fields must be nullable.
+         boolean forceNullable = inlineParentTableSpec.getParentTableOutputSpec().getFilter().isPresent() || // parent has filter
+                                 noFkFieldKnownNotNullable(relId, inlineParentTableSpec);                    // fk nullable
+
+         typeBuilder.addAllFieldsFrom(parentType, forceNullable);
 
          List<GeneratedType> actualGenParentTypes = parentGenTypes.subList(1, parentGenTypes.size());
          generatedTypes.addAll(actualGenParentTypes);
@@ -74,18 +74,16 @@ public class TypesGenerator
       }
 
       // Add reference fields for wrapped parents, and add their generated types to the generated types results.
-      for ( WrappedParentTableSpec wrappedParentTableSpec :  tos.getWrappedParents() )
+      for ( WrappedParentTableSpec parentTableSpec :  tos.getWrappedParents() )
       {
          // Generate types by traversing the parent table and its parents and children.
-         List<GeneratedType> parentGenTypes =
-            generateTypes(
-               wrappedParentTableSpec.getWrappedParentTableOutputSpec(),
-               avoidTypeNames
-            );
+         List<GeneratedType> parentGenTypes = generateTypes(parentTableSpec.getParentTableOutputSpec(), avoidTypeNames);
          GeneratedType parentType = parentGenTypes.get(0);
 
-         boolean nullableFk = !someFkFieldKnownNotNullable(relId, wrappedParentTableSpec);
-         typeBuilder.addParentReferenceField(wrappedParentTableSpec.getWrapperFieldName(), parentType, nullableFk);
+         boolean nullable = parentTableSpec.getParentTableOutputSpec().getFilter().isPresent() || // parent has filter
+                            noFkFieldKnownNotNullable(relId, parentTableSpec);                    // fk nullable
+
+         typeBuilder.addParentReferenceField(parentTableSpec.getWrapperFieldName(), parentType, nullable);
 
          generatedTypes.addAll(parentGenTypes);
          parentGenTypes.forEach(t -> avoidTypeNames.add(t.getTypeName()));
@@ -102,7 +100,7 @@ public class TypesGenerator
             );
          GeneratedType childType = childGenTypes.get(0);
 
-         typeBuilder.addChildCollectionField(childTableSpec.getChildCollectionName(), childType);
+         typeBuilder.addChildCollectionField(childTableSpec.getChildCollectionName(), childType, false);
 
          generatedTypes.addAll(childGenTypes);
          childGenTypes.forEach(t -> avoidTypeNames.add(t.getTypeName()));
@@ -123,11 +121,10 @@ public class TypesGenerator
       return relMd.getFields().stream().collect(toMap(Field::getName, identity()));
    }
 
-   private boolean someFkFieldKnownNotNullable(RelId childRelId, WrappedParentTableSpec wrappedParentTableSpec)
+   private boolean noFkFieldKnownNotNullable(RelId childRelId, ParentTableSpec parentTableSpec)
    {
-      RelId parentRelId =
-         dbmd.identifyTable(wrappedParentTableSpec.getWrappedParentTableOutputSpec().getTableName(), defaultSchema);
-      Optional<Set<String>> specFkFields = wrappedParentTableSpec.getChildForeignKeyFieldsSet();
+      RelId parentRelId = dbmd.identifyTable(parentTableSpec.getParentTableOutputSpec().getTableName(), defaultSchema);
+      Optional<Set<String>> specFkFields = parentTableSpec.getChildForeignKeyFieldsSet();
       ForeignKey fk = dbmd.getForeignKeyFromTo(childRelId, parentRelId, specFkFields, REGISTERED_TABLES_ONLY).orElseThrow(
          () -> new RuntimeException("foreign key to parent not found")
       );
@@ -140,10 +137,11 @@ public class TypesGenerator
          if ( fkField == null )
             throw new RuntimeException("foreign key not found");
 
-         if ( !fkField.getNullable().orElse(true) )
-            return true;
+         if ( !(fkField.getNullable().orElse(true)) )
+            return false;
       }
-      return false;
+
+      return true;
    }
 
 }

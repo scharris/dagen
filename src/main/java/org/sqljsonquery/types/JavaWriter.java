@@ -113,9 +113,9 @@ public class JavaWriter implements SourceCodeWriter
 
       for ( ChildCollectionField childCollField : generatedType.getChildCollectionFields() )
       {
-         sb.append("   public List<");
-         sb.append(childCollField.generatedType.getTypeName());
-         sb.append("> ");
+         sb.append("   public ");
+         sb.append(getChildCollectionDeclaredType(childCollField));
+         sb.append(" ");
          sb.append(childCollField.getName());
          sb.append(";\n");
       }
@@ -204,6 +204,12 @@ public class JavaWriter implements SourceCodeWriter
          !parentRefField.isNullable() ?
             parentRefField.generatedType.getTypeName()
             : nullableType(parentRefField.generatedType.getTypeName());
+   }
+
+   private String getChildCollectionDeclaredType(ChildCollectionField childCollField)
+   {
+      String bareChildCollType = "List<" + childCollField.generatedType.getTypeName() + ">";
+      return !childCollField.isNullable() ? bareChildCollType : nullableType(bareChildCollType);
    }
 
    private String nullableType(String baseType)

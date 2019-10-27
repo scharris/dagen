@@ -8,14 +8,14 @@ import org.sqljsonquery.dbmd.Field;
 
 public class GeneratedTypeBuilder
 {
-   private final String unqualifiedClassName;
+   private final String typeName;
    private final List<DatabaseField> databaseFields;
    private final List<ChildCollectionField> childCollectionFields;
    private final List<ParentReferenceField> parentReferenceFields;
 
-   public GeneratedTypeBuilder(String uqClassName)
+   public GeneratedTypeBuilder(String typeName)
    {
-      this.unqualifiedClassName = uqClassName;
+      this.typeName = typeName;
       this.databaseFields = new ArrayList<>();
       this.childCollectionFields = new ArrayList<>();
       this.parentReferenceFields = new ArrayList<>();
@@ -24,9 +24,9 @@ public class GeneratedTypeBuilder
    public void addDatabaseField(String fieldName, Field f) { databaseFields.add(new DatabaseField(fieldName, f)); }
    public void addDatabaseFields(List<DatabaseField> tfs) { databaseFields.addAll(tfs); }
 
-   public void addChildCollectionField(String fieldName, GeneratedType childType)
+   public void addChildCollectionField(String fieldName, GeneratedType childType, boolean nullable)
    {
-      childCollectionFields.add(new ChildCollectionField(fieldName, childType));
+      childCollectionFields.add(new ChildCollectionField(fieldName, childType, nullable));
    }
    public void addChildCollectionFields(List<ChildCollectionField> fs) { childCollectionFields.addAll(fs); }
 
@@ -36,15 +36,28 @@ public class GeneratedTypeBuilder
    }
    public void addParentReferenceFields(List<ParentReferenceField> fs) { parentReferenceFields.addAll(fs); }
 
-   public void addAllFieldsFrom(GeneratedType generatedType)
+   public void addAllFieldsFrom
+   (
+      GeneratedType generatedType,
+      boolean forceNullable
+   )
    {
-      addDatabaseFields(generatedType.getDatabaseFields());
-      addChildCollectionFields(generatedType.getChildCollectionFields());
-      addParentReferenceFields(generatedType.getParentReferenceFields());
+      if ( !forceNullable )
+      {
+         addDatabaseFields(generatedType.getDatabaseFields());
+         addChildCollectionFields(generatedType.getChildCollectionFields());
+         addParentReferenceFields(generatedType.getParentReferenceFields());
+      }
+      else
+      {
+         addDatabaseFields(generatedType.getDatabaseFieldsNullable());
+         addChildCollectionFields(generatedType.getChildCollectionFieldsNullable());
+         addParentReferenceFields(generatedType.getParentReferenceFieldsNullable());
+      }
    }
 
    public GeneratedType build()
    {
-      return new GeneratedType(unqualifiedClassName, databaseFields, childCollectionFields, parentReferenceFields);
+      return new GeneratedType(typeName, databaseFields, childCollectionFields, parentReferenceFields);
    }
 }

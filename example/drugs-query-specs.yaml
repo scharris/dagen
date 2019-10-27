@@ -12,8 +12,6 @@ querySpecs:
         - databaseFieldName: name
         - databaseFieldName: mesh_id
           outputName: meshId
-        - databaseFieldName: drugbank_id
-          outputName: drugbankId
         - databaseFieldName: cid
         - databaseFieldName: therapeutic_indications
           outputName: therapeuticIndications
@@ -80,7 +78,6 @@ querySpecs:
                     - databaseFieldName: description
                       outputName: authorityDescription
       wrappedParents:
-        # Wrapper field is optional, omit to include fields inline in containing table output.
         - wrapperFieldName: compound
           childForeignKeyFields:
             - compound_id
