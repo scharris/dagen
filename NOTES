@@ -1,11 +1,12 @@
+How to use a Kotlin QueryGroup value during the build to generate queries?
+  Put on classpath of query gen run and then accessed via reflection I guess?
+
+Add Kotlin output option.
+
 
 If an identical type has already been generated, do not write it to output.
   Still return it in generated types list?  E.g. top type is required to be returned.
 
-Kotlin DSL for query specs?
-  Would allow IDE assistance, auto-completion, etc.
-  How would the QueriesSpec data structure produced by the DSL be accessed by the build tool?
-    Put on classpath of query gen run and then accessed via reflection I guess?
 
 
 Commit Notes

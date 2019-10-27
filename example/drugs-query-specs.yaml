@@ -8,50 +8,50 @@ querySpecs:
     generateResultTypes: yes
     tableOutputSpec:
       tableName: drug
-      fields:
+      nativeFields:
         - databaseFieldName: name
         - databaseFieldName: mesh_id
           outputName: meshId
         - databaseFieldName: cid
         - databaseFieldName: therapeutic_indications
           outputName: therapeuticIndications
-      childTables:
+      childCollections:
         - childCollectionName: references
           childTableOutputSpec:
             tableName: drug_reference
             inlineParents:
               - inlineParentTableOutputSpec:
                   tableName: reference
-                  fields:
+                  nativeFields:
                     - databaseFieldName: publication
         - childCollectionName: brands
           childTableOutputSpec:
             tableName: brand
-            fields:
+            nativeFields:
               - databaseFieldName: brand_name
                 outputName: brandName
             inlineParents:
               - inlineParentTableOutputSpec:
                   tableName: manufacturer
-                  fields:
+                  nativeFields:
                     - databaseFieldName: name
                       outputName: manufacturer
         - childCollectionName: advisories
           childTableOutputSpec:
             tableName: advisory
-            fields:
+            nativeFields:
               - databaseFieldName: text
                 outputName: advisoryText
             inlineParents:
               - inlineParentTableOutputSpec:
                   tableName: advisory_type
-                  fields:
+                  nativeFields:
                     - databaseFieldName: name
                       outputName: advisoryType
                   inlineParents:
                     - inlineParentTableOutputSpec:
                         tableName: authority
-                        fields:
+                        nativeFields:
                           - databaseFieldName: name
                             outputName: authority
                           - databaseFieldName: url
@@ -64,26 +64,26 @@ querySpecs:
             inlineParents:
               - inlineParentTableOutputSpec:
                   tableName: functional_category
-                  fields:
+                  nativeFields:
                     - databaseFieldName: name
                       outputName: categoryName
                     - databaseFieldName: description
               - inlineParentTableOutputSpec:
                   tableName: authority
-                  fields:
+                  nativeFields:
                     - databaseFieldName: name
                       outputName: authority
                     - databaseFieldName: url
                       outputName: authorityUrl
                     - databaseFieldName: description
                       outputName: authorityDescription
-      wrappedParents:
-        - wrapperFieldName: compound
+      referencedParents:
+        - referenceFieldName: compound
           childForeignKeyFields:
             - compound_id
-          wrappedParentTableOutputSpec:
+          referencedParentTableOutputSpec:
             tableName: compound
-            fields:
+            nativeFields:
               - databaseFieldName: display_name
                 outputName: displayName
               - databaseFieldName: nctr_isis_id

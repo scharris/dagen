@@ -1,4 +1,4 @@
-package org.sqljsonquery.spec;
+package org.sqljsonquery.queryspec;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -8,14 +8,14 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.unmodifiableList;
 
 
-public final class QueriesSpec
+public final class QueryGroupSpec
 {
    private Optional<String> defaultSchema = Optional.empty();
    private List<QuerySpec> querySpecs = emptyList();
 
-   protected QueriesSpec() {}
+   protected QueryGroupSpec() {}
 
-   public QueriesSpec
+   public QueryGroupSpec
    (
       Optional<String> defaultSchema,
       List<QuerySpec> querySpecs

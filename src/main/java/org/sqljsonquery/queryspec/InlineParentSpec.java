@@ -1,18 +1,18 @@
-package org.sqljsonquery.spec;
+package org.sqljsonquery.queryspec;
 
 import java.util.*;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 
-public final class InlineParentTableSpec implements ParentTableSpec
+public final class InlineParentSpec implements ParentSpec
 {
    private TableOutputSpec inlineParentTableOutputSpec;
    private Optional<List<String>> childForeignKeyFields = Optional.empty();
 
-   protected InlineParentTableSpec() {}
+   protected InlineParentSpec() {}
 
-   public InlineParentTableSpec
+   public InlineParentSpec
    (
       TableOutputSpec inlineParentTableOutputSpec,
       Optional<List<String>> childForeignKeyFields

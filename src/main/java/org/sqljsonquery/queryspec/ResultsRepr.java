@@ -1,4 +1,4 @@
-package org.sqljsonquery.spec;
+package org.sqljsonquery.queryspec;
 
 public enum ResultsRepr
 {

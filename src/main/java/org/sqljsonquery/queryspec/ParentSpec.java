@@ -1,10 +1,10 @@
-package org.sqljsonquery.spec;
+package org.sqljsonquery.queryspec;
 
 import java.util.Optional;
 import java.util.Set;
 
 
-public interface ParentTableSpec
+public interface ParentSpec
 {
    TableOutputSpec getParentTableOutputSpec();
 

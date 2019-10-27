@@ -1,4 +1,4 @@
-package org.sqljsonquery.spec;
+package org.sqljsonquery.queryspec;
 
 import java.util.ArrayList;
 import java.util.List;

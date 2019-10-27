@@ -1,20 +1,20 @@
-package org.sqljsonquery.spec;
+package org.sqljsonquery.queryspec;
 
 import java.util.*;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 
-public final class ChildTableSpec
+public final class ChildCollectionSpec
 {
    private String childCollectionName;
    private TableOutputSpec childTableOutputSpec;
    private Optional<List<String>> foreignKeyFields = Optional.empty();
    private Optional<String> filter = Optional.empty();
 
-   protected ChildTableSpec() {}
+   protected ChildCollectionSpec() {}
 
-   public ChildTableSpec
+   public ChildCollectionSpec
    (
       String childCollectionName,
       TableOutputSpec childTableOutputSpec,

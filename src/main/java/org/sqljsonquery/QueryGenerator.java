@@ -6,7 +6,7 @@ import static java.util.stream.Collectors.*;
 import static java.util.Optional.empty;
 import static java.util.function.Function.identity;
 
-import org.sqljsonquery.spec.*;
+import org.sqljsonquery.queryspec.*;
 import org.sqljsonquery.util.*;
 import static org.sqljsonquery.util.StringFuns.*;
 import static org.sqljsonquery.util.CollFuns.*;
@@ -37,7 +37,7 @@ public class QueryGenerator
    Note: field name quoting
    - A field name from the database metadata (DBMD) is quoted iff its interpretation by the database would change
      with quoting. So DBMD.quoteIfNeeded is applied to all field names from the database metadata when used in queries.
-   - Output field names in the queries spec file (QueriesSpec contents) always have DBMD.quoteIfNeeded applied before
+   - Output field names in the queries spec file (QueryGroup contents) always have DBMD.quoteIfNeeded applied before
      use to preserve letter case.
    - Database field names in the queries spec file are always used as-is in queries without quoting or case conversion.
      Users must quote these identifiers within the specifications file where they are not usable in queries directly,
@@ -59,10 +59,10 @@ public class QueryGenerator
       this.typesGenerator = new TypesGenerator(dbmd, defaultSchema);
    }
 
-   public List<SqlJsonQuery> generateSqlJsonQueries(QueriesSpec queriesSpec)
+   public List<SqlJsonQuery> generateSqlJsonQueries(List<QuerySpec> querySpecs)
    {
       return
-         queriesSpec.getQuerySpecs().stream()
+         querySpecs.stream()
          .map(this::makeSqlJsonQuery)
          .collect(toList());
    }
@@ -135,7 +135,7 @@ public class QueryGenerator
       // If exporting pk fields, add any that aren't already in the output fields list to the select clause.
       Set<String> hiddenPkFields = new HashSet<>();
       if ( exportPkFields )
-         for ( String pkFieldName : getOmittedPkFieldNames(relId, tableOutputSpec.getFields()) )
+         for ( String pkFieldName : getOmittedPkFieldNames(relId, tableOutputSpec.getNativeFields()) )
          {
             String pkf = dbmd.quoteIfNeeded(pkFieldName);
             q.addSelectClauseEntry(alias + "." + pkf, pkf);
@@ -143,26 +143,26 @@ public class QueryGenerator
          }
 
       // Add this table's own output fields to the select clause.
-      for ( TableOutputField tof : tableOutputSpec.getFields() )
+      for ( TableOutputField tof : tableOutputSpec.getNativeFields() )
          q.addSelectClauseEntry(
             alias + "." + tof.getDatabaseFieldName(), // db fields must be quoted as needed in queries spec itself
             dbmd.quoteIfNeeded(tof.getFinalOutputFieldName())
          );
 
       // Add child record collections to the select clause.
-      for ( ChildTableSpec childTableSpec : tableOutputSpec.getChildTables() )
+      for ( ChildCollectionSpec childCollectionSpec : tableOutputSpec.getChildCollections() )
          q.addSelectClauseEntry(
-            "(\n" + indent(makeChildRecordsQuery(childTableSpec, relId, alias)) + "\n)",
-            dbmd.quoteIfNeeded(childTableSpec.getChildCollectionName())
+            "(\n" + indent(makeChildRecordsQuery(childCollectionSpec, relId, alias)) + "\n)",
+            dbmd.quoteIfNeeded(childCollectionSpec.getChildCollectionName())
          );
 
       // Add query parts for inline parents.
-      for ( InlineParentTableSpec inlineParentTableSpec : tableOutputSpec.getInlineParents() )
+      for ( InlineParentSpec inlineParentTableSpec : tableOutputSpec.getInlineParents() )
          q.addParts(getInlineParentBaseQueryParts(inlineParentTableSpec, relId, alias, q.getAliasesInScope()));
 
-      // Add parts for wrapped parents.
-      for ( WrappedParentTableSpec wrappedParentTableSpec : tableOutputSpec.getWrappedParents() )
-         q.addParts(getWrappedParentBaseQueryParts(wrappedParentTableSpec, relId, alias));
+      // Add parts for referenced parents.
+      for ( ReferencedParentSpec refdParentSpec : tableOutputSpec.getReferencedParents() )
+         q.addParts(getReferencedParentBaseQueryParts(refdParentSpec, relId, alias));
 
       // Add parent/child relationship filter condition if any to the where clause.
       parentChildCond.ifPresent(pcCond ->
@@ -215,16 +215,16 @@ public class QueryGenerator
 
    private String makeChildRecordsQuery
    (
-      ChildTableSpec childTableSpec,
+      ChildCollectionSpec childCollectionSpec,
       RelId parentRelId,
       String parentAlias
    )
    {
-      TableOutputSpec tos = childTableSpec.getChildTableOutputSpec();
+      TableOutputSpec tos = childCollectionSpec.getChildTableOutputSpec();
 
       RelId relId = dbmd.identifyTable(tos.getTableName(), defaultSchema);
 
-      ForeignKey fk = getForeignKey(relId, parentRelId, childTableSpec.getForeignKeyFieldsSet());
+      ForeignKey fk = getForeignKey(relId, parentRelId, childCollectionSpec.getForeignKeyFieldsSet());
 
       ChildFkCondition childFkCond = new ChildFkCondition(parentAlias, fk.getForeignKeyComponents());
 
@@ -233,7 +233,7 @@ public class QueryGenerator
 
    private SqlQueryParts getInlineParentBaseQueryParts
    (
-      InlineParentTableSpec inlineParentTableSpec,
+      InlineParentSpec inlineParentTableSpec,
       RelId childRelId,
       String childAlias,
       Set<String> avoidAliases
@@ -264,18 +264,18 @@ public class QueryGenerator
       return q;
    }
 
-   private SqlQueryParts getWrappedParentBaseQueryParts
+   private SqlQueryParts getReferencedParentBaseQueryParts
       (
-         WrappedParentTableSpec wrappedParentTableSpec,
+         ReferencedParentSpec referencedParentSpec,
          RelId childRelId,
          String childAlias
       )
    {
-      // a wrapped parent only requires a SELECT clause entry
+      // a referenced parent only requires a SELECT clause entry
       return new SqlQueryParts(
          singletonList(Pair.make(
-            "(\n" + indent(makeParentRecordQuery(wrappedParentTableSpec, childRelId, childAlias)) + "\n)",
-            dbmd.quoteIfNeeded(wrappedParentTableSpec.getWrapperFieldName())
+            "(\n" + indent(makeParentRecordQuery(referencedParentSpec, childRelId, childAlias)) + "\n)",
+            dbmd.quoteIfNeeded(referencedParentSpec.getReferenceFieldName())
          )),
          emptyList(), emptyList(), emptySet()
       );
@@ -283,16 +283,16 @@ public class QueryGenerator
 
    private String makeParentRecordQuery
    (
-      WrappedParentTableSpec wrappedParentTableSpec,
+      ReferencedParentSpec refdParentSpec,
       RelId childRelId,
       String childAlias
    )
    {
-      TableOutputSpec tos = wrappedParentTableSpec.getWrappedParentTableOutputSpec();
+      TableOutputSpec tos = refdParentSpec.getParentTableOutputSpec();
 
       RelId relId = dbmd.identifyTable(tos.getTableName(), defaultSchema);
 
-      ForeignKey fk = getForeignKey(childRelId, relId, wrappedParentTableSpec.getChildForeignKeyFieldsSet());
+      ForeignKey fk = getForeignKey(childRelId, relId, refdParentSpec.getChildForeignKeyFieldsSet());
 
       ParentPkCondition parentPkCond = new ParentPkCondition(childAlias, fk.getForeignKeyComponents());
 

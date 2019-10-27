@@ -5,7 +5,7 @@ import static java.util.Collections.unmodifiableList;
 import static java.util.Collections.unmodifiableMap;
 import static java.util.Objects.requireNonNull;
 
-import org.sqljsonquery.spec.ResultsRepr;
+import org.sqljsonquery.queryspec.ResultsRepr;
 import org.sqljsonquery.types.GeneratedType;
 
 

@@ -15,8 +15,8 @@ import org.sqljsonquery.util.Pair;
 import static org.sqljsonquery.util.Optionals.opt;
 import static org.sqljsonquery.util.Files.newFileOrStdoutWriter;
 import org.sqljsonquery.dbmd.DatabaseMetadata;
-import org.sqljsonquery.spec.QueriesSpec;
-import org.sqljsonquery.spec.ResultsRepr;
+import org.sqljsonquery.queryspec.QueryGroupSpec;
+import org.sqljsonquery.queryspec.ResultsRepr;
 import org.sqljsonquery.types.JavaWriter;
 import org.sqljsonquery.types.SourceCodeWriter;
 import static org.sqljsonquery.types.JavaWriter.NullableFieldRepr;
@@ -76,7 +76,7 @@ public class QueryGeneratorMain
          yamlMapper.registerModule(new Jdk8Module());
 
          DatabaseMetadata dbmd = yamlMapper.readValue(dbmdIS, DatabaseMetadata.class);
-         QueriesSpec queriesSpec = yamlMapper.readValue(queriesSpecIS, QueriesSpec.class);
+         QueryGroupSpec queryGroupSpec = yamlMapper.readValue(queriesSpecIS, QueryGroupSpec.class);
 
          Optional<Path> srcOutputBaseDirPath = outputDirs.map(Pair::fst);
          srcOutputBaseDirPath.ifPresent(path ->  {
@@ -88,9 +88,9 @@ public class QueryGeneratorMain
             if ( !Files.isDirectory(path) ) errorExit("Queries output directory not found.");
          });
 
-         QueryGenerator gen = new QueryGenerator(dbmd, queriesSpec.getDefaultSchema());
+         QueryGenerator gen = new QueryGenerator(dbmd, queryGroupSpec.getDefaultSchema());
 
-         List<SqlJsonQuery> generatedQueries = gen.generateSqlJsonQueries(queriesSpec);
+         List<SqlJsonQuery> generatedQueries = gen.generateSqlJsonQueries(queryGroupSpec.getQuerySpecs());
 
          writeQueries(generatedQueries, queriesOutputDirPath);
 
