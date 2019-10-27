@@ -23,7 +23,7 @@ public final class TableOutputSpec
 
    protected TableOutputSpec() {}
 
-   private TableOutputSpec
+   public TableOutputSpec
    (
       String tableName,
       List<TableOutputField> fields,
@@ -61,5 +61,4 @@ public final class TableOutputSpec
    public List<ChildTableSpec> getChildTables() { return childTables; }
 
    public Optional<String> getFilter() { return filter; }
-
 }
