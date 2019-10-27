@@ -16,13 +16,13 @@ public final class ChildTableSpec
 
    public ChildTableSpec
    (
-      String fieldName,
+      String childCollectionName,
       TableOutputSpec childTableOutputSpec,
       Optional<List<String>> fkFields,
       Optional<String> filter
    )
    {
-      this.childCollectionName = fieldName;
+      this.childCollectionName = childCollectionName;
       this.childTableOutputSpec = childTableOutputSpec;
       this.foreignKeyFields = fkFields.map(Collections::unmodifiableList);
       this.filter = filter;
