@@ -37,13 +37,29 @@ public final class StringFuns
    /// Return camel-case form of the given string, where words separated by
    /// '_', ' ', or '-' characters are combined and the initial letter of the
    /// returned name is capitalized.
-   public static String camelCase(String name)
+   public static String upperCamelCase(String name)
    {
       StringBuilder res = new StringBuilder();
       for (String word : name.split("[_ -]"))
       {
          res.append(Character.toUpperCase(word.charAt(0)));
          res.append(word.substring(1).toLowerCase());
+      }
+      return res.toString();
+   }
+
+   public static String lowerCamelCase(String name)
+   {
+      StringBuilder res = new StringBuilder();
+      for (String word : name.split("[_ -]"))
+      {
+         if ( res.length() == 0 )
+            res.append(word);
+         else
+         {
+            res.append(Character.toUpperCase(word.charAt(0)));
+            res.append(word.substring(1).toLowerCase());
+         }
       }
       return res.toString();
    }

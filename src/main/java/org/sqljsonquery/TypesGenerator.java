@@ -37,7 +37,7 @@ public class TypesGenerator
       List<GeneratedType> generatedTypes = new ArrayList<>();
       Set<String> avoidTypeNames = new HashSet<>(typeNamesInScope);
 
-      String typeName = makeNameNotInSet(camelCase(tos.getTableName()), avoidTypeNames);
+      String typeName = makeNameNotInSet(upperCamelCase(tos.getTableName()), avoidTypeNames);
       avoidTypeNames.add(typeName);
 
       GeneratedTypeBuilder typeBuilder = new GeneratedTypeBuilder(typeName);

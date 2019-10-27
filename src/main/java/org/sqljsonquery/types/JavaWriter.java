@@ -12,7 +12,7 @@ import org.sqljsonquery.SqlJsonQuery;
 import static org.sqljsonquery.types.JavaWriter.NullableFieldRepr.*;
 import static org.sqljsonquery.util.Files.newFileOrStdoutWriter;
 import static org.sqljsonquery.util.Optionals.opt;
-import static org.sqljsonquery.util.StringFuns.camelCase;
+import static org.sqljsonquery.util.StringFuns.upperCamelCase;
 import static org.sqljsonquery.util.StringFuns.indentLines;
 
 
@@ -53,7 +53,7 @@ public class JavaWriter implements SourceCodeWriter
 
       for ( SqlJsonQuery sjq : generatedQueries )
       {
-         String queryClassName = camelCase(sjq.getQueryName()) + "ResultTypes";
+         String queryClassName = upperCamelCase(sjq.getQueryName()) + "ResultTypes";
          Optional<Path> outputFilePath = outputDir.map(d -> d.resolve(queryClassName + ".java"));
 
          BufferedWriter bw = newFileOrStdoutWriter(outputFilePath);
