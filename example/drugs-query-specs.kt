@@ -72,3 +72,9 @@ val drugsQuery: Query =
    )
 
 val drugsQueryGroup = QueryGroup(defaultSchema = "drugs", queries = listOf(drugsQuery))
+
+fun writeYaml()
+{
+   writeQueryGroupSpecYaml(drugsQueryGroup, System.out)
+}
+

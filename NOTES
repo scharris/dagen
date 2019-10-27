@@ -1,3 +1,15 @@
+App should make a separate maven project within db directory 
+  Kotlin query defs as source code, sqljson-query as a dependency.
+  When this project is run, it call sqljson-query generator functions as library.
+    Database metadata file refresh (opitional).
+    Queries and types generation, targeting main app resource and generated sources directories.
+  
+  
+
+  
+Maybe just script generation of yaml file from query-specs.kt?
+  Run it as Kotlin script with sqljson-query on classpath.
+
 How to use a Kotlin QueryGroup value during the build to generate queries?
   Put on classpath of query gen run and then accessed via reflection I guess?
 

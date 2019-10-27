@@ -1,5 +1,11 @@
 package org.sqljsonquery.queryspec.ktdsl
 
+import java.io.OutputStream
+
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
+import com.fasterxml.jackson.datatype.jdk8.Jdk8Module
+
 import org.sqljsonquery.queryspec.ChildCollectionSpec
 import org.sqljsonquery.queryspec.InlineParentSpec
 import org.sqljsonquery.queryspec.ResultsRepr
@@ -100,4 +106,13 @@ fun toSpec(t: Table): org.sqljsonquery.queryspec.TableOutputSpec {
       childTables,
       optn(t.filter)
    )
+}
+
+fun writeQueryGroupSpecYaml(queryGroup: QueryGroup, os: OutputStream)
+{
+   val queryGroupSpec = toSpec(queryGroup)
+
+   val mapper = ObjectMapper(YAMLFactory())
+   mapper.registerModule(Jdk8Module())
+   mapper.writeValue(os, queryGroupSpec)
 }
