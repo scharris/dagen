@@ -11,10 +11,8 @@ querySpecs:
       nativeFields:
         - databaseFieldName: name
         - databaseFieldName: mesh_id
-          outputName: meshId
         - databaseFieldName: cid
         - databaseFieldName: therapeutic_indications
-          outputName: therapeuticIndications
       childCollections:
         - childCollectionName: references
           childTableOutputSpec:
@@ -29,7 +27,6 @@ querySpecs:
             tableName: brand
             nativeFields:
               - databaseFieldName: brand_name
-                outputName: brandName
             inlineParents:
               - inlineParentTableOutputSpec:
                   tableName: manufacturer
@@ -53,7 +50,7 @@ querySpecs:
                         tableName: authority
                         nativeFields:
                           - databaseFieldName: name
-                            outputName: authority
+                            outputName: authorityName
                           - databaseFieldName: url
                             outputName: authorityUrl
                           - databaseFieldName: description
@@ -72,7 +69,7 @@ querySpecs:
                   tableName: authority
                   nativeFields:
                     - databaseFieldName: name
-                      outputName: authority
+                      outputName: authorityName
                     - databaseFieldName: url
                       outputName: authorityUrl
                     - databaseFieldName: description
@@ -85,8 +82,6 @@ querySpecs:
             tableName: compound
             nativeFields:
               - databaseFieldName: display_name
-                outputName: displayName
               - databaseFieldName: nctr_isis_id
-                outputName: nctrIsisId
               - databaseFieldName: cas
       filter: '$d : not $d.id = 2' # "<alias-var> : <expr using alias-var>", both sides trimmed

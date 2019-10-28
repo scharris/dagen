@@ -1,9 +1,6 @@
 package org.sqljsonquery.queryspec;
 
 import java.util.Optional;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
 import static java.util.Objects.requireNonNull;
 
 
@@ -23,10 +20,4 @@ public final class TableOutputField
    public String getDatabaseFieldName() { return databaseFieldName; }
 
    public Optional<String> getOutputName() { return outputName; }
-
-   @JsonIgnore
-   public String getFinalOutputFieldName()
-   {
-      return outputName.orElse(databaseFieldName);
-   }
 }

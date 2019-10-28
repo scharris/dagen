@@ -1,6 +1,8 @@
 package org.sqljsonquery;
 
 import java.util.*;
+import java.util.function.Function;
+
 import static java.util.Collections.*;
 import static java.util.stream.Collectors.*;
 import static java.util.Optional.empty;
@@ -30,6 +32,7 @@ public class QueryGenerator
    private final SqlDialect sqlDialect;
    private final int indentSpaces;
    private final TypesGenerator typesGenerator;
+   private final Function<String,String> outputFieldNameDefaultFn;
 
    enum DbmsType { PG, ORA, ISO }
 
@@ -49,14 +52,16 @@ public class QueryGenerator
    public QueryGenerator
    (
       DatabaseMetadata dbmd,
-      Optional<String> defaultSchema
+      Optional<String> defaultSchema,
+      Function<String,String> outputFieldNameDefaultFn
    )
    {
       this.dbmd = dbmd;
       this.defaultSchema = defaultSchema;
       this.indentSpaces = 2;
       this.sqlDialect = getSqlDialect(this.dbmd, this.indentSpaces);
-      this.typesGenerator = new TypesGenerator(dbmd, defaultSchema);
+      this.typesGenerator = new TypesGenerator(dbmd, defaultSchema, outputFieldNameDefaultFn);
+      this.outputFieldNameDefaultFn = outputFieldNameDefaultFn;
    }
 
    public List<SqlJsonQuery> generateSqlJsonQueries(List<QuerySpec> querySpecs)
@@ -146,7 +151,7 @@ public class QueryGenerator
       for ( TableOutputField tof : tableOutputSpec.getNativeFields() )
          q.addSelectClauseEntry(
             alias + "." + tof.getDatabaseFieldName(), // db fields must be quoted as needed in queries spec itself
-            dbmd.quoteIfNeeded(tof.getFinalOutputFieldName())
+            dbmd.quoteIfNeeded(getOutputFieldName(tof, tof.getDatabaseFieldName()))
          );
 
       // Add child record collections to the select clause.
@@ -372,6 +377,12 @@ public class QueryGenerator
             " via fks " + foreignKeyFields
          ));
    }
+
+   private String getOutputFieldName(TableOutputField tof, String dbFieldName)
+   {
+      return tof.getOutputName().orElseGet(() -> outputFieldNameDefaultFn.apply(dbFieldName));
+   }
+
 
    private String indent(String s)
    {

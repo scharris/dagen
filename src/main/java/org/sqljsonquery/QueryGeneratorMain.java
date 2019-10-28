@@ -88,7 +88,11 @@ public class QueryGeneratorMain
             if ( !Files.isDirectory(path) ) errorExit("Queries output directory not found.");
          });
 
-         QueryGenerator gen = new QueryGenerator(dbmd, queryGroupSpec.getDefaultSchema());
+         QueryGenerator gen = new QueryGenerator(
+            dbmd,
+            queryGroupSpec.getDefaultSchema(),
+            queryGroupSpec.getDefaultOutputNameFunction()
+         );
 
          List<SqlJsonQuery> generatedQueries = gen.generateSqlJsonQueries(queryGroupSpec.getQuerySpecs());
 

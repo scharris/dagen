@@ -1,6 +1,8 @@
 package org.sqljsonquery;
 
 import java.util.*;
+import java.util.function.Function;
+
 import static java.util.stream.Collectors.*;
 import static java.util.function.Function.identity;
 
@@ -16,16 +18,18 @@ public class TypesGenerator
 {
    private final DatabaseMetadata dbmd;
    private final Optional<String> defaultSchema;
-
+   private final Function<String,String> outputFieldNameDefaultFn;
 
    public TypesGenerator
    (
       DatabaseMetadata dbmd,
-      Optional<String> defaultSchema
+      Optional<String> defaultSchema,
+      Function<String,String> outputFieldNameDefaultFn
    )
    {
       this.dbmd = dbmd;
       this.defaultSchema = defaultSchema;
+      this.outputFieldNameDefaultFn = outputFieldNameDefaultFn;
    }
 
    public List<GeneratedType> generateTypes
@@ -51,8 +55,7 @@ public class TypesGenerator
          Field dbField = dbFieldsByName.get(dbmd.normalizeName(tof.getDatabaseFieldName()));
          if ( dbField == null )
             throw new RuntimeException("no metadata for field " + tos.getTableName() + "." + tof.getDatabaseFieldName());
-
-         typeBuilder.addDatabaseField(tof.getFinalOutputFieldName(), dbField);
+         typeBuilder.addDatabaseField(getOutputFieldName(tof, dbField), dbField);
       }
 
       // Add fields from inline parents, but do not add their top-level types to the generated types results.
@@ -110,6 +113,11 @@ public class TypesGenerator
       generatedTypes.add(0, typeBuilder.build()); // The tos's top table type must be at the head of the returned list.
 
       return generatedTypes;
+   }
+
+   private String getOutputFieldName(TableOutputField tof, Field dbField)
+   {
+      return tof.getOutputName().orElseGet(() -> outputFieldNameDefaultFn.apply(dbField.getName()));
    }
 
    private Map<String,Field> getTableFieldsByName(RelId relId)
