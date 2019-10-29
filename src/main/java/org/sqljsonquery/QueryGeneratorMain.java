@@ -41,29 +41,36 @@ public class QueryGeneratorMain
       ps.println("        <queryName>/<generated-type-name>.<field-name>: <field type decl>");
    }
 
-   public static void main(String[] allArgs)
+   public static void main(String[] args)
    {
-      if ( allArgs.length == 1 && allArgs[0].equals("-h") || allArgs[0].equals("--help") )
+      try
       {
-         printUsage(System.out);
-         System.exit(0);
+         execCommandLine(args);
       }
-
-      SplitArgs args = splitOptionsAndRequiredArgs(allArgs);
-
-      if ( args.required.size() != 2 && args.required.size() != 4 )
+      catch(Exception e)
       {
          printUsage(System.err);
          System.exit(1);
       }
+   }
+
+   public static void execCommandLine(String[] allArgs)
+   {
+      if ( allArgs.length == 1 && allArgs[0].equals("-h") || allArgs[0].equals("--help") )
+         printUsage(System.out);
+
+      SplitArgs args = splitOptionsAndRequiredArgs(allArgs);
+
+      if ( args.required.size() != 2 && args.required.size() != 4 )
+         throw new RuntimeException("expected 2 or 4 non-option arguments");
 
       Path dbmdPath = Paths.get(args.required.get(0));
       if ( !Files.isRegularFile(dbmdPath) )
-         errorExit("Database metdata file not found.");
+         error("Database metdata file not found.");
 
       Path queriesSpecFilePath = Paths.get(args.required.get(1));
       if ( !Files.isRegularFile(queriesSpecFilePath) )
-         errorExit("Queries specification file not found.");
+         error("Queries specification file not found.");
 
       Optional<Pair<Path,Path>> outputDirs = args.required.size() > 2 ?
          opt(Pair.make(Paths.get(args.required.get(2)), Paths.get(args.required.get(3))))
@@ -80,12 +87,12 @@ public class QueryGeneratorMain
 
          Optional<Path> srcOutputBaseDirPath = outputDirs.map(Pair::fst);
          srcOutputBaseDirPath.ifPresent(path ->  {
-            if ( !Files.isDirectory(path) ) errorExit("Source output base directory not found.");
+            if ( !Files.isDirectory(path) ) error("Source output base directory not found.");
          });
 
          Optional<Path> queriesOutputDirPath = outputDirs.map(Pair::fst);
          queriesOutputDirPath.ifPresent(path ->  {
-            if ( !Files.isDirectory(path) ) errorExit("Queries output directory not found.");
+            if ( !Files.isDirectory(path) ) error("Queries output directory not found.");
          });
 
          QueryGenerator gen = new QueryGenerator(
@@ -103,8 +110,7 @@ public class QueryGeneratorMain
       }
       catch(Exception e)
       {
-         e.printStackTrace();
-         errorExit(e.getMessage());
+         error(e.getMessage());
       }
    }
 
@@ -206,10 +212,10 @@ public class QueryGeneratorMain
       }
    }
 
-   private static void errorExit(String message)
+   private static void error(String message)
    {
       System.err.println(message);
-      System.exit(-1);
+      throw new RuntimeException(message);
    }
 
    private static class SplitArgs

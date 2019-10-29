@@ -6,13 +6,13 @@ import java.sql.DriverManager;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.regex.Pattern;
+import static java.util.Optional.empty;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 
-import static java.util.Optional.empty;
 import static org.sqljsonquery.util.Files.outputStream;
 import static org.sqljsonquery.util.Optionals.opt;
 import static org.sqljsonquery.util.Optionals.optn;
@@ -44,17 +44,29 @@ public class DatabaseMetadataMain
       );
    }
 
-   public static void main(String[] args) throws Exception
+   public static void main(String[] args)
+   {
+      try
+      {
+         execCommandLine(args);
+      }
+      catch(Exception e)
+      {
+         printUsage(System.err);
+         System.exit(1);
+      }
+   }
+
+   public static void execCommandLine(String[] args) throws Exception
    {
       if ( args.length == 1 && args[0].equals("-h") || args[0].equals("--help") )
       {
          printUsage(System.out);
-         System.exit(0);
+         return;
       }
       else if ( args.length < 2 )
       {
-         printUsage(System.err);
-         System.exit(1);
+         throw new RuntimeException("Expected 2 or more arguments");
       }
 
       int argIx = 0;
