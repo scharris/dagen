@@ -4,14 +4,14 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.sqljsonquery</groupId>
   <artifactId>sqljsonquery-gen</artifactId>
-  <version>1.0</version>
+  <version>1.0-SNAPSHOT</version>
   <name>SQl/JSON Query Generator</name>
   <description>generate hierarchical SQL/JSON queries and matching result types</description>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-     <kotlin.version>1.3.50</kotlin.version>
+    <kotlin.version>1.3.50</kotlin.version>
   </properties>
 
   <dependencies>
