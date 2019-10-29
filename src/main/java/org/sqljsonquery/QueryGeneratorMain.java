@@ -12,6 +12,8 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 
 import org.sqljsonquery.util.Pair;
+
+import static org.sqljsonquery.util.Files.readString;
 import static org.sqljsonquery.util.Optionals.opt;
 import static org.sqljsonquery.util.Files.newFileOrStdoutWriter;
 import org.sqljsonquery.dbmd.DatabaseMetadata;
@@ -24,21 +26,31 @@ import static org.sqljsonquery.types.JavaWriter.NullableFieldRepr;
 
 public class QueryGeneratorMain
 {
+   static final String langOptPrefix = "--types-language:";
+   static final String pkgOptPrefix = "--package:";
+   static final String javaNullabilityOptPrefix = "--java-nullability:";
+   static final String fieldOverridesOptPrefix = "--field-overrides:";
+   static final String generatedTypesHeaderFileOptPrefix = "--types-file-header:";
+
    private static void printUsage(PrintStream ps)
    {
       ps.println("Expected arguments: [options] <db-metadata-file> <queries-spec-file> " +
                  "[<src-output-base-dir> <queries-output-dir>]");
       ps.println("If output directories are not provided, then all output is written to standard out.");
       ps.println("Options:");
-      ps.println("   -l<language>: Output language, currently must be \"Java\".");
-      ps.println("   -p<java-package>: The Java package for the generated query classes.");
-      ps.println("   -n<nullable-fields-option>: How nullable fields should be represented in Java.");
+      ps.println("   " + langOptPrefix + "<language>  Output language, currently must be \"Java\".");
+      ps.println("   " + pkgOptPrefix + "<java-package>  The Java package for the generated query classes.");
+      ps.println("   " + javaNullabilityOptPrefix + "<nullable-fields-option>  How nullable fields should be" +
+                 "represented in Java.");
       ps.println("       Valid options are:");
       ps.println("         optwrapped : wrap the type with Optional<>");
-      ps.println("         annotated  : annotate with @Null");
+      ps.println("         annotated  : annotate with JSR 305 @Nullable and @Nonnull.");
       ps.println("         baretype   : leave as bare type (Object variant for native types)");
-      ps.println("   -f<field-type-overrides-file>: Field types override file, having lines of the form: ");
+      ps.println("   " + fieldOverridesOptPrefix + "<field-type-overrides-file>  Field types override file, having" +
+                 "lines of the form: ");
       ps.println("        <queryName>/<generated-type-name>.<field-name>: <field type decl>");
+      ps.println("   " + generatedTypesHeaderFileOptPrefix + "<file>  Contents of this file will be included at the " +
+         "top of each generated type's source file (e.g. additional imports for overridden field types).");
    }
 
    public static void main(String[] args)
@@ -90,7 +102,7 @@ public class QueryGeneratorMain
             if ( !Files.isDirectory(path) ) error("Source output base directory not found.");
          });
 
-         Optional<Path> queriesOutputDirPath = outputDirs.map(Pair::fst);
+         Optional<Path> queriesOutputDirPath = outputDirs.map(Pair::snd);
          queriesOutputDirPath.ifPresent(path ->  {
             if ( !Files.isDirectory(path) ) error("Queries output directory not found.");
          });
@@ -98,6 +110,7 @@ public class QueryGeneratorMain
          QueryGenerator gen = new QueryGenerator(
             dbmd,
             queryGroupSpec.getDefaultSchema(),
+            new HashSet<>(queryGroupSpec.getGenerateUnqualifiedNamesForSchemas()),
             queryGroupSpec.getDefaultOutputNameFunction()
          );
 
@@ -132,20 +145,27 @@ public class QueryGeneratorMain
       String language = "";
       String targetPackage = "";
       NullableFieldRepr nullableFieldRepr = NullableFieldRepr.ANNOTATED;
-      Optional<Map<String,String>> fieldTypeOverrides = Optional.empty();
+      Optional<Map<String,String>> fieldTypeOverrides = empty();
+      Optional<String> typeFilesHeader = empty();
       for ( String opt : args.optional )
       {
-         if ( opt.startsWith("-p") ) targetPackage = opt.substring(2);
-         if ( opt.startsWith("-l") ) language = opt.substring(2);
-         if ( opt.startsWith("-f") ) fieldTypeOverrides = opt(readFieldTypeOverrides(Paths.get(opt.substring(2))));
-         if ( opt.startsWith("-n") ) nullableFieldRepr = NullableFieldRepr.valueOf(opt.substring(2).toUpperCase());
+         if ( opt.startsWith(langOptPrefix) ) language = opt.substring(langOptPrefix.length());
+         else if ( opt.startsWith(pkgOptPrefix) ) targetPackage = opt.substring(pkgOptPrefix.length());
+         else if ( opt.startsWith(javaNullabilityOptPrefix) ) nullableFieldRepr =
+            NullableFieldRepr.valueOf(opt.substring(javaNullabilityOptPrefix.length()).toUpperCase());
+         else if ( opt.startsWith(fieldOverridesOptPrefix) ) fieldTypeOverrides =
+            opt(readFieldTypeOverrides(Paths.get(opt.substring(fieldOverridesOptPrefix.length()))));
+         else if ( opt.startsWith(generatedTypesHeaderFileOptPrefix) ) typeFilesHeader =
+            opt(readString(Paths.get(opt.substring(generatedTypesHeaderFileOptPrefix.length()))));
+         else
+            throw new RuntimeException("Unrecognized option \"" + opt + "\".");
       }
 
       switch ( language )
       {
          case "":
          case "Java":
-            return new JavaWriter(targetPackage, srcOutputBaseDir, fieldTypeOverrides, nullableFieldRepr);
+            return new JavaWriter(targetPackage, srcOutputBaseDir, fieldTypeOverrides, nullableFieldRepr, typeFilesHeader);
          default:
             throw new RuntimeException("target language not supported");
       }

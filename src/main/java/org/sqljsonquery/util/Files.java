@@ -22,6 +22,17 @@ public final class Files
          return new FileOutputStream(pathOrDash);
    }
 
+   public static String readString(Path p)
+   {
+      try
+      {
+         return new String(java.nio.file.Files.readAllBytes(p));
+      }
+      catch (IOException e)
+      {
+         throw new RuntimeException(e);
+      }
+   }
 
    private Files() {}
 }

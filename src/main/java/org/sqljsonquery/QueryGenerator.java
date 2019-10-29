@@ -11,7 +11,6 @@ import static java.util.function.Function.identity;
 import org.sqljsonquery.queryspec.*;
 import org.sqljsonquery.util.*;
 import static org.sqljsonquery.util.StringFuns.*;
-import static org.sqljsonquery.util.CollFuns.*;
 import static org.sqljsonquery.util.Optionals.opt;
 import org.sqljsonquery.dbmd.*;
 import static org.sqljsonquery.dbmd.ForeignKeyScope.REGISTERED_TABLES_ONLY;
@@ -29,10 +28,13 @@ public class QueryGenerator
 {
    private final DatabaseMetadata dbmd;
    private final Optional<String> defaultSchema;
+   private final Set<String> generateUnqualifiedNamesForSchemas;
    private final SqlDialect sqlDialect;
    private final int indentSpaces;
    private final TypesGenerator typesGenerator;
    private final Function<String,String> outputFieldNameDefaultFn;
+
+   private static final String HIDDEN_PK_FIELD_NAME_PREFIX = "_";
 
    enum DbmsType { PG, ORA, ISO }
 
@@ -53,11 +55,13 @@ public class QueryGenerator
    (
       DatabaseMetadata dbmd,
       Optional<String> defaultSchema,
+      Set<String> generateUnqualifiedNamesForSchemas,
       Function<String,String> outputFieldNameDefaultFn
    )
    {
       this.dbmd = dbmd;
       this.defaultSchema = defaultSchema;
+      this.generateUnqualifiedNamesForSchemas = generateUnqualifiedNamesForSchemas;
       this.indentSpaces = 2;
       this.sqlDialect = getSqlDialect(this.dbmd, this.indentSpaces);
       this.typesGenerator = new TypesGenerator(dbmd, defaultSchema, outputFieldNameDefaultFn);
@@ -135,15 +139,15 @@ public class QueryGenerator
          q.addAliasToScope(pcCond.getOtherTableAlias())
       );
       String alias = q.makeNewAliasFor(relId.getName());
-      q.addFromClauseEntry(relId.getIdString() + " " + alias);
+      q.addFromClauseEntry(minimalIdentifier(relId) + " " + alias);
 
       // If exporting pk fields, add any that aren't already in the output fields list to the select clause.
       Set<String> hiddenPkFields = new HashSet<>();
       if ( exportPkFields )
-         for ( String pkFieldName : getOmittedPkFieldNames(relId, tableOutputSpec.getNativeFields()) )
+         for ( String pkFieldName : dbmd.getPrimaryKeyFieldNames(relId) )
          {
             String pkf = dbmd.quoteIfNeeded(pkFieldName);
-            q.addSelectClauseEntry(alias + "." + pkf, pkf);
+            q.addSelectClauseEntry(alias + "." + pkf, HIDDEN_PK_FIELD_NAME_PREFIX + pkf);
             hiddenPkFields.add(pkf);
          }
 
@@ -263,7 +267,8 @@ public class QueryGenerator
       q.addFromClauseEntry(
          "left join (\n" +
             indent(fromClauseQuery.getSql()) + "\n" +
-            ") " + fromClauseQueryAlias + " on " + parentPkCond.asEquationConditionOn(fromClauseQueryAlias, dbmd)
+            ") " + fromClauseQueryAlias + " on " +
+            parentPkCond.asEquationConditionOn(fromClauseQueryAlias, dbmd, HIDDEN_PK_FIELD_NAME_PREFIX)
       );
 
       return q;
@@ -325,24 +330,6 @@ public class QueryGenerator
             indent(whereEntriesStr));
    }
 
-   /// Return the set of primary key fields from database metadata which are not
-   /// in the given output fields list (after normalization for the db).
-   private Set<String> getOmittedPkFieldNames
-   (
-      RelId relId,
-      List<TableOutputField> tableOutputFields
-   )
-   {
-      // We assume the dbmd-reported pk fields are already case-normalized for the db, but the database field names
-      // from the queries spec need to be normalized before comparison.
-      Set<String> normdSpecDbFields =
-         tableOutputFields.stream()
-         .map(f -> dbmd.normalizeName(f.getDatabaseFieldName()))
-         .collect(toSet());
-
-      return setMinus(dbmd.getPrimaryKeyFieldNames(relId), normdSpecDbFields);
-   }
-
    /**
     * Make a condition for inclusion in a SQL WHERE clause for the given filter if provided, and table/query alias.
     * The alias value is substituted in the filter expression in place of each occurrence of the alias variable.
@@ -383,6 +370,15 @@ public class QueryGenerator
       return tof.getOutputName().orElseGet(() -> outputFieldNameDefaultFn.apply(dbFieldName));
    }
 
+   /// Return a possibly qualified identifier for the given relation, omitting the schema
+   /// qualifier if it has a schema for which it's specified to use unqualified names.
+   private String minimalIdentifier(RelId relId)
+   {
+      if ( !relId.getSchema().isPresent() || generateUnqualifiedNamesForSchemas.contains(relId.getSchema().get()) )
+         return relId.getName();
+      else
+         return relId.getIdString();
+   }
 
    private String indent(String s)
    {

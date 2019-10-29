@@ -10,7 +10,6 @@ import java.sql.Types;
 import static java.util.Collections.emptyMap;
 
 import org.sqljsonquery.SqlJsonQuery;
-
 import static org.sqljsonquery.types.JavaWriter.NullableFieldRepr.*;
 import static org.sqljsonquery.util.Files.newFileOrStdoutWriter;
 import static org.sqljsonquery.util.Optionals.opt;
@@ -22,9 +21,9 @@ public class JavaWriter implements SourceCodeWriter
 {
    private String targetPackage;
    private Optional<Path> srcOutputBaseDir;
-   // overridden field types by (query name, generated type name, field name in generated type)
-   private Map<String,String> fieldTypeOverrides;
+   private Map<String,String> fieldTypeOverrides; // by <query name>/<generated type name>.<field name in generated type>
    private NullableFieldRepr nullableFieldRepr;
+   private Optional<String> filesHeader;
 
    public enum NullableFieldRepr { OPTWRAPPED, ANNOTATED, BARETYPE }
 
@@ -33,13 +32,15 @@ public class JavaWriter implements SourceCodeWriter
       String targetPackage,
       Optional<Path> srcOutputBaseDir,
       Optional<Map<String,String>> fieldTypeOverrides,
-      NullableFieldRepr nullableFieldRepr
+      NullableFieldRepr nullableFieldRepr,
+      Optional<String> filesHeader
    )
    {
       this.targetPackage = targetPackage;
       this.srcOutputBaseDir = srcOutputBaseDir;
       this.fieldTypeOverrides = new HashMap<>(fieldTypeOverrides.orElse(emptyMap()));
       this.nullableFieldRepr = nullableFieldRepr;
+      this.filesHeader = filesHeader;
    }
 
    @Override
@@ -69,16 +70,17 @@ public class JavaWriter implements SourceCodeWriter
             bw.write("// [ THIS SOURCE CODE WAS AUTO-GENERATED, ANY CHANGES MADE HERE MAY BE LOST. ]\n");
             bw.write("//   " + Instant.now().toString().replace('T',' ') + "\n");
             bw.write("// --------------------------------------------------------------------------\n");
-            bw.write("package " + targetPackage + "\n\n");
+            bw.write("package " + targetPackage + ";\n\n");
             bw.write("import java.util.*;\n");
             bw.write("import java.math.*;\n");
             bw.write("import java.time.*;\n");
+            if ( filesHeader.isPresent() ) bw.write(filesHeader.get());
 
             bw.write("\n\n");
             bw.write("public class " + queryClassName + "\n");
             bw.write("{\n");
 
-            for (GeneratedType generatedType: sjq.getGeneratedResultTypes() )
+            for ( GeneratedType generatedType: sjq.getGeneratedResultTypes() )
             {
                String srcCode = makeGeneratedTypeSource(generatedType, sjq.getQueryName());
 
@@ -195,6 +197,7 @@ public class JavaWriter implements SourceCodeWriter
             return notNull ? "Instant" : nullableType("Instant");
          case Types.OTHER:
             if ( f.getDatabaseType().toLowerCase().startsWith("json") )
+               // TODO: Return Jackson json object type here instead?
                return notNull ? "String" : nullableType("String");
             else
                throw new RuntimeException("unsupported type for database field " + f);

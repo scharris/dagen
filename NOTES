@@ -1,3 +1,8 @@
+Maybe add option to map json fields to jackson json object?
+  Do json/b fields properly deserialize to String receiver fields?
+
+Commit Notes
+------------
 
 Add Kotlin output option.
 

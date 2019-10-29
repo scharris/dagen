@@ -26,10 +26,15 @@ public class ParentPkCondition implements ParentChildCondition
 
    public String asEquationConditionOn(String parentAlias, DatabaseMetadata dbmd)
    {
+      return asEquationConditionOn(parentAlias, dbmd, "");
+   }
+
+   public String asEquationConditionOn(String parentAlias, DatabaseMetadata dbmd, String parentPkFieldNamePrefix)
+   {
       return
          matchedFields.stream()
-         .map(mf -> childAlias + "." + dbmd.quoteIfNeeded(mf.getForeignKeyFieldName()) + " = " +
-                    parentAlias + "." + dbmd.quoteIfNeeded(mf.getPrimaryKeyFieldName()))
-         .collect(joining(" and "));
+            .map(mf -> childAlias + "." + dbmd.quoteIfNeeded(mf.getForeignKeyFieldName()) + " = " +
+               parentAlias + "." + dbmd.quoteIfNeeded(parentPkFieldNamePrefix + mf.getPrimaryKeyFieldName()))
+            .collect(joining(" and "));
    }
 }
