@@ -1,3 +1,5 @@
+package queries
+
 import org.sqljsonquery.queryspec.ResultsRepr
 import org.sqljsonquery.queryspec.ktdsl.*
 
@@ -13,7 +15,7 @@ val drugsQuery: Query =
                   inlineParents = listOf(
                      InlineParent(
                         Table("reference",
-                           fieldsCamelCased("publication")
+                           fields("publication")
                         )
                      )
                   )
@@ -71,10 +73,4 @@ val drugsQuery: Query =
       generateResultTypes = true
    )
 
-val drugsQueryGroup = QueryGroup(defaultSchema = "drugs", queries = listOf(drugsQuery))
-
-fun writeYaml()
-{
-   writeQueryGroupSpecYaml(drugsQueryGroup, System.out)
-}
-
+val drugsQueryGroupSpec = QueryGroup(defaultSchema = "drugs", queries = listOf(drugsQuery)).toSpec()

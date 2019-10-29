@@ -1,3 +1,4 @@
+---
 schemaName: "public"
 dbmsName: "PostgreSQL"
 dbmsVersion: "12.0"
@@ -122,6 +123,15 @@ relationMetadatas:
     length: 2000
     precision: null
     fractionalDigits: null
+  - name: "weight"
+    databaseType: "int4"
+    nullable: true
+    primaryKeyPartNumber: null
+    comment: null
+    jdbcTypeCode: 4
+    length: null
+    precision: 10
+    fractionalDigits: 0
 - relationId:
     schema: "public"
     name: "brand"

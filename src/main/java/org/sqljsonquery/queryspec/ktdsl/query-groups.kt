@@ -1,10 +1,6 @@
 package org.sqljsonquery.queryspec.ktdsl
 
-import java.io.OutputStream
-
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
-import com.fasterxml.jackson.datatype.jdk8.Jdk8Module
+import kotlin.collections.ArrayList
 
 import org.sqljsonquery.queryspec.OutputFieldNameDefault
 import org.sqljsonquery.queryspec.ResultsRepr
@@ -58,6 +54,14 @@ data class ReferencedParent(
    val childForeignKeyFields: List<String>? = null
 )
 
+fun fields(vararg names: String): List<Field>
+{
+   val result = ArrayList<Field>()
+   for (name in names)
+      result.add(Field(name, null))
+   return result
+}
+
 fun fieldsCamelCased(vararg names: String): List<Field>
 {
     val result = ArrayList<Field>()
@@ -74,51 +78,43 @@ fun fieldsCamelCasedWithPrefix(prefix: String, vararg names: String): List<Field
    return result
 }
 
-fun toSpec(queryGroup: QueryGroup): org.sqljsonquery.queryspec.QueryGroupSpec =
+fun QueryGroup.toSpec(): org.sqljsonquery.queryspec.QueryGroupSpec =
    org.sqljsonquery.queryspec.QueryGroupSpec(
-      optn(queryGroup.defaultSchema),
-      queryGroup.outputFieldNameDefault,
-      queryGroup.queries.map { toSpec(it) }
+      optn(defaultSchema),
+      outputFieldNameDefault,
+      queries.map { it.toSpec() }
    )
 
-fun toSpec(q: Query): org.sqljsonquery.queryspec.QuerySpec =
-   org.sqljsonquery.queryspec.QuerySpec(q.queryName, q.resultsRepresentations, q.generateResultTypes, toSpec(q.table))
+fun Query.toSpec(): org.sqljsonquery.queryspec.QuerySpec =
+   org.sqljsonquery.queryspec.QuerySpec(queryName, resultsRepresentations, generateResultTypes, table.toSpec())
 
-fun toSpec(ip: InlineParent): org.sqljsonquery.queryspec.InlineParentSpec =
-   org.sqljsonquery.queryspec.InlineParentSpec(toSpec(ip.parentTable), optn(ip.childForeignKeyFields))
+fun InlineParent.toSpec(): org.sqljsonquery.queryspec.InlineParentSpec =
+   org.sqljsonquery.queryspec.InlineParentSpec(parentTable.toSpec(), optn(childForeignKeyFields))
 
-fun toSpec(wp: ReferencedParent): org.sqljsonquery.queryspec.ReferencedParentSpec =
-   org.sqljsonquery.queryspec.ReferencedParentSpec(wp.referenceFieldName, toSpec(wp.parentTable), optn(wp.childForeignKeyFields))
+fun ReferencedParent.toSpec(): org.sqljsonquery.queryspec.ReferencedParentSpec =
+   org.sqljsonquery.queryspec.ReferencedParentSpec(referenceFieldName, parentTable.toSpec(), optn(childForeignKeyFields))
 
-fun toSpec(cc: ChildCollection): org.sqljsonquery.queryspec.ChildCollectionSpec =
+fun ChildCollection.toSpec(): org.sqljsonquery.queryspec.ChildCollectionSpec =
    org.sqljsonquery.queryspec.ChildCollectionSpec(
-      cc.childCollectionName, toSpec(cc.childTable), optn(cc.foreignKeyFields), optn(cc.filter)
+      childCollectionName, childTable.toSpec(), optn(foreignKeyFields), optn(filter)
    )
 
-fun toSpec(f: Field): org.sqljsonquery.queryspec.TableOutputField =
-   org.sqljsonquery.queryspec.TableOutputField(f.databaseFieldName, optn(f.outputName))
+fun Field.toSpec(): org.sqljsonquery.queryspec.TableOutputField =
+   org.sqljsonquery.queryspec.TableOutputField(databaseFieldName, optn(outputName))
 
-fun toSpec(t: Table): org.sqljsonquery.queryspec.TableOutputSpec {
-   val nativeFields = t.nativeFields.map { toSpec(it) }
-   val inlineParents = t.inlineParents.map { toSpec(it) }
-   val referencedParents = t.referencedParents.map { toSpec(it) }
-   val childTables = t.childCollections.map { toSpec(it) }
+fun Table.toSpec(): org.sqljsonquery.queryspec.TableOutputSpec {
+   val nativeFields = nativeFields.map { it.toSpec() }
+   val inlineParents = inlineParents.map { it.toSpec() }
+   val referencedParents = referencedParents.map { it.toSpec() }
+   val childTables = childCollections.map { it.toSpec() }
 
    return org.sqljsonquery.queryspec.TableOutputSpec(
-      t.tableName,
+      tableName,
       nativeFields,
       inlineParents,
       referencedParents,
       childTables,
-      optn(t.filter)
+      optn(filter)
    )
 }
 
-fun writeQueryGroupSpecYaml(queryGroup: QueryGroup, os: OutputStream)
-{
-   val queryGroupSpec = toSpec(queryGroup)
-
-   val mapper = ObjectMapper(YAMLFactory())
-   mapper.registerModule(Jdk8Module())
-   mapper.writeValue(os, queryGroupSpec)
-}

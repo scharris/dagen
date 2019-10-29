@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>some.group</groupId>
+  <artifactId>example-query-gen</artifactId>
+  <version>1.0</version>
+  <name>Example Query Generator</name>
+  <description>Example usage of query generator via auxiliary pom in some application environment.</description>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+     <kotlin.version>1.3.50</kotlin.version>
+  </properties>
+
+  <dependencies>
+     <dependency>
+        <groupId>org.sqljsonquery</groupId>
+        <artifactId>sqljsonquery-gen</artifactId>
+        <version>1.0-SNAPSHOT</version>
+     </dependency>
+    <dependency>
+      <groupId>org.postgresql</groupId>
+      <artifactId>postgresql</artifactId>
+      <version>42.2.8</version>
+    </dependency>
+    <dependency>
+      <groupId>org.jetbrains.kotlin</groupId>
+      <artifactId>kotlin-stdlib-jdk8</artifactId>
+      <version>${kotlin.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.jetbrains.kotlin</groupId>
+      <artifactId>kotlin-test</artifactId>
+      <version>${kotlin.version}</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <sourceDirectory>queries</sourceDirectory>
+    <plugins>
+       <plugin>
+          <groupId>org.jetbrains.kotlin</groupId>
+          <artifactId>kotlin-maven-plugin</artifactId>
+          <version>${kotlin.version}</version>
+          <executions>
+             <execution>
+                <id>compile</id>
+                <phase>compile</phase>
+                <goals>
+                   <goal>compile</goal>
+                </goals>
+             </execution>
+             <execution>
+                <id>test-compile</id>
+                <phase>test-compile</phase>
+                <goals>
+                   <goal>test-compile</goal>
+                </goals>
+             </execution>
+          </executions>
+          <configuration>
+             <jvmTarget>1.8</jvmTarget>
+          </configuration>
+       </plugin>
+       <plugin>
+         <groupId>org.apache.maven.plugins</groupId>
+         <artifactId>maven-compiler-plugin</artifactId>
+         <version>3.8.1</version>
+          <executions>
+             <execution>
+                <id>compile</id>
+                <phase>compile</phase>
+                <goals>
+                   <goal>compile</goal>
+                </goals>
+             </execution>
+             <execution>
+                <id>testCompile</id>
+                <phase>test-compile</phase>
+                <goals>
+                   <goal>testCompile</goal>
+                </goals>
+             </execution>
+          </executions>
+          <configuration>
+           <release>8</release>
+         </configuration>
+       </plugin>
+    </plugins>
+  </build>
+
+</project>
