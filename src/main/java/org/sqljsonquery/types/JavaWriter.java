@@ -1,5 +1,6 @@
 package org.sqljsonquery.types;
 
+import java.nio.file.Files;
 import java.util.*;
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -9,6 +10,7 @@ import java.sql.Types;
 import static java.util.Collections.emptyMap;
 
 import org.sqljsonquery.SqlJsonQuery;
+
 import static org.sqljsonquery.types.JavaWriter.NullableFieldRepr.*;
 import static org.sqljsonquery.util.Files.newFileOrStdoutWriter;
 import static org.sqljsonquery.util.Optionals.opt;
@@ -50,6 +52,9 @@ public class JavaWriter implements SourceCodeWriter
       Optional<Path> outputDir = !targetPackage.isEmpty() ?
          srcOutputBaseDir.map(d -> d.resolve(targetPackage.replace('.','/')))
          : srcOutputBaseDir;
+
+      if ( outputDir.isPresent() )
+         Files.createDirectories(outputDir.get());
 
       for ( SqlJsonQuery sjq : generatedQueries )
       {
