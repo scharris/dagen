@@ -34,7 +34,7 @@ public class QueryGenerator
    private final TypesGenerator typesGenerator;
    private final Function<String,String> outputFieldNameDefaultFn;
 
-   private static final String HIDDEN_PK_FIELD_NAME_PREFIX = "_";
+   private static final String HIDDEN_PK_PREFIX = "_";
 
    enum DbmsType { PG, ORA, ISO }
 
@@ -112,14 +112,13 @@ public class QueryGenerator
     * @param parentChildCond
     *    A filter condition on this table from a parent or child table whose
     *    alias (accessible from the condition) can be assumed to be in context.
-    * @param exportPkFields
-    *    If enabled then columns will be added to the SQL select clause for any
-    *    primary key fields that are not included in the table output
-    *    as output fields. These columns will not be included in the result's
-    *    resultColumnNames list. This is useful for filtering results for a
-    *    parent/child relationship without having to include primary key fields
-    *    in the columns included in result structures (which are selected at a
-    *    level above this query).
+    * @param exportAllPkFieldsAsHidden
+    *    If enabled then all primary key fields will be added to the SQL select
+    *    clause but not are not listed in the result columns list which
+    *    is reserved for columns intended for final results. The primary key
+    *    columns added for this option have prefixed output names to avoid name
+    *    collisions. This is useful for filtering results of this base query
+    *    such as for parent child relationship conditions.
     * @return
     *    A BaseQuery structure containing the generated SQL and some metadata
     *    about the query (e.g. column names).
@@ -128,7 +127,7 @@ public class QueryGenerator
    (
       TableOutputSpec tableOutputSpec,
       Optional<ParentChildCondition> parentChildCond,
-      boolean exportPkFields
+      boolean exportAllPkFieldsAsHidden
    )
    {
       SqlQueryParts q = new SqlQueryParts();
@@ -142,13 +141,14 @@ public class QueryGenerator
       q.addFromClauseEntry(minimalIdentifier(relId) + " " + alias);
 
       // If exporting pk fields, add any that aren't already in the output fields list to the select clause.
-      Set<String> hiddenPkFields = new HashSet<>();
-      if ( exportPkFields )
+      Set<String> hiddenPkFields = new HashSet<>(); // output names of exported pk fields
+      if ( exportAllPkFieldsAsHidden )
          for ( String pkFieldName : dbmd.getPrimaryKeyFieldNames(relId) )
          {
-            String pkf = dbmd.quoteIfNeeded(pkFieldName);
-            q.addSelectClauseEntry(alias + "." + pkf, HIDDEN_PK_FIELD_NAME_PREFIX + pkf);
-            hiddenPkFields.add(pkf);
+            String pkFieldDbName = dbmd.quoteIfNeeded(pkFieldName);
+            String pkFieldOutputName = dbmd.quoteIfNeeded(HIDDEN_PK_PREFIX + pkFieldName);
+            q.addSelectClauseEntry(alias + "." + pkFieldDbName, pkFieldOutputName);
+            hiddenPkFields.add(pkFieldOutputName);
          }
 
       // Add this table's own output fields to the select clause.
@@ -268,7 +268,7 @@ public class QueryGenerator
          "left join (\n" +
             indent(fromClauseQuery.getSql()) + "\n" +
             ") " + fromClauseQueryAlias + " on " +
-            parentPkCond.asEquationConditionOn(fromClauseQueryAlias, dbmd, HIDDEN_PK_FIELD_NAME_PREFIX)
+            parentPkCond.asEquationConditionOn(fromClauseQueryAlias, dbmd, HIDDEN_PK_PREFIX)
       );
 
       return q;
