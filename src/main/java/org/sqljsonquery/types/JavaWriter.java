@@ -74,6 +74,8 @@ public class JavaWriter implements SourceCodeWriter
             bw.write("import java.util.*;\n");
             bw.write("import java.math.*;\n");
             bw.write("import java.time.*;\n");
+            bw.write("import com.fasterxml.jackson.databind.JsonNode;\n");
+
             if ( filesHeader.isPresent() ) bw.write(filesHeader.get());
 
             bw.write("\n\n");
@@ -197,8 +199,7 @@ public class JavaWriter implements SourceCodeWriter
             return notNull ? "Instant" : nullableType("Instant");
          case Types.OTHER:
             if ( f.getDatabaseType().toLowerCase().startsWith("json") )
-               // TODO: Return Jackson json object type here instead?
-               return notNull ? "String" : nullableType("String");
+               return notNull ? "JsonNode" : nullableType("JsonNode");
             else
                throw new RuntimeException("unsupported type for database field " + f);
          default:
