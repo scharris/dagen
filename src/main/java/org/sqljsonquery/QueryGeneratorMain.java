@@ -210,7 +210,7 @@ public class QueryGeneratorMain
          for ( ResultsRepr repr: sjq.getResultRepresentations() )
          {
             Optional<Path> outputFilePath = outputDir.map(d ->
-               d.resolve(sjq.getQueryName() + "[" + repr.toString() + "].sql")
+               d.resolve(sjq.getQueryName() + " [" + repr.toString() + "].sql")
             );
 
             BufferedWriter bw = newFileOrStdoutWriter(outputFilePath);
