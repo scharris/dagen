@@ -1,19 +1,7 @@
-Maybe add option to map json fields to jackson json object?
-  Do json/b fields properly deserialize to String receiver fields?
-
 Add Kotlin output option.
 
 If an identical type has already been generated, do not write it to output.
   Still return it in generated types list?  E.g. top type is required to be returned.
-
-
-Usage in App
-------------
-App should make a separate maven project within db directory 
-  Kotlin query defs as source code, sqljson-query as a dependency.
-  When this project is run, it call sqljson-query generator functions as library.
-    Database metadata file refresh (optional).
-    Queries and types generation, targeting main app resource and generated sources directories.
 
 Publishing to Maven Central
 --------------------------- 
@@ -25,6 +13,5 @@ io.github.scharris
 
 Commit Notes
 ------------
-Hide hidden exported pk's properly.
 
 
