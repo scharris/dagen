@@ -10,11 +10,15 @@ import java.sql.Types;
 import static java.util.Collections.emptyMap;
 
 import org.sqljsonquery.SqlJsonQuery;
+import org.sqljsonquery.WrittenQueryReprPath;
+import org.sqljsonquery.queryspec.ResultsRepr;
+
+import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.toMap;
 import static org.sqljsonquery.types.JavaWriter.NullableFieldRepr.*;
 import static org.sqljsonquery.util.Files.newFileOrStdoutWriter;
 import static org.sqljsonquery.util.Optionals.opt;
-import static org.sqljsonquery.util.StringFuns.upperCamelCase;
-import static org.sqljsonquery.util.StringFuns.indentLines;
+import static org.sqljsonquery.util.StringFuns.*;
 
 
 public class JavaWriter implements SourceCodeWriter
@@ -46,7 +50,8 @@ public class JavaWriter implements SourceCodeWriter
    @Override
    public void writeSourceCode
    (
-      List<SqlJsonQuery> generatedQueries
+      List<SqlJsonQuery> generatedQueries,
+      List<WrittenQueryReprPath> writtenQueryPaths
    )
       throws IOException
    {
@@ -63,6 +68,9 @@ public class JavaWriter implements SourceCodeWriter
          Optional<Path> outputFilePath = outputDir.map(d -> d.resolve(queryClassName + ".java"));
 
          BufferedWriter bw = newFileOrStdoutWriter(outputFilePath);
+
+         Map<ResultsRepr,Path> writtenQueryPathsByRepr =
+            WrittenQueryReprPath.writtenPathsForQuery(sjq.getQueryName(), writtenQueryPaths);
 
          try
          {
@@ -81,6 +89,19 @@ public class JavaWriter implements SourceCodeWriter
             bw.write("\n\n");
             bw.write("public class " + queryClassName + "\n");
             bw.write("{\n");
+
+            // Write members holding resource/file names for the result representations that were written for this query.
+            for ( ResultsRepr resultsRepr : writtenQueryPathsByRepr.keySet() )
+            {
+               String memberName = writtenQueryPathsByRepr.size() == 1 ? "sqlResourceName" :
+                  "sqlResourceName" + lowerCamelCase(resultsRepr.toString());
+               String resourceName = writtenQueryPathsByRepr.get(resultsRepr).getFileName().toString();
+               bw.write("   public static final String " + memberName + " = \"" + resourceName + "\";\n");
+            }
+            bw.write("\n");
+
+            String topClass = sjq.getGeneratedResultTypes().get(0).getTypeName();
+            bw.write("   public static final Class<" + topClass + "> principalResultClass = " + topClass + ".class;\n\n");
 
             for ( GeneratedType generatedType: sjq.getGeneratedResultTypes() )
             {

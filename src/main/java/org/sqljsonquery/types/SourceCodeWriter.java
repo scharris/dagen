@@ -4,9 +4,10 @@ import java.io.IOException;
 import java.util.List;
 
 import org.sqljsonquery.SqlJsonQuery;
+import org.sqljsonquery.WrittenQueryReprPath;
 
 
 public interface SourceCodeWriter
 {
-   void writeSourceCode(List<SqlJsonQuery> generatedQueries) throws IOException;
+   void writeSourceCode(List<SqlJsonQuery> generatedQueries, List<WrittenQueryReprPath> writtenPaths) throws IOException;
 }

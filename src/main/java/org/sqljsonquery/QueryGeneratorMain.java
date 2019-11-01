@@ -13,6 +13,7 @@ import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 
 import org.sqljsonquery.util.Pair;
 
+import static java.util.stream.Collectors.toMap;
 import static org.sqljsonquery.util.Files.readString;
 import static org.sqljsonquery.util.Optionals.opt;
 import static org.sqljsonquery.util.Files.newFileOrStdoutWriter;
@@ -116,10 +117,10 @@ public class QueryGeneratorMain
 
          List<SqlJsonQuery> generatedQueries = gen.generateSqlJsonQueries(queryGroupSpec.getQuerySpecs());
 
-         writeQueries(generatedQueries, queriesOutputDirPath);
+         List<WrittenQueryReprPath> writtenQueryPaths = writeQueries(generatedQueries, queriesOutputDirPath);
 
          SourceCodeWriter srcWriter = getSourceCodeWriter(args, srcOutputBaseDirPath);
-         srcWriter.writeSourceCode(generatedQueries);
+         srcWriter.writeSourceCode(generatedQueries, writtenQueryPaths);
       }
       catch(Exception e)
       {
@@ -194,14 +195,17 @@ public class QueryGeneratorMain
     * @param outputDir The output directory in which to write directories if provided. If not provided, all queries
     *                  will be written to stdout.
     * @throws IOException if the output directory could not be created or a write operation fails
+    * @return A list of structures identifying the output locations of written queries.
     */
-   private static void writeQueries
+   private static List<WrittenQueryReprPath> writeQueries
    (
       List<SqlJsonQuery> generatedQueries,
       Optional<Path> outputDir
    )
       throws IOException
    {
+      List<WrittenQueryReprPath> res = new ArrayList<>();
+
       if ( outputDir.isPresent() )
          Files.createDirectories(outputDir.get());
 
@@ -210,7 +214,7 @@ public class QueryGeneratorMain
          for ( ResultsRepr repr: sjq.getResultRepresentations() )
          {
             Optional<Path> outputFilePath = outputDir.map(d ->
-               d.resolve(sjq.getQueryName() + " [" + repr.toString() + "].sql")
+               d.resolve(sjq.getQueryName() + "(" + repr.toString().toLowerCase().replace('_',' ') + ").sql")
             );
 
             BufferedWriter bw = newFileOrStdoutWriter(outputFilePath);
@@ -222,6 +226,8 @@ public class QueryGeneratorMain
                   "-- " + repr + " results representation for " + sjq.getQueryName() + "\n" +
                   sjq.getSql(repr) + "\n"
                );
+
+               res.add(new WrittenQueryReprPath(sjq.getQueryName(), repr, outputFilePath));
             }
             finally
             {
@@ -230,6 +236,8 @@ public class QueryGeneratorMain
             }
          }
       }
+
+      return res;
    }
 
    private static void error(String message)
