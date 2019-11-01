@@ -83,6 +83,30 @@ relationMetadatas:
     fractionalDigits: 0
 - relationId:
     schema: "public"
+    name: "analyst"
+  relationType: "Table"
+  relationComment: null
+  fields:
+  - name: "id"
+    databaseType: "int4"
+    nullable: false
+    primaryKeyPartNumber: 1
+    comment: null
+    jdbcTypeCode: 4
+    length: null
+    precision: 10
+    fractionalDigits: 0
+  - name: "short_name"
+    databaseType: "varchar"
+    nullable: false
+    primaryKeyPartNumber: null
+    comment: null
+    jdbcTypeCode: 12
+    length: 50
+    precision: null
+    fractionalDigits: null
+- relationId:
+    schema: "public"
     name: "authority"
   relationType: "Table"
   relationComment: null
@@ -297,6 +321,15 @@ relationMetadatas:
     length: 27
     precision: null
     fractionalDigits: null
+  - name: "entered_by"
+    databaseType: "int4"
+    nullable: false
+    primaryKeyPartNumber: null
+    comment: null
+    jdbcTypeCode: 4
+    length: null
+    precision: 10
+    fractionalDigits: 0
 - relationId:
     schema: "public"
     name: "drug"
@@ -375,6 +408,15 @@ relationMetadatas:
     length: null
     precision: null
     fractionalDigits: null
+  - name: "registered_by"
+    databaseType: "int4"
+    nullable: false
+    primaryKeyPartNumber: null
+    comment: null
+    jdbcTypeCode: 4
+    length: null
+    precision: 10
+    fractionalDigits: 0
 - relationId:
     schema: "public"
     name: "drug_functional_category"
@@ -585,6 +627,24 @@ foreignKeys:
     name: "manufacturer"
   foreignKeyComponents:
   - foreignKeyFieldName: "manufacturer_id"
+    primaryKeyFieldName: "id"
+- sourceRelationId:
+    schema: "public"
+    name: "compound"
+  targetRelationId:
+    schema: "public"
+    name: "analyst"
+  foreignKeyComponents:
+  - foreignKeyFieldName: "entered_by"
+    primaryKeyFieldName: "id"
+- sourceRelationId:
+    schema: "public"
+    name: "drug"
+  targetRelationId:
+    schema: "public"
+    name: "analyst"
+  foreignKeyComponents:
+  - foreignKeyFieldName: "registered_by"
     primaryKeyFieldName: "id"
 - sourceRelationId:
     schema: "public"

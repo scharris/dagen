@@ -76,6 +76,12 @@ querySpecs:
                     - databaseFieldName: description
                       outputName: authorityDescription
       referencedParents:
+        - referenceFieldName: analyst
+          referencedParentTableOutputSpec:
+            tableName: analyst
+            nativeFields:
+              - databaseFieldName: id
+              - databaseFieldName: short_name
         - referenceFieldName: compound
           childForeignKeyFields:
             - compound_id
@@ -85,4 +91,11 @@ querySpecs:
               - databaseFieldName: display_name
               - databaseFieldName: nctr_isis_id
               - databaseFieldName: cas
+            referencedParents:
+              - referenceFieldName: analyst
+                referencedParentTableOutputSpec:
+                  tableName: analyst
+                  nativeFields:
+                    - databaseFieldName: id
+                    - databaseFieldName: short_name
       filter: '$d : not $d.id = 2' # "<alias-var> : <expr using alias-var>", both sides trimmed

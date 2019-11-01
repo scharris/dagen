@@ -103,13 +103,20 @@ public class JavaWriter implements SourceCodeWriter
             String topClass = sjq.getGeneratedResultTypes().get(0).getTypeName();
             bw.write("   public static final Class<" + topClass + "> principalResultClass = " + topClass + ".class;\n\n");
 
+            Set<String> writtenTypeNames = new HashSet<>();
+
             for ( GeneratedType generatedType: sjq.getGeneratedResultTypes() )
             {
-               String srcCode = makeGeneratedTypeSource(generatedType, sjq.getQueryName());
+               if ( !writtenTypeNames.contains(generatedType.getTypeName()) )
+               {
+                  String srcCode = makeGeneratedTypeSource(generatedType, sjq.getQueryName());
 
-               bw.write('\n');
-               bw.write(indentLines(srcCode, 3));
-               bw.write('\n');
+                  bw.write('\n');
+                  bw.write(indentLines(srcCode, 3));
+                  bw.write('\n');
+
+                  writtenTypeNames.add(generatedType.getTypeName());
+               }
             }
 
             bw.write("}\n");

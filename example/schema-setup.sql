@@ -7,6 +7,11 @@ drugs> \i schema-setup.sql
 (Or just paste the file contents.)
  */
 
+create table analyst (
+    id integer not null constraint analyst_pk primary key,
+    short_name varchar(50) not null
+);
+
 create table compound
 (
     id                 integer not null
@@ -23,7 +28,10 @@ create table compound
     inchi              varchar(2000),
     inchi_key          varchar(27),
     standard_inchi     varchar(2000),
-    standard_inchi_key varchar(27)
+    standard_inchi_key varchar(27),
+    entered_by         integer not null
+        constraint compound_analyst_fk
+            references analyst
 );
 
 create table drug
@@ -45,7 +53,10 @@ create table drug
             unique,
     cid                     integer,
     therapeutic_indications varchar(4000),
-    spl                     xml
+    spl                     xml,
+    registered_by         integer not null
+        constraint drug_analyst_fk
+            references analyst
 );
 
 create index drug_compoundid_ix
@@ -204,6 +215,8 @@ create index brand_mfr_ix
 
 -- Test data
 
+insert into analyst values(1, 'jdoe');
+
 insert into authority(id, name, url, description, weight)
   values(1, 'FDA', 'http://www.fda.gov', 'Food and Drug Administration', 100);
 insert into authority(id, name, url, description, weight)
@@ -234,11 +247,12 @@ insert into manufacturer(id, name)
   values(3, 'SellsAll Drug Co.');
 
 
-insert into compound(id, display_name, nctr_isis_id, cas)
+insert into compound(id, display_name, nctr_isis_id, cas, entered_by)
   select n,
     'Test Compound ' || n ,
     'ISIS-' || n ,
-    '5'||n||n||n||n||'-'||n||n
+    '5'||n||n||n||n||'-'||n||n,
+    1
   from generate_series(1,5) n
 ;
 

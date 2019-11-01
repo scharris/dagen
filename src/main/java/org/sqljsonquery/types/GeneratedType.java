@@ -54,6 +54,32 @@ public class GeneratedType
       return parentReferenceFields.stream().map(ParentReferenceField::toNullable).collect(toList());
    }
 
+   public boolean equalsIgnoringName(GeneratedType that)
+   {
+      return
+         databaseFields.equals(that.databaseFields) &&
+         childCollectionFields.equals(that.childCollectionFields) &&
+         parentReferenceFields.equals(that.parentReferenceFields);
+   }
+
+   @Override
+   public boolean equals(Object o)
+   {
+      if (this == o) return true;
+      if (o == null || getClass() != o.getClass()) return false;
+      GeneratedType that = (GeneratedType) o;
+      return typeName.equals(that.typeName) &&
+         databaseFields.equals(that.databaseFields) &&
+         childCollectionFields.equals(that.childCollectionFields) &&
+         parentReferenceFields.equals(that.parentReferenceFields);
+   }
+
+   @Override
+   public int hashCode()
+   {
+      return Objects.hash(typeName, databaseFields, childCollectionFields, parentReferenceFields);
+   }
+
    @Override
    public String toString()
    {

@@ -13,9 +13,9 @@ public class GeneratedTypeBuilder
    private final List<ChildCollectionField> childCollectionFields;
    private final List<ParentReferenceField> parentReferenceFields;
 
-   public GeneratedTypeBuilder(String typeName)
+   public GeneratedTypeBuilder()
    {
-      this.typeName = typeName;
+      this.typeName = "";
       this.databaseFields = new ArrayList<>();
       this.childCollectionFields = new ArrayList<>();
       this.parentReferenceFields = new ArrayList<>();
@@ -56,8 +56,8 @@ public class GeneratedTypeBuilder
       }
    }
 
-   public GeneratedType build()
+   public GeneratedType build(String name)
    {
-      return new GeneratedType(typeName, databaseFields, childCollectionFields, parentReferenceFields);
+      return new GeneratedType(name, databaseFields, childCollectionFields, parentReferenceFields);
    }
 }

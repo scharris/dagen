@@ -11,13 +11,18 @@ public final class StringFuns
 
    public static String makeNameNotInSet(String baseName, Set<String> existingNames)
    {
+      return makeNameNotInSet(baseName, existingNames, "");
+   }
+
+   public static String makeNameNotInSet(String baseName, Set<String> existingNames, String suffixSep)
+   {
       if ( !existingNames.contains(baseName) )
          return baseName;
       else
       {
          int i = 1;
-         while ( existingNames.contains(baseName + i) ) ++i;
-         return baseName + i;
+         while ( existingNames.contains(baseName + suffixSep + i) ) ++i;
+         return baseName + suffixSep + i;
       }
    }
 

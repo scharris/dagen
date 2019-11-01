@@ -2,10 +2,11 @@ package org.sqljsonquery;
 
 import java.util.*;
 import java.util.function.Function;
-
+import static java.util.Optional.empty;
 import static java.util.stream.Collectors.*;
 import static java.util.function.Function.identity;
 
+import static org.sqljsonquery.util.Optionals.opt;
 import static org.sqljsonquery.util.StringFuns.*;
 import org.sqljsonquery.dbmd.*;
 import static org.sqljsonquery.dbmd.ForeignKeyScope.REGISTERED_TABLES_ONLY;
@@ -35,16 +36,13 @@ public class TypesGenerator
    public List<GeneratedType> generateTypes
    (
       TableOutputSpec tos,
-      Set<String> typeNamesInScope
+      Map<String,GeneratedType> previouslyGeneratedTypesByName
    )
    {
       List<GeneratedType> generatedTypes = new ArrayList<>();
-      Set<String> avoidTypeNames = new HashSet<>(typeNamesInScope);
+      Map<String,GeneratedType> typesInScope = new HashMap<>(previouslyGeneratedTypesByName);
 
-      String typeName = makeNameNotInSet(upperCamelCase(tos.getTableName()), avoidTypeNames);
-      avoidTypeNames.add(typeName);
-
-      GeneratedTypeBuilder typeBuilder = new GeneratedTypeBuilder(typeName);
+      GeneratedTypeBuilder typeBuilder = new GeneratedTypeBuilder();
 
       RelId relId = dbmd.identifyTable(tos.getTableName(), defaultSchema);
       Map<String,Field> dbFieldsByName = getTableFieldsByName(relId);
@@ -62,7 +60,7 @@ public class TypesGenerator
       for ( InlineParentSpec inlineParentTableSpec :  tos.getInlineParents() )
       {
          // Generate types by traversing the parent table and its parents and children.
-         List<GeneratedType> parentGenTypes = generateTypes(inlineParentTableSpec.getParentTableOutputSpec(), avoidTypeNames);
+         List<GeneratedType> parentGenTypes = generateTypes(inlineParentTableSpec.getParentTableOutputSpec(), typesInScope);
          GeneratedType parentType = parentGenTypes.get(0); // will not be generated
 
          // If the parent record might be absent, then all inline fields must be nullable.
@@ -73,14 +71,14 @@ public class TypesGenerator
 
          List<GeneratedType> actualGenParentTypes = parentGenTypes.subList(1, parentGenTypes.size());
          generatedTypes.addAll(actualGenParentTypes);
-         actualGenParentTypes.forEach(t -> avoidTypeNames.add(t.getTypeName()));
+         actualGenParentTypes.forEach(t -> typesInScope.put(t.getTypeName(), t));
       }
 
       // Add reference fields for referenced parents, and add their generated types to the generated types results.
       for ( ReferencedParentSpec parentTableSpec : tos.getReferencedParents() )
       {
          // Generate types by traversing the parent table and its parents and children.
-         List<GeneratedType> parentGenTypes = generateTypes(parentTableSpec.getParentTableOutputSpec(), avoidTypeNames);
+         List<GeneratedType> parentGenTypes = generateTypes(parentTableSpec.getParentTableOutputSpec(), typesInScope);
          GeneratedType parentType = parentGenTypes.get(0);
 
          boolean nullable = parentTableSpec.getParentTableOutputSpec().getFilter().isPresent() || // parent has filter
@@ -89,28 +87,40 @@ public class TypesGenerator
          typeBuilder.addParentReferenceField(parentTableSpec.getReferenceFieldName(), parentType, nullable);
 
          generatedTypes.addAll(parentGenTypes);
-         parentGenTypes.forEach(t -> avoidTypeNames.add(t.getTypeName()));
+         parentGenTypes.forEach(t -> typesInScope.put(t.getTypeName(), t));
       }
 
       // Add each child table's types to the overall list of generated types, and their collection fields to this type.
       for ( ChildCollectionSpec childCollectionSpec : tos.getChildCollections() )
       {
          // Generate types by traversing the child table and its parents and children.
-         List<GeneratedType> childGenTypes =
-            generateTypes(
-               childCollectionSpec.getChildTableOutputSpec(),
-               avoidTypeNames
-            );
+         List<GeneratedType> childGenTypes = generateTypes(childCollectionSpec.getChildTableOutputSpec(), typesInScope);
          GeneratedType childType = childGenTypes.get(0);
 
          typeBuilder.addChildCollectionField(childCollectionSpec.getChildCollectionName(), childType, false);
 
          generatedTypes.addAll(childGenTypes);
-         childGenTypes.forEach(t -> avoidTypeNames.add(t.getTypeName()));
+         childGenTypes.forEach(t -> typesInScope.put(t.getTypeName(), t));
       }
 
-
-      generatedTypes.add(0, typeBuilder.build()); // The tos's top table type must be at the head of the returned list.
+      // Finallly the top table's type must be added at leading position in the returned list.
+      // First we have to determine whether a previously generated type is identical, except for any extensions to its
+      // name made to make the name unique, in which case the previous type is added instead of creating a new one.
+      String baseTypeName = upperCamelCase(tos.getTableName()); // Base type name is the desired name, without any trailing digits.
+      if ( !typesInScope.containsKey(baseTypeName) ) // No previously generated type of same base name.
+         generatedTypes.add(0, typeBuilder.build(baseTypeName));
+      else
+      {
+         Optional<GeneratedType> existingIdenticalType =
+            findTypeIgnoringNameExtensions(typeBuilder.build(baseTypeName), previouslyGeneratedTypesByName);
+         if ( existingIdenticalType.isPresent() ) // Identical previously generated type found, use it as top type.
+            generatedTypes.add(0, existingIdenticalType.get());
+         else // This type does not match any previously generated, but needs a new name.
+         {
+            String uniqueName = makeNameNotInSet(baseTypeName, typesInScope.keySet(), "_");
+            generatedTypes.add(0, typeBuilder.build(uniqueName));
+         }
+      }
 
       return generatedTypes;
    }
@@ -128,6 +138,29 @@ public class TypesGenerator
 
       return relMd.getFields().stream().collect(toMap(Field::getName, identity()));
    }
+
+   private Optional<GeneratedType> findTypeIgnoringNameExtensions
+   (
+      GeneratedType typeToFind,
+      Map<String,GeneratedType> inMap
+   )
+   {
+      String baseName = typeToFind.getTypeName();
+
+      for ( Map.Entry<String,GeneratedType> entry: inMap.entrySet() )
+      {
+         boolean baseNamesMatch =
+            entry.getKey().startsWith(baseName) &&
+            (entry.getKey().equals(baseName) ||
+             entry.getKey().charAt(baseName.length()) == '_'); // underscore used as suffix separator for making unique names
+
+         if ( baseNamesMatch && typeToFind.equalsIgnoringName(entry.getValue()) )
+            return opt(entry.getValue());
+      }
+
+      return empty();
+   }
+
 
    private boolean noFkFieldKnownNotNullable(RelId childRelId, ParentSpec parentSpec)
    {

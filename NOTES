@@ -1,7 +1,9 @@
-Add Kotlin output option.
+Add Oracle support.
 
-If an identical type has already been generated, do not write it to output.
-  Still return it in generated types list?  E.g. top type is required to be returned.
+Add Typescript output option.
+
+Add unit tests.
+
 
 Publishing to Maven Central
 --------------------------- 

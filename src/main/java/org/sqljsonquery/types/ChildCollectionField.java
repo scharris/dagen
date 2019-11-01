@@ -1,6 +1,8 @@
 package org.sqljsonquery.types;
 
 
+import java.util.Objects;
+
 public class ChildCollectionField
 {
    String name;
@@ -24,6 +26,23 @@ public class ChildCollectionField
    {
       if ( nullable ) return this;
       else return new ChildCollectionField(name, generatedType, true);
+   }
+
+   @Override
+   public boolean equals(Object o)
+   {
+      if (this == o) return true;
+      if (o == null || getClass() != o.getClass()) return false;
+      ChildCollectionField that = (ChildCollectionField) o;
+      return nullable == that.nullable &&
+         name.equals(that.name) &&
+         generatedType.equals(that.generatedType);
+   }
+
+   @Override
+   public int hashCode()
+   {
+      return Objects.hash(name, generatedType, nullable);
    }
 
    @Override
