@@ -59,7 +59,7 @@ public final class StringFuns
       for (String word : name.split("[_ -]"))
       {
          if ( res.length() == 0 )
-            res.append(word);
+            res.append(word.toLowerCase());
          else
          {
             res.append(Character.toUpperCase(word.charAt(0)));
