@@ -11,6 +11,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 
+import org.sqljsonquery.types.source_writers.TypescriptWriter;
 import org.sqljsonquery.util.Pair;
 import static org.sqljsonquery.util.Files.readString;
 import static org.sqljsonquery.util.Optionals.opt;
@@ -38,7 +39,7 @@ public class QueryGeneratorMain
                  "[<src-output-base-dir> <queries-output-dir>]");
       ps.println("If output directories are not provided, then all output is written to standard out.");
       ps.println("Options:");
-      ps.println("   " + langOptPrefix + "<language>  Output language, currently must be \"Java\".");
+      ps.println("   " + langOptPrefix + "<language>  Output language, \"Java\"|\"Typescript\".");
       ps.println("   " + pkgOptPrefix + "<java-package>  The Java package for the generated query classes.");
       ps.println("   " + javaNullabilityOptPrefix + "<nullable-fields-option>  How nullable fields should be" +
                  "represented in Java.");
@@ -163,9 +164,10 @@ public class QueryGeneratorMain
 
       switch ( language )
       {
-         case "":
          case "Java":
             return new JavaWriter(targetPackage, srcOutputBaseDir, fieldTypeOverrides, nullableFieldRepr, typeFilesHeader);
+         case "Typescript":
+            return new TypescriptWriter(srcOutputBaseDir, fieldTypeOverrides, typeFilesHeader);
          default:
             throw new RuntimeException("target language not supported");
       }

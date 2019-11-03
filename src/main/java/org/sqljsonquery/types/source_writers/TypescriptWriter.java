@@ -1,0 +1,212 @@
+package org.sqljsonquery.types.source_writers;
+
+import java.nio.file.Files;
+import java.util.*;
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.time.Instant;
+import java.sql.Types;
+import static java.util.Collections.emptyMap;
+
+import org.sqljsonquery.SqlJsonQuery;
+import org.sqljsonquery.WrittenQueryReprPath;
+import org.sqljsonquery.queryspec.ResultsRepr;
+import org.sqljsonquery.types.*;
+import static org.sqljsonquery.util.Files.newFileOrStdoutWriter;
+import static org.sqljsonquery.util.StringFuns.*;
+
+
+public class TypescriptWriter implements SourceCodeWriter
+{
+   private Optional<Path> srcOutputDir;
+   private Map<String,String> fieldTypeOverrides; // by <query name>/<generated type name>.<field name in generated type>
+   private Optional<String> filesHeader;
+
+   public TypescriptWriter
+   (
+      Optional<Path> srcOutputDir,
+      Optional<Map<String,String>> fieldTypeOverrides,
+      Optional<String> filesHeader
+   )
+   {
+      this.srcOutputDir = srcOutputDir;
+      this.fieldTypeOverrides = new HashMap<>(fieldTypeOverrides.orElse(emptyMap()));
+      this.filesHeader = filesHeader;
+   }
+
+   @Override
+   public void writeSourceCode
+   (
+      List<SqlJsonQuery> generatedQueries,
+      List<WrittenQueryReprPath> writtenQueryPaths
+   )
+      throws IOException
+   {
+      if ( srcOutputDir.isPresent() )
+         Files.createDirectories(srcOutputDir.get());
+
+      for ( SqlJsonQuery sjq : generatedQueries )
+      {
+         String moduleName = upperCamelCase(sjq.getQueryName()) + "ResultTypes";
+         Optional<Path> outputFilePath = srcOutputDir.map(d -> d.resolve(moduleName + ".ts"));
+
+         BufferedWriter bw = newFileOrStdoutWriter(outputFilePath);
+
+         Map<ResultsRepr,Path> writtenQueryPathsByRepr =
+            WrittenQueryReprPath.writtenPathsForQuery(sjq.getQueryName(), writtenQueryPaths);
+
+         try
+         {
+            bw.write("// --------------------------------------------------------------------------\n");
+            bw.write("// [ THIS SOURCE CODE WAS AUTO-GENERATED, ANY CHANGES MADE HERE MAY BE LOST. ]\n");
+            bw.write("//   " + Instant.now().toString().replace('T',' ') + "\n");
+            bw.write("// --------------------------------------------------------------------------\n");
+
+            if ( filesHeader.isPresent() )
+               bw.write(filesHeader.get());
+
+            bw.write("\n\n");
+
+            // Write members holding resource/file names for the result representations that were written for this query.
+            for ( ResultsRepr resultsRepr : writtenQueryPathsByRepr.keySet() )
+            {
+               String memberName = writtenQueryPathsByRepr.size() == 1 ? "sqlResourceName" :
+                  "sqlResourceName" + lowerCamelCase(resultsRepr.toString());
+               String resourceName = writtenQueryPathsByRepr.get(resultsRepr).getFileName().toString();
+               bw.write("export const " + memberName + " = \"" + resourceName + "\";\n");
+            }
+            bw.write("\n");
+
+            String topTypeName = sjq.getGeneratedResultTypes().get(0).getTypeName();
+            bw.write("export const principalResultType = '" + topTypeName + "';\n\n");
+
+            Set<String> writtenTypeNames = new HashSet<>();
+
+            for ( GeneratedType generatedType: sjq.getGeneratedResultTypes() )
+            {
+               if ( !writtenTypeNames.contains(generatedType.getTypeName()) )
+               {
+                  String srcCode = makeGeneratedTypeSource(generatedType, sjq.getQueryName());
+
+                  bw.write('\n');
+                  bw.write(srcCode);
+                  bw.write('\n');
+
+                  writtenTypeNames.add(generatedType.getTypeName());
+               }
+            }
+         }
+         finally
+         {
+            if ( outputFilePath.isPresent() ) bw.close();
+            else bw.flush();
+         }
+      }
+   }
+
+   public String makeGeneratedTypeSource(GeneratedType generatedType, String queryName)
+   {
+      StringBuilder sb = new StringBuilder();
+
+      String typeName = generatedType.getTypeName();
+
+      // TODO
+
+      sb.append("export interface ");
+      sb.append(typeName);
+      sb.append("\n{\n");
+
+      for ( DatabaseField f : generatedType.getDatabaseFields() )
+      {
+         sb.append("   ");
+         sb.append(f.getName());
+         sb.append(": ");
+         sb.append(getTSTypeNameForDatabaseField(f, queryName, typeName));
+         sb.append(";\n");
+      }
+
+      for ( ChildCollectionField childCollField : generatedType.getChildCollectionFields() )
+      {
+         sb.append("   ");
+         sb.append(childCollField.getName());
+         sb.append(": ");
+         sb.append(getChildCollectionDeclaredType(childCollField));
+         sb.append(";\n");
+      }
+
+      for ( ParentReferenceField parentRefField : generatedType.getParentReferenceFields() )
+      {
+         sb.append("   ");
+         sb.append(parentRefField.getName());
+         sb.append(": ");
+         sb.append(getParentRefDeclaredType(parentRefField));
+         sb.append(";\n");
+      }
+
+      sb.append("}\n");
+
+      return sb.toString();
+   }
+
+   private String getTSTypeNameForDatabaseField
+   (
+      DatabaseField f,
+      String queryName,
+      String generatedTypeName
+   )
+   {
+      boolean notNull = !(f.getNullable().orElse(true));
+
+      // Check if there's a type override specified for this field.
+      String typeOverrideKey = queryName + "/" + generatedTypeName + "." + f.getName();
+      if ( fieldTypeOverrides.containsKey(typeOverrideKey) )
+         return fieldTypeOverrides.get(typeOverrideKey);
+
+      switch ( f.getJdbcTypeCode() )
+      {
+         case Types.TINYINT:
+         case Types.SMALLINT:
+         case Types.INTEGER:
+         case Types.BIGINT:
+         case Types.DECIMAL:
+         case Types.NUMERIC:
+         case Types.FLOAT:
+         case Types.REAL:
+         case Types.DOUBLE:
+            return notNull ? "number" : "number?";
+         case Types.CHAR:
+         case Types.VARCHAR:
+         case Types.LONGVARCHAR:
+         case Types.CLOB:
+         case Types.DATE:
+         case Types.TIME:
+         case Types.TIMESTAMP:
+            return notNull ? "string" : "string?";
+         case Types.BIT:
+         case Types.BOOLEAN:
+            return notNull ? "boolean" : "boolean?";
+         case Types.OTHER:
+            if ( f.getDatabaseType().toLowerCase().startsWith("json") )
+               return notNull ? "any" : "any?";
+            else
+               throw new RuntimeException("unsupported type for database field " + f);
+         default:
+            throw new RuntimeException("unsupported type for database field " + f);
+      }
+   }
+
+   private String getParentRefDeclaredType(ParentReferenceField parentRefField)
+   {
+      return
+         !parentRefField.isNullable() ?
+            parentRefField.getGeneratedType().getTypeName()
+            : parentRefField.getGeneratedType().getTypeName() + "?";
+   }
+
+   private String getChildCollectionDeclaredType(ChildCollectionField childCollField)
+   {
+      String bareChildCollType = childCollField.getGeneratedType().getTypeName() + "[]";
+      return !childCollField.isNullable() ? bareChildCollType : bareChildCollType + "?";
+   }
+}
