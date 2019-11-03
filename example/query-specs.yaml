@@ -4,8 +4,8 @@ querySpecs:
   - queryName: drugs query
     resultsRepresentations:
       - JSON_OBJECT_ROWS
-      - MULTI_COLUMN_ROWS
-      - JSON_ARRAY_ROW
+#      - JSON_ARRAY_ROW
+#      - MULTI_COLUMN_ROWS
     generateResultTypes: yes
     tableOutputSpec:
       tableName: drug
