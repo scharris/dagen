@@ -13,7 +13,6 @@ import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 
 import org.sqljsonquery.util.Pair;
 
-import static java.util.stream.Collectors.toMap;
 import static org.sqljsonquery.util.Files.readString;
 import static org.sqljsonquery.util.Optionals.opt;
 import static org.sqljsonquery.util.Files.newFileOrStdoutWriter;
@@ -33,8 +32,9 @@ public class QueryGeneratorMain
    static final String fieldOverridesOptPrefix = "--field-overrides:";
    static final String generatedTypesHeaderFileOptPrefix = "--types-file-header:";
 
-   private static void printUsage(PrintStream ps)
+   private static void printUsage()
    {
+      PrintStream ps = System.out;
       ps.println("Expected arguments: [options] <db-metadata-file> <queries-spec-file> " +
                  "[<src-output-base-dir> <queries-output-dir>]");
       ps.println("If output directories are not provided, then all output is written to standard out.");
@@ -62,7 +62,7 @@ public class QueryGeneratorMain
       }
       catch(Exception e)
       {
-         printUsage(System.err);
+         System.err.println(e.getMessage());
          System.exit(1);
       }
    }
@@ -70,7 +70,7 @@ public class QueryGeneratorMain
    public static void execCommandLine(String[] allArgs)
    {
       if ( allArgs.length == 1 && allArgs[0].equals("-h") || allArgs[0].equals("--help") )
-         printUsage(System.out);
+         printUsage();
 
       SplitArgs args = splitOptionsAndRequiredArgs(allArgs);
 

@@ -52,7 +52,7 @@ public class DatabaseMetadataMain
       }
       catch(Exception e)
       {
-         printUsage(System.err);
+         System.err.println(e.getMessage());
          System.exit(1);
       }
    }
