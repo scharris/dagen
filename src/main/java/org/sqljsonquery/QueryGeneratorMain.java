@@ -12,16 +12,15 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 
 import org.sqljsonquery.util.Pair;
-
 import static org.sqljsonquery.util.Files.readString;
 import static org.sqljsonquery.util.Optionals.opt;
 import static org.sqljsonquery.util.Files.newFileOrStdoutWriter;
 import org.sqljsonquery.dbmd.DatabaseMetadata;
 import org.sqljsonquery.queryspec.QueryGroupSpec;
 import org.sqljsonquery.queryspec.ResultsRepr;
-import org.sqljsonquery.types.JavaWriter;
+import org.sqljsonquery.types.source_writers.JavaWriter;
 import org.sqljsonquery.types.SourceCodeWriter;
-import static org.sqljsonquery.types.JavaWriter.NullableFieldRepr;
+import static org.sqljsonquery.types.source_writers.JavaWriter.NullableFieldRepr;
 
 
 public class QueryGeneratorMain

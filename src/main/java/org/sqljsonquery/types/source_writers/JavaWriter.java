@@ -1,4 +1,4 @@
-package org.sqljsonquery.types;
+package org.sqljsonquery.types.source_writers;
 
 import java.nio.file.Files;
 import java.util.*;
@@ -12,10 +12,8 @@ import static java.util.Collections.emptyMap;
 import org.sqljsonquery.SqlJsonQuery;
 import org.sqljsonquery.WrittenQueryReprPath;
 import org.sqljsonquery.queryspec.ResultsRepr;
-
-import static java.util.stream.Collectors.groupingBy;
-import static java.util.stream.Collectors.toMap;
-import static org.sqljsonquery.types.JavaWriter.NullableFieldRepr.*;
+import org.sqljsonquery.types.*;
+import static org.sqljsonquery.types.source_writers.JavaWriter.NullableFieldRepr.*;
 import static org.sqljsonquery.util.Files.newFileOrStdoutWriter;
 import static org.sqljsonquery.util.Optionals.opt;
 import static org.sqljsonquery.util.StringFuns.*;
@@ -239,13 +237,13 @@ public class JavaWriter implements SourceCodeWriter
    {
       return
          !parentRefField.isNullable() ?
-            parentRefField.generatedType.getTypeName()
-            : nullableType(parentRefField.generatedType.getTypeName());
+            parentRefField.getGeneratedType().getTypeName()
+            : nullableType(parentRefField.getGeneratedType().getTypeName());
    }
 
    private String getChildCollectionDeclaredType(ChildCollectionField childCollField)
    {
-      String bareChildCollType = "List<" + childCollField.generatedType.getTypeName() + ">";
+      String bareChildCollType = "List<" + childCollField.getGeneratedType().getTypeName() + ">";
       return !childCollField.isNullable() ? bareChildCollType : nullableType(bareChildCollType);
    }
 
