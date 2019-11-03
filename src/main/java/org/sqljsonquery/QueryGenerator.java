@@ -2,25 +2,21 @@ package org.sqljsonquery;
 
 import java.util.*;
 import java.util.function.Function;
-
 import static java.util.Collections.*;
 import static java.util.stream.Collectors.*;
 import static java.util.Optional.empty;
 import static java.util.function.Function.identity;
 
-import org.sqljsonquery.queryspec.*;
-import org.sqljsonquery.util.*;
 import static org.sqljsonquery.util.StringFuns.*;
 import static org.sqljsonquery.util.Optionals.opt;
 import org.sqljsonquery.dbmd.*;
+import org.sqljsonquery.queryspec.*;
 import static org.sqljsonquery.dbmd.ForeignKeyScope.REGISTERED_TABLES_ONLY;
-import org.sqljsonquery.sql.ChildFkCondition;
-import org.sqljsonquery.sql.ParentChildCondition;
-import org.sqljsonquery.sql.ParentPkCondition;
-import org.sqljsonquery.sql.SqlQueryParts;
+import org.sqljsonquery.sql.*;
 import org.sqljsonquery.sql.dialect.OracleDialect;
 import org.sqljsonquery.sql.dialect.PostgresDialect;
 import org.sqljsonquery.sql.dialect.SqlDialect;
+import static org.sqljsonquery.sql.SelectClauseEntry.Source.*;
 import org.sqljsonquery.types.GeneratedType;
 
 
@@ -98,8 +94,8 @@ public class QueryGenerator
       switch (resultsRepr)
       {
          case MULTI_COLUMN_ROWS: return makeBaseQuery(tos, empty(), false).getSql();
-         case JSON_OBJECT_ROWS:  return makeJsonResultSql(tos, empty(), false);
-         case JSON_ARRAY_ROW:    return makeJsonResultSql(tos, empty(), true);
+         case JSON_OBJECT_ROWS:  return makeJsonObjectRowsSql(tos, empty());
+         case JSON_ARRAY_ROW:    return makeAggregatedJsonResultSql(tos, empty());
          default: throw new RuntimeException("unrecognized results representation: " + resultsRepr);
       }
    }
@@ -141,28 +137,28 @@ public class QueryGenerator
       q.addFromClauseEntry(minimalIdentifier(relId) + " " + alias);
 
       // If exporting pk fields, add any that aren't already in the output fields list to the select clause.
-      Set<String> hiddenPkFields = new HashSet<>(); // output names of exported pk fields
       if ( exportAllPkFieldsAsHidden )
          for ( String pkFieldName : dbmd.getPrimaryKeyFieldNames(relId) )
          {
             String pkFieldDbName = dbmd.quoteIfNeeded(pkFieldName);
             String pkFieldOutputName = dbmd.quoteIfNeeded(HIDDEN_PK_PREFIX + pkFieldName);
-            q.addSelectClauseEntry(alias + "." + pkFieldDbName, pkFieldOutputName);
-            hiddenPkFields.add(pkFieldOutputName);
+            q.addSelectClauseEntry(alias + "." + pkFieldDbName, pkFieldOutputName, HIDDEN_PK);
          }
 
       // Add this table's own output fields to the select clause.
       for ( TableOutputField tof : tableOutputSpec.getNativeFields() )
          q.addSelectClauseEntry(
             alias + "." + tof.getDatabaseFieldName(), // db fields must be quoted as needed in queries spec itself
-            dbmd.quoteIfNeeded(getOutputFieldName(tof, tof.getDatabaseFieldName()))
+            dbmd.quoteIfNeeded(getOutputFieldName(tof, tof.getDatabaseFieldName())),
+            NATIVE_FIELD
          );
 
       // Add child record collections to the select clause.
       for ( ChildCollectionSpec childCollectionSpec : tableOutputSpec.getChildCollections() )
          q.addSelectClauseEntry(
             "(\n" + indent(makeChildRecordsQuery(childCollectionSpec, relId, alias)) + "\n)",
-            dbmd.quoteIfNeeded(childCollectionSpec.getChildCollectionName())
+            dbmd.quoteIfNeeded(childCollectionSpec.getChildCollectionName()),
+            CHILD_COLLECTION
          );
 
       // Add query parts for inline parents.
@@ -184,39 +180,65 @@ public class QueryGenerator
       );
 
       String sql = makeSqlFromParts(q);
-      List<String> resultColumnNames = q.getSelectClauseEntries().stream().map(Pair::snd)
-         .filter(f -> !hiddenPkFields.contains(f)).collect(toList());
 
-      return new BaseQuery(sql, resultColumnNames);
+      List<ColumnMetadata> columnMetadatas =
+         q.getSelectClauseEntries().stream()
+         .filter(e -> e.getSource() != HIDDEN_PK)
+         .map(e -> new ColumnMetadata(e.getOutputName(), e.getSource()))
+         .collect(toList());
+
+      return new BaseQuery(sql, columnMetadatas);
    }
 
-   /** Make a query having JSON result values at the top level of the result set.
-       Depending on aggregateRows, the query either returns a single row with a
-       single JSON array value column (when aggregateRows is true), or else one
-       JSON value in each of any number of result rows. In all cases result sets
-       have exactly one column.
+   /** Make a query having a single row and column result, with the result value
+    *  representing the collection of json object representations of all rows
+    *  of the table whose output specification is passed.
+    * @param tos  The output specification for this table, the subject of the query.
+    * @param parentChildLinkCond A filter condition on this table (always) from a parent or child table whose alias
+    *                            (accessible from the condition) can be assumed to be in context.
+    * @return the generated SQL query
+    */
+   private String makeAggregatedJsonResultSql
+      (
+         TableOutputSpec tos,
+         Optional<ParentChildCondition> parentChildLinkCond
+      )
+   {
+      BaseQuery baseQuery = makeBaseQuery(tos, parentChildLinkCond, false);
+
+      String aggExpr = sqlDialect.getAggregatedRowObjectsExpression(baseQuery.getResultColumnMetadatas(), "q");
+
+      String simpleAggregateQuery =
+         "select\n" +
+            indent(aggExpr) + " json\n" +
+         "from (\n" +
+            indent(baseQuery.getSql()) + "\n" +
+         ") q";
+
+      return sqlDialect.getAggregatedObjectsFinalQuery(simpleAggregateQuery, "json");
+   }
+
+   /** Make a query having JSON object result values at the top level of the
+    *  result set. The query returns a JSON value in a single column and with
+    *  any number of result rows.
     * @param tableOutputSpec  The output specification for this table, the subject of the query.
     * @param parentChildLinkCond A filter condition on this table (always) from a parent or child table whose alias
     *                            (accessible from the condition) can be assumed to be in context.
     * @return the generated SQL query
     */
-   private String makeJsonResultSql
+   private String makeJsonObjectRowsSql
    (
       TableOutputSpec tableOutputSpec,
-      Optional<ParentChildCondition> parentChildLinkCond,
-      boolean aggregateRows
+      Optional<ParentChildCondition> parentChildLinkCond
    )
    {
       BaseQuery baseQuery = makeBaseQuery(tableOutputSpec, parentChildLinkCond, false);
 
-      String jsonValueSelectExpr =
-         aggregateRows ?
-            sqlDialect.getJsonAggregatedObjectsSelectExpression(baseQuery.getResultColumnNames(), "q") :
-            sqlDialect.getJsonObjectSelectExpression(baseQuery.getResultColumnNames(), "q");
+      String rowObjExpr = sqlDialect.getRowObjectExpression(baseQuery.getResultColumnMetadatas(), "q");
 
       return
          "select\n" +
-            indent(jsonValueSelectExpr) + " json\n" +
+            indent(rowObjExpr) + " json\n" +
          "from (\n" +
             indent(baseQuery.getSql()) + "\n" +
          ") q";
@@ -237,7 +259,7 @@ public class QueryGenerator
 
       ChildFkCondition childFkCond = new ChildFkCondition(parentAlias, fk.getForeignKeyComponents());
 
-      return makeJsonResultSql(tos, opt(childFkCond), true);
+      return makeAggregatedJsonResultSql(tos, opt(childFkCond));
    }
 
    private SqlQueryParts getInlineParentBaseQueryParts
@@ -261,14 +283,14 @@ public class QueryGenerator
       q.addAliasToScope(fromClauseQueryAlias);
 
       for ( String parentCol : fromClauseQuery.getResultColumnNames() )
-         q.addSelectClauseEntry(fromClauseQueryAlias + "." + parentCol, parentCol);
+         q.addSelectClauseEntry(fromClauseQueryAlias + "." + parentCol, parentCol, INLINE_PARENT);
 
       ParentPkCondition parentPkCond = new ParentPkCondition(childAlias, fk.getForeignKeyComponents());
       q.addFromClauseEntry(
          "left join (\n" +
             indent(fromClauseQuery.getSql()) + "\n" +
-            ") " + fromClauseQueryAlias + " on " +
-            parentPkCond.asEquationConditionOn(fromClauseQueryAlias, dbmd, HIDDEN_PK_PREFIX)
+         ") " + fromClauseQueryAlias + " on " +
+         parentPkCond.asEquationConditionOn(fromClauseQueryAlias, dbmd, HIDDEN_PK_PREFIX)
       );
 
       return q;
@@ -283,9 +305,10 @@ public class QueryGenerator
    {
       // a referenced parent only requires a SELECT clause entry
       return new SqlQueryParts(
-         singletonList(Pair.make(
+         singletonList(new SelectClauseEntry(
             "(\n" + indent(makeParentRecordQuery(referencedParentSpec, childRelId, childAlias)) + "\n)",
-            dbmd.quoteIfNeeded(referencedParentSpec.getReferenceFieldName())
+            dbmd.quoteIfNeeded(referencedParentSpec.getReferenceFieldName()),
+            PARENT_REFERENCE
          )),
          emptyList(), emptyList(), emptySet()
       );
@@ -306,14 +329,14 @@ public class QueryGenerator
 
       ParentPkCondition parentPkCond = new ParentPkCondition(childAlias, fk.getForeignKeyComponents());
 
-      return makeJsonResultSql(tos, opt(parentPkCond), false);
+      return makeJsonObjectRowsSql(tos, opt(parentPkCond));
    }
 
    public String makeSqlFromParts(SqlQueryParts q)
    {
       String selectEntriesStr =
          q.getSelectClauseEntries().stream()
-         .map(p -> p.fst() + (p.snd().startsWith("\"") ? " " : " as ") + p.snd())
+         .map(p -> p.getValueExpression() + (p.getOutputName().startsWith("\"") ? " " : " as ") + p.getOutputName())
          .collect(joining(",\n"));
 
       String fromEntriesStr = String.join("\n", q.getFromClauseEntries());
@@ -407,17 +430,21 @@ public class QueryGenerator
    private static class BaseQuery
    {
       private final String sql;
-      private final List<String> resultColumnNames;
+      private final List<ColumnMetadata> resultColumnMetadatas;
 
-      public BaseQuery(String sql, List<String> resultColumnNames)
+      public BaseQuery(String sql, List<ColumnMetadata> resultColumnMetadatas)
       {
          this.sql = sql;
-         this.resultColumnNames = unmodifiableList(new ArrayList<>(resultColumnNames));
+         this.resultColumnMetadatas = unmodifiableList(new ArrayList<>(resultColumnMetadatas));
       }
 
       public String getSql() { return sql; }
 
-      public List<String> getResultColumnNames() { return resultColumnNames; }
-   }
+      public List<String> getResultColumnNames()
+      {
+         return resultColumnMetadatas.stream().map(ColumnMetadata::getOutputName).collect(toList());
+      }
 
+      public List<ColumnMetadata> getResultColumnMetadatas() { return resultColumnMetadatas; }
+   }
 }

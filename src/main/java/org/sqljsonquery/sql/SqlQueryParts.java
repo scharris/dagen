@@ -6,13 +6,12 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import static java.util.Collections.*;
 
-import org.sqljsonquery.util.Pair;
 import static org.sqljsonquery.util.StringFuns.*;
 
 
 public class SqlQueryParts
 {
-   private final List<Pair<String,String>> selectEntries;
+   private final List<SelectClauseEntry> selectEntries;
    private final List<String> fromEntries;
    private final List<String> whereEntries;
    private final Set<String> aliasesInScope;
@@ -27,7 +26,7 @@ public class SqlQueryParts
 
    public SqlQueryParts
    (
-      List<Pair<String,String>> selectEntries,
+      List<SelectClauseEntry> selectEntries,
       List<String> fromEntries,
       List<String> whereEntries,
       Set<String> aliasesInScope
@@ -39,12 +38,19 @@ public class SqlQueryParts
       this.aliasesInScope = new HashSet<>(aliasesInScope);
    }
 
-   public void addSelectClauseEntry(String expr, String name) { selectEntries.add(Pair.make(expr, name)); }
-   public void addSelectClauseEntries(List<Pair<String,String>> entries) { selectEntries.addAll(entries); }
+   public void addSelectClauseEntry(String expr, String name, SelectClauseEntry.Source src)
+   {
+      selectEntries.add(new SelectClauseEntry(expr, name, src));
+   }
+
+   public void addSelectClauseEntries(List<SelectClauseEntry> entries) { selectEntries.addAll(entries); }
+
    public void addFromClauseEntry(String entry) { fromEntries.add(entry); }
    public void addFromClauseEntries(List<String> entries) { fromEntries.addAll(entries); }
+
    public void addWhereClauseEntry(String entry) { whereEntries.add(entry); }
    public void addWhereClauseEntries(List<String> entries) { whereEntries.addAll(entries); }
+
    public void addAliasToScope(String alias) { aliasesInScope.add(alias); }
    public void addAliasesToScope(Set<String> aliases) { aliasesInScope.addAll(aliases); }
 
@@ -56,7 +62,7 @@ public class SqlQueryParts
       addAliasesToScope(otherParts.getAliasesInScope());
    }
 
-   public List<Pair<String, String>> getSelectClauseEntries() { return unmodifiableList(selectEntries); }
+   public List<SelectClauseEntry> getSelectClauseEntries() { return unmodifiableList(selectEntries); }
    public List<String> getFromClauseEntries() { return unmodifiableList(fromEntries); }
    public List<String> getWhereClauseEntries() { return unmodifiableList(whereEntries); }
    public Set<String> getAliasesInScope() { return unmodifiableSet(aliasesInScope); }
@@ -67,5 +73,4 @@ public class SqlQueryParts
       aliasesInScope.add(alias);
       return alias;
    }
-
 }

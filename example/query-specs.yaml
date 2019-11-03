@@ -1,5 +1,5 @@
-defaultSchema: public
-generateUnqualifiedNamesForSchemas: ["public"]
+defaultSchema: drugs
+generateUnqualifiedNamesForSchemas: ["drugs"]
 querySpecs:
   - queryName: drugs query
     resultsRepresentations:

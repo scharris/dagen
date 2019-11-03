@@ -1,10 +1,13 @@
 /* Database setup (Postgres)
-postgres=# create user drugsuser with password 'drugspassword';
-postgres=# create database drugs owner drugsuser;
+psql -U postgres
+create user drugs with password 'drugs';
+create database drugs owner drugs;
+create schema drugs authorization drugs;
+alter role drugs set search_path = "drugs";
 ^D
-psql -U drugsuser drugs
-drugs> \i schema-setup.sql
-(Or just paste the file contents.)
+psql -U drugs
+drugs> \i create-schema-objects.sql
+drugs> \i create-test-data-pg.sql
  */
 
 create table analyst (
@@ -24,7 +27,6 @@ create table compound
     cas                varchar(50),
     mol_formula        varchar(2000),
     mol_weight         numeric,
-    mol_file           text,
     inchi              varchar(2000),
     inchi_key          varchar(27),
     standard_inchi     varchar(2000),
@@ -53,7 +55,6 @@ create table drug
             unique,
     cid                     integer,
     therapeutic_indications varchar(4000),
-    spl                     xml,
     registered_by         integer not null
         constraint drug_analyst_fk
             references analyst
@@ -211,121 +212,4 @@ create table brand
 
 create index brand_mfr_ix
     on brand (manufacturer_id);
-
-
--- Test data
-
-insert into analyst values(1, 'jdoe');
-
-insert into authority(id, name, url, description, weight)
-  values(1, 'FDA', 'http://www.fda.gov', 'Food and Drug Administration', 100);
-insert into authority(id, name, url, description, weight)
-  values(2, 'Anonymous', null, 'Various People with Opinions', 0);
-insert into advisory_type(id, name, authority_id)
- values(1, 'Boxed Warning', 1);
-insert into advisory_type(id, name, authority_id)
- values(2, 'Caution', 1);
-insert into advisory_type(id, name, authority_id)
- values(3, 'Rumor', 2);
-insert into functional_category(id, name, description, parent_functional_category_id)
-  values(1, 'Category A', 'Top level category A', null);
-insert into functional_category(id, name, description, parent_functional_category_id)
-  values(2, 'Category A.1', 'sub category 1 of A', 1);
-insert into functional_category(id, name, description, parent_functional_category_id)
-  values(3, 'Category A.1.1', 'sub category 1 of A.1', 2);
-insert into functional_category(id, name, description, parent_functional_category_id)
-  values(4, 'Category B', 'Top level category B', null);
-insert into functional_category(id, name, description, parent_functional_category_id)
-  values(5, 'Category B.1', 'sub category 1 of B', 4);
-insert into functional_category(id, name, description, parent_functional_category_id)
-  values(6, 'Category B.1.1', 'sub category 1 of B.1', 5);
-insert into manufacturer(id, name)
-  values(1, 'Acme Drug Co');
-insert into manufacturer(id, name)
-  values(2, 'PharmaCorp');
-insert into manufacturer(id, name)
-  values(3, 'SellsAll Drug Co.');
-
-
-insert into compound(id, display_name, nctr_isis_id, cas, entered_by)
-  select n,
-    'Test Compound ' || n ,
-    'ISIS-' || n ,
-    '5'||n||n||n||n||'-'||n||n,
-    1
-  from generate_series(1,5) n
-;
-
-insert into drug(id, name, compound_id, therapeutic_indications, mesh_id, cid, spl)
-  select
-    generate_series,
-    'Test Drug ' || generate_series,
-    generate_series,
-    'Indication ' || generate_series,
-    'MESH' || generate_series,
-    generate_series * 99 ,
-    xmlparse(document '<document><gen-name>drug ' || generate_series || '</gen-name></document>')
-  from generate_series(1,5)
-;
-
-
-insert into reference(id, publication)
- select 100*generate_series + 1, 'Publication 1 about drug # ' || generate_series
- from generate_series(1,5)
-;
-
-insert into reference(id, publication)
- select 100*generate_series + 2, 'Publication 2 about drug # ' || generate_series
- from generate_series(1,5)
-;
-
-insert into reference(id, publication)
- select 100*generate_series + 3, 'Publication 3 about drug # ' || generate_series
- from generate_series(1,5)
-;
-
-insert into drug_reference (drug_id, reference_id, priority)
- select generate_series, 100*generate_series + 1, generate_series
- from generate_series(1,5)
-;
-
-insert into drug_reference (drug_id, reference_id, priority)
- select generate_series, 100*generate_series + 2, generate_series
- from generate_series(1,5)
-;
-
-insert into drug_reference (drug_id, reference_id, priority)
- select generate_series, 100*generate_series + 3, generate_series
- from generate_series(1,5)
-;
-
-insert into drug_functional_category(drug_id, functional_category_id, authority_id, seq)
- select generate_series, mod(generate_series,3)+1, 1, 1
- from generate_series(1,5)
-;
-
-insert into drug_functional_category(drug_id, functional_category_id, authority_id, seq)
- select generate_series, mod(generate_series,3)+4, 1, 2
- from generate_series(1,5)
-;
-
-insert into brand(drug_id, brand_name, language_code, manufacturer_id)
- select generate_series, 'Brand'||generate_series||'(TM)', 'EN', mod(generate_series,3)+1
- from generate_series(1,5)
-;
-
-insert into advisory(id, drug_id, advisory_type_id, text)
- select 100*generate_series+1, generate_series, 1, 'Advisory concerning drug ' || generate_series
- from generate_series(1,5)
-;
-
-insert into advisory(id, drug_id, advisory_type_id, text)
- select 100*generate_series+2, generate_series, 2, 'Caution concerning drug ' || generate_series
- from generate_series(1,5)
-;
-
-insert into advisory(id, drug_id, advisory_type_id, text)
- select 123*generate_series, generate_series, 3, 'Heard this might be bad -anon' || generate_series
- from generate_series(1,5)
-;
 

@@ -3,6 +3,7 @@ package org.sqljsonquery.sql.dialect;
 import java.util.List;
 import static java.util.stream.Collectors.joining;
 
+import org.sqljsonquery.sql.ColumnMetadata;
 import static org.sqljsonquery.util.StringFuns.indentLines;
 import static org.sqljsonquery.util.StringFuns.unDoubleQuote;
 
@@ -16,15 +17,16 @@ public class PostgresDialect implements SqlDialect
       this.indentSpaces = indentSpaces;
    }
 
-   public String getJsonObjectSelectExpression
+   @Override
+   public String getRowObjectExpression
    (
-      List<String> fromColumnNames,
+      List<ColumnMetadata> columnMetadatas,
       String fromAlias
    )
    {
       String objectFieldDecls =
-         fromColumnNames.stream()
-         .map(col -> "'" + unDoubleQuote(col) + "', " + fromAlias + "." + col)
+         columnMetadatas.stream()
+         .map(col -> "'" + unDoubleQuote(col.getOutputName()) + "', " + fromAlias + "." + col.getOutputName())
          .collect(joining(",\n"));
 
          return
@@ -33,20 +35,22 @@ public class PostgresDialect implements SqlDialect
             ")";
    }
 
-   public String getJsonAggregatedObjectsSelectExpression
+   @Override
+   public String getAggregatedRowObjectsExpression
    (
-      List<String> fromColumnNames,
+      List<ColumnMetadata> columnMetadatas,
       String fromAlias
    )
    {
-      String objectFieldDecls =
-         fromColumnNames.stream()
-         .map(col -> "'" + unDoubleQuote(col) + "', " + fromAlias + "." + col)
-         .collect(joining(",\n"));
-
       return
          "coalesce(jsonb_agg(" +
-            getJsonObjectSelectExpression(fromColumnNames, fromAlias) +
+            getRowObjectExpression(columnMetadatas, fromAlias) +
          "),'[]'::jsonb)";
+   }
+
+   @Override
+   public String getAggregatedObjectsFinalQuery(String simpleAggregateQuery, String jsonValueColumnName)
+   {
+      return simpleAggregateQuery; // no correction necessary
    }
 }

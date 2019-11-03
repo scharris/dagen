@@ -492,6 +492,8 @@ public class DatabaseMetadata
     {
         if ( id.startsWith("\"") && id.endsWith("\"") )
             return id;
+        if ( id.startsWith("_") )
+            return "\"" + id + "\"";
         if ( caseSensitivity == INSENSITIVE_STORED_LOWER && lc_.test(id) )
             return id;
         if ( caseSensitivity == INSENSITIVE_STORED_UPPER && uc_.test(id) )
