@@ -2,7 +2,7 @@ defaultSchema: drugs
 generateUnqualifiedNamesForSchemas: ["drugs"]
 querySpecs:
   - queryName: drugs query
-    resultsRepresentations:
+    resultsRepresentations: # (defaults to ["JSON_OBJECT_ROWS"] if not present)
       - JSON_OBJECT_ROWS
 #      - JSON_ARRAY_ROW
 #      - MULTI_COLUMN_ROWS
@@ -13,6 +13,9 @@ querySpecs:
         - databaseFieldName: name
         - databaseFieldName: mesh_id
         - databaseFieldName: cid
+          fieldTypeOverrides:
+            - language: Java
+              typeDeclaration: Optional<Integer>
         - databaseFieldName: therapeutic_indications
       childCollections:
         - childCollectionName: references

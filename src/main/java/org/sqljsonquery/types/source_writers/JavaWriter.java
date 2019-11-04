@@ -7,10 +7,10 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.sql.Types;
-import static java.util.Collections.emptyMap;
 
 import org.sqljsonquery.SqlJsonQuery;
 import org.sqljsonquery.WrittenQueryReprPath;
+import org.sqljsonquery.queryspec.FieldTypeOverride;
 import org.sqljsonquery.queryspec.ResultsRepr;
 import org.sqljsonquery.types.*;
 import static org.sqljsonquery.types.source_writers.JavaWriter.NullableFieldRepr.*;
@@ -23,7 +23,6 @@ public class JavaWriter implements SourceCodeWriter
 {
    private String targetPackage;
    private Optional<Path> srcOutputBaseDir;
-   private Map<String,String> fieldTypeOverrides; // by <query name>/<generated type name>.<field name in generated type>
    private NullableFieldRepr nullableFieldRepr;
    private Optional<String> filesHeader;
 
@@ -33,14 +32,12 @@ public class JavaWriter implements SourceCodeWriter
    (
       String targetPackage,
       Optional<Path> srcOutputBaseDir,
-      Optional<Map<String,String>> fieldTypeOverrides,
       NullableFieldRepr nullableFieldRepr,
       Optional<String> filesHeader
    )
    {
       this.targetPackage = targetPackage;
       this.srcOutputBaseDir = srcOutputBaseDir;
-      this.fieldTypeOverrides = new HashMap<>(fieldTypeOverrides.orElse(emptyMap()));
       this.nullableFieldRepr = nullableFieldRepr;
       this.filesHeader = filesHeader;
    }
@@ -92,7 +89,7 @@ public class JavaWriter implements SourceCodeWriter
             for ( ResultsRepr resultsRepr : writtenQueryPathsByRepr.keySet() )
             {
                String memberName = writtenQueryPathsByRepr.size() == 1 ? "sqlResourceName" :
-                  "sqlResourceName" + lowerCamelCase(resultsRepr.toString());
+                  "sqlResourceName" + upperCamelCase(resultsRepr.toString());
                String resourceName = writtenQueryPathsByRepr.get(resultsRepr).getFileName().toString();
                bw.write("   public static final String " + memberName + " = \"" + resourceName + "\";\n");
             }
@@ -107,7 +104,7 @@ public class JavaWriter implements SourceCodeWriter
             {
                if ( !writtenTypeNames.contains(generatedType.getTypeName()) )
                {
-                  String srcCode = makeGeneratedTypeSource(generatedType, sjq.getQueryName());
+                  String srcCode = makeGeneratedTypeSource(generatedType);
 
                   bw.write('\n');
                   bw.write(indentLines(srcCode, 3));
@@ -127,7 +124,7 @@ public class JavaWriter implements SourceCodeWriter
       }
    }
 
-   public String makeGeneratedTypeSource(GeneratedType generatedType, String queryName)
+   private String makeGeneratedTypeSource(GeneratedType generatedType)
    {
       StringBuilder sb = new StringBuilder();
 
@@ -140,7 +137,7 @@ public class JavaWriter implements SourceCodeWriter
       for ( DatabaseField f : generatedType.getDatabaseFields() )
       {
          sb.append("   public ");
-         sb.append(getJavaTypeNameForDatabaseField(f, queryName, typeName));
+         sb.append(getJavaTypeNameForDatabaseField(f));
          sb.append(" ");
          sb.append(f.getName());
          sb.append(";\n");
@@ -169,19 +166,13 @@ public class JavaWriter implements SourceCodeWriter
       return sb.toString();
    }
 
-   private String getJavaTypeNameForDatabaseField
-   (
-      DatabaseField f,
-      String queryName,
-      String generatedTypeName
-   )
+   private String getJavaTypeNameForDatabaseField(DatabaseField f)
    {
       boolean notNull = !(f.getNullable().orElse(true));
 
-      // Check if there's a type override specified for this field.
-      String typeOverrideKey = queryName + "/" + generatedTypeName + "." + f.getName();
-      if ( fieldTypeOverrides.containsKey(typeOverrideKey) )
-         return fieldTypeOverrides.get(typeOverrideKey);
+      Optional<FieldTypeOverride> typeOverride = f.getTypeOverride("Java");
+      if ( typeOverride.isPresent() )
+         return typeOverride.get().getTypeDeclaration();
 
       switch ( f.getJdbcTypeCode() )
       {

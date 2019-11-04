@@ -53,7 +53,7 @@ public class TypesGenerator
          Field dbField = dbFieldsByName.get(dbmd.normalizeName(tof.getDatabaseFieldName()));
          if ( dbField == null )
             throw new RuntimeException("no metadata for field " + tos.getTableName() + "." + tof.getDatabaseFieldName());
-         typeBuilder.addDatabaseField(getOutputFieldName(tof, dbField), dbField);
+         typeBuilder.addDatabaseField(getOutputFieldName(tof, dbField), dbField, tof.getFieldTypeOverrides());
       }
 
       // Add fields from inline parents, but do not add their top-level types to the generated types results.

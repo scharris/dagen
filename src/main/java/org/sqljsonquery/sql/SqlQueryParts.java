@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import static java.util.Collections.*;
 
+import org.sqljsonquery.queryspec.FieldTypeOverride;
 import static org.sqljsonquery.util.StringFuns.*;
 
 
@@ -41,6 +42,16 @@ public class SqlQueryParts
    public void addSelectClauseEntry(String expr, String name, SelectClauseEntry.Source src)
    {
       selectEntries.add(new SelectClauseEntry(expr, name, src));
+   }
+   public void addSelectClauseEntry
+   (
+      String expr,
+      String name,
+      SelectClauseEntry.Source src,
+      List<FieldTypeOverride> typeOverrides
+   )
+   {
+      selectEntries.add(new SelectClauseEntry(expr, name, src, typeOverrides));
    }
 
    public void addSelectClauseEntries(List<SelectClauseEntry> entries) { selectEntries.addAll(entries); }

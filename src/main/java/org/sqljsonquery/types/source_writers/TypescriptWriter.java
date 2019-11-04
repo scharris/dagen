@@ -7,10 +7,10 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.sql.Types;
-import static java.util.Collections.emptyMap;
 
 import org.sqljsonquery.SqlJsonQuery;
 import org.sqljsonquery.WrittenQueryReprPath;
+import org.sqljsonquery.queryspec.FieldTypeOverride;
 import org.sqljsonquery.queryspec.ResultsRepr;
 import org.sqljsonquery.types.*;
 import static org.sqljsonquery.util.Files.newFileOrStdoutWriter;
@@ -20,18 +20,15 @@ import static org.sqljsonquery.util.StringFuns.*;
 public class TypescriptWriter implements SourceCodeWriter
 {
    private Optional<Path> srcOutputDir;
-   private Map<String,String> fieldTypeOverrides; // by <query name>/<generated type name>.<field name in generated type>
    private Optional<String> filesHeader;
 
    public TypescriptWriter
    (
       Optional<Path> srcOutputDir,
-      Optional<Map<String,String>> fieldTypeOverrides,
       Optional<String> filesHeader
    )
    {
       this.srcOutputDir = srcOutputDir;
-      this.fieldTypeOverrides = new HashMap<>(fieldTypeOverrides.orElse(emptyMap()));
       this.filesHeader = filesHeader;
    }
 
@@ -72,7 +69,7 @@ public class TypescriptWriter implements SourceCodeWriter
             for ( ResultsRepr resultsRepr : writtenQueryPathsByRepr.keySet() )
             {
                String memberName = writtenQueryPathsByRepr.size() == 1 ? "sqlResourceName" :
-                  "sqlResourceName" + lowerCamelCase(resultsRepr.toString());
+                  "sqlResourceName" + upperCamelCase(resultsRepr.toString());
                String resourceName = writtenQueryPathsByRepr.get(resultsRepr).getFileName().toString();
                bw.write("export const " + memberName + " = \"" + resourceName + "\";\n");
             }
@@ -87,7 +84,7 @@ public class TypescriptWriter implements SourceCodeWriter
             {
                if ( !writtenTypeNames.contains(generatedType.getTypeName()) )
                {
-                  String srcCode = makeGeneratedTypeSource(generatedType, sjq.getQueryName());
+                  String srcCode = makeGeneratedTypeSource(generatedType);
 
                   bw.write('\n');
                   bw.write(srcCode);
@@ -105,13 +102,11 @@ public class TypescriptWriter implements SourceCodeWriter
       }
    }
 
-   public String makeGeneratedTypeSource(GeneratedType generatedType, String queryName)
+   public String makeGeneratedTypeSource(GeneratedType generatedType)
    {
       StringBuilder sb = new StringBuilder();
 
       String typeName = generatedType.getTypeName();
-
-      // TODO
 
       sb.append("export interface ");
       sb.append(typeName);
@@ -122,7 +117,7 @@ public class TypescriptWriter implements SourceCodeWriter
          sb.append("   ");
          sb.append(f.getName());
          sb.append(": ");
-         sb.append(getTSTypeNameForDatabaseField(f, queryName, typeName));
+         sb.append(getTSTypeNameForDatabaseField(f));
          sb.append(";\n");
       }
 
@@ -149,19 +144,13 @@ public class TypescriptWriter implements SourceCodeWriter
       return sb.toString();
    }
 
-   private String getTSTypeNameForDatabaseField
-   (
-      DatabaseField f,
-      String queryName,
-      String generatedTypeName
-   )
+   private String getTSTypeNameForDatabaseField(DatabaseField f)
    {
       boolean notNull = !(f.getNullable().orElse(true));
 
-      // Check if there's a type override specified for this field.
-      String typeOverrideKey = queryName + "/" + generatedTypeName + "." + f.getName();
-      if ( fieldTypeOverrides.containsKey(typeOverrideKey) )
-         return fieldTypeOverrides.get(typeOverrideKey);
+      Optional<FieldTypeOverride> typeOverride = f.getTypeOverride("Typescript");
+      if ( typeOverride.isPresent() )
+         return typeOverride.get().getTypeDeclaration();
 
       switch ( f.getJdbcTypeCode() )
       {

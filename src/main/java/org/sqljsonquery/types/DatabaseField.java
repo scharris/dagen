@@ -1,13 +1,14 @@
 package org.sqljsonquery.types;
 
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
+import static java.util.Collections.unmodifiableList;
 
 import org.sqljsonquery.dbmd.Field;
-
+import org.sqljsonquery.queryspec.FieldTypeOverride;
 import static org.sqljsonquery.util.Optionals.opt;
 
 
+/// A field to be included as part of a generated type whose data source is a database column.
 public class DatabaseField
 {
    String name;
@@ -17,8 +18,9 @@ public class DatabaseField
    Optional<Integer> precision;
    Optional<Integer> fractionalDigits;
    Optional<Boolean> nullable;
+   List<FieldTypeOverride> typeOverrides;
 
-   public DatabaseField(String name, Field dbField)
+   public DatabaseField(String name, Field dbField, List<FieldTypeOverride> typeOverrides)
    {
       this.name = name;
       this.jdbcTypeCode = dbField.getJdbcTypeCode();
@@ -27,9 +29,10 @@ public class DatabaseField
       this.precision = dbField.getPrecision();
       this.fractionalDigits = dbField.getFractionalDigits();
       this.nullable = dbField.getNullable();
+      this.typeOverrides = unmodifiableList(new ArrayList<>(typeOverrides));
    }
 
-   public DatabaseField
+   private DatabaseField
    (
       String name,
       int jdbcTypeCode,
@@ -37,7 +40,8 @@ public class DatabaseField
       Optional<Integer> length,
       Optional<Integer> precision,
       Optional<Integer> fractionalDigits,
-      Optional<Boolean> nullable
+      Optional<Boolean> nullable,
+      List<FieldTypeOverride> typeOverrides
    )
    {
       this.name = name;
@@ -47,6 +51,7 @@ public class DatabaseField
       this.precision = precision;
       this.fractionalDigits = fractionalDigits;
       this.nullable = nullable;
+      this.typeOverrides = typeOverrides;
    }
 
    public String getName() { return name; }
@@ -56,11 +61,21 @@ public class DatabaseField
    public Optional<Integer> getPrecision() { return precision; }
    public Optional<Integer> getFractionalDigits() { return fractionalDigits; }
    public Optional<Boolean> getNullable() { return nullable; }
+   public List<FieldTypeOverride> getTypeOverrides() { return typeOverrides; }
+
+   public Optional<FieldTypeOverride> getTypeOverride(String language)
+   {
+      return typeOverrides.stream().filter(to -> to.getLanguage().equals(language)).findAny();
+   }
 
    public DatabaseField toNullable()
    {
-      if ( nullable.orElse(false) ) return this;
-      else return new DatabaseField(name, jdbcTypeCode, databaseType, length, precision, fractionalDigits, opt(true));
+      if ( nullable.orElse(false) )
+         return this;
+      else
+         return new DatabaseField(
+            name, jdbcTypeCode, databaseType, length, precision, fractionalDigits, opt(true), typeOverrides
+         );
    }
 
    @Override
@@ -75,13 +90,14 @@ public class DatabaseField
          length.equals(that.length) &&
          precision.equals(that.precision) &&
          fractionalDigits.equals(that.fractionalDigits) &&
-         nullable.equals(that.nullable);
+         nullable.equals(that.nullable) &&
+         typeOverrides.equals(that.typeOverrides);
    }
 
    @Override
    public int hashCode()
    {
-      return Objects.hash(name, jdbcTypeCode, databaseType, length, precision, fractionalDigits, nullable);
+      return Objects.hash(name, jdbcTypeCode, databaseType, length, precision, fractionalDigits, nullable, typeOverrides);
    }
 
    @Override
@@ -95,6 +111,7 @@ public class DatabaseField
          ", precision=" + precision +
          ", fractionalDigits=" + fractionalDigits +
          ", nullable=" + nullable +
+         ", typeOverrides=" + typeOverrides +
          '}';
    }
 }

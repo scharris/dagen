@@ -29,7 +29,6 @@ public class QueryGeneratorMain
    static final String langOptPrefix = "--types-language:";
    static final String pkgOptPrefix = "--package:";
    static final String javaNullabilityOptPrefix = "--java-nullability:";
-   static final String fieldOverridesOptPrefix = "--field-overrides:";
    static final String generatedTypesHeaderFileOptPrefix = "--types-file-header:";
 
    private static void printUsage()
@@ -47,9 +46,6 @@ public class QueryGeneratorMain
       ps.println("         optwrapped : wrap the type with Optional<>");
       ps.println("         annotated  : annotate with JSR 305 @Nullable and @Nonnull.");
       ps.println("         baretype   : leave as bare type (Object variant for native types)");
-      ps.println("   " + fieldOverridesOptPrefix + "<field-type-overrides-file>  Field types override file, having" +
-                 "lines of the form: ");
-      ps.println("        <queryName>/<generated-type-name>.<field-name>: <field type decl>");
       ps.println("   " + generatedTypesHeaderFileOptPrefix + "<file>  Contents of this file will be included at the " +
          "top of each generated type's source file (e.g. additional imports for overridden field types).");
    }
@@ -141,12 +137,10 @@ public class QueryGeneratorMain
       SplitArgs args,
       Optional<Path> srcOutputBaseDir
    )
-      throws IOException
    {
       String language = "";
       String targetPackage = "";
       NullableFieldRepr nullableFieldRepr = NullableFieldRepr.ANNOTATED;
-      Optional<Map<String,String>> fieldTypeOverrides = empty();
       Optional<String> typeFilesHeader = empty();
       for ( String opt : args.optional )
       {
@@ -154,8 +148,6 @@ public class QueryGeneratorMain
          else if ( opt.startsWith(pkgOptPrefix) ) targetPackage = opt.substring(pkgOptPrefix.length());
          else if ( opt.startsWith(javaNullabilityOptPrefix) ) nullableFieldRepr =
             NullableFieldRepr.valueOf(opt.substring(javaNullabilityOptPrefix.length()).toUpperCase());
-         else if ( opt.startsWith(fieldOverridesOptPrefix) ) fieldTypeOverrides =
-            opt(readFieldTypeOverrides(Paths.get(opt.substring(fieldOverridesOptPrefix.length()))));
          else if ( opt.startsWith(generatedTypesHeaderFileOptPrefix) ) typeFilesHeader =
             opt(readString(Paths.get(opt.substring(generatedTypesHeaderFileOptPrefix.length()))));
          else
@@ -165,29 +157,12 @@ public class QueryGeneratorMain
       switch ( language )
       {
          case "Java":
-            return new JavaWriter(targetPackage, srcOutputBaseDir, fieldTypeOverrides, nullableFieldRepr, typeFilesHeader);
+            return new JavaWriter(targetPackage, srcOutputBaseDir, nullableFieldRepr, typeFilesHeader);
          case "Typescript":
-            return new TypescriptWriter(srcOutputBaseDir, fieldTypeOverrides, typeFilesHeader);
+            return new TypescriptWriter(srcOutputBaseDir, typeFilesHeader);
          default:
             throw new RuntimeException("target language not supported");
       }
-   }
-
-   private static Map<String,String> readFieldTypeOverrides(Path path) throws IOException
-   {
-      Map<String,String> res = new HashMap<>();
-
-      for ( String line : Files.readAllLines(path) )
-      {
-         int firstColonIx = line.indexOf(':');
-         if ( firstColonIx == -1 )
-            throw new RuntimeException("invalid format in field type overrides file");
-         String queryNameTypeNameFieldName = line.substring(0, firstColonIx).trim();
-         String fieldType = line.substring(firstColonIx+1).trim();
-         res.put(queryNameTypeNameFieldName, fieldType);
-      }
-
-      return res;
    }
 
    /**

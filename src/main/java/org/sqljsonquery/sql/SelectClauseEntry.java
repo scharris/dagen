@@ -1,5 +1,13 @@
 package org.sqljsonquery.sql;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import static java.util.Collections.emptyList;
+import static java.util.Collections.unmodifiableList;
+
+import org.sqljsonquery.queryspec.FieldTypeOverride;
+
 
 public class SelectClauseEntry
 {
@@ -8,12 +16,25 @@ public class SelectClauseEntry
    private final String valueExpression;
    private final String outputName;
    private final Source source;
+   private final List<FieldTypeOverride> fieldTypeOverrides;
 
    public SelectClauseEntry(String valueExpression, String outputName, Source source)
+   {
+      this(valueExpression, outputName, source, emptyList());
+   }
+
+   public SelectClauseEntry
+   (
+      String valueExpression,
+      String outputName,
+      Source source,
+      List<FieldTypeOverride> typeOverrides
+   )
    {
       this.valueExpression = valueExpression;
       this.outputName = outputName;
       this.source = source;
+      this.fieldTypeOverrides = unmodifiableList(new ArrayList<>(typeOverrides));
    }
 
    public String getValueExpression() { return valueExpression; }
@@ -21,4 +42,11 @@ public class SelectClauseEntry
    public String getOutputName() { return outputName; }
 
    public Source getSource() { return source; }
+
+   public List<FieldTypeOverride> getFieldTypeOverrides() { return fieldTypeOverrides; }
+
+   public Optional<FieldTypeOverride> getGeneratedTypeOverride(String language)
+   {
+      return fieldTypeOverrides.stream().filter(to -> to.getLanguage().equals(language)).findAny();
+   }
 }

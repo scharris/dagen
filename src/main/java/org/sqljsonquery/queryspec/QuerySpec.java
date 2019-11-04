@@ -2,14 +2,15 @@ package org.sqljsonquery.queryspec;
 
 import java.util.ArrayList;
 import java.util.List;
-import static java.util.Collections.emptyList;
-import static java.util.Collections.unmodifiableList;
+import static java.util.Collections.*;
+
+import static org.sqljsonquery.queryspec.ResultsRepr.JSON_OBJECT_ROWS;
 
 
 public final class QuerySpec
 {
    private String queryName;
-   private List<ResultsRepr> resultsRepresentations = emptyList();
+   private List<ResultsRepr> resultsRepresentations = singletonList(JSON_OBJECT_ROWS);
    private boolean generateResultTypes;
    private TableOutputSpec tableOutputSpec;
 

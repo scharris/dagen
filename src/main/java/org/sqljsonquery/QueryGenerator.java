@@ -150,7 +150,8 @@ public class QueryGenerator
          q.addSelectClauseEntry(
             alias + "." + tof.getDatabaseFieldName(), // db fields must be quoted as needed in queries spec itself
             dbmd.quoteIfNeeded(getOutputFieldName(tof, tof.getDatabaseFieldName())),
-            NATIVE_FIELD
+            NATIVE_FIELD,
+            tof.getFieldTypeOverrides()
          );
 
       // Add child record collections to the select clause.
@@ -282,8 +283,13 @@ public class QueryGenerator
       String fromClauseQueryAlias = makeNameNotInSet("q", avoidAliases);
       q.addAliasToScope(fromClauseQueryAlias);
 
-      for ( String parentCol : fromClauseQuery.getResultColumnNames() )
-         q.addSelectClauseEntry(fromClauseQueryAlias + "." + parentCol, parentCol, INLINE_PARENT);
+      for ( ColumnMetadata parentCol : fromClauseQuery.getResultColumnMetadatas() )
+         q.addSelectClauseEntry(
+            fromClauseQueryAlias + "." + parentCol.getOutputName(),
+             parentCol.getOutputName(),
+            INLINE_PARENT,
+            parentCol.getFieldTypeOverrides()
+         );
 
       ParentPkCondition parentPkCond = new ParentPkCondition(childAlias, fk.getForeignKeyComponents());
       q.addFromClauseEntry(
