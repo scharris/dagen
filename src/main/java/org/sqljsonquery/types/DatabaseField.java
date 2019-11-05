@@ -11,16 +11,16 @@ import static org.sqljsonquery.util.Optionals.opt;
 /// A field to be included as part of a generated type whose data source is a database column.
 public class DatabaseField
 {
-   String name;
-   int jdbcTypeCode;
-   String databaseType;
-   Optional<Integer> length;
-   Optional<Integer> precision;
-   Optional<Integer> fractionalDigits;
-   Optional<Boolean> nullable;
-   List<FieldTypeOverride> typeOverrides;
+   private String name;
+   private int jdbcTypeCode;
+   private String databaseType;
+   private Optional<Integer> length;
+   private Optional<Integer> precision;
+   private Optional<Integer> fractionalDigits;
+   private Optional<Boolean> nullable;
+   private List<FieldTypeOverride> typeOverrides;
 
-   public DatabaseField(String name, Field dbField, List<FieldTypeOverride> typeOverrides)
+   DatabaseField(String name, Field dbField, List<FieldTypeOverride> typeOverrides)
    {
       this.name = name;
       this.jdbcTypeCode = dbField.getJdbcTypeCode();
@@ -68,7 +68,7 @@ public class DatabaseField
       return typeOverrides.stream().filter(to -> to.getLanguage().equals(language)).findAny();
    }
 
-   public DatabaseField toNullable()
+   DatabaseField toNullable()
    {
       if ( nullable.orElse(false) )
          return this;

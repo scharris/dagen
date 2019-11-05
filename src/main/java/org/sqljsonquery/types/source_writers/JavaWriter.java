@@ -12,6 +12,7 @@ import org.sqljsonquery.SqlJsonQuery;
 import org.sqljsonquery.WrittenQueryReprPath;
 import org.sqljsonquery.queryspec.FieldTypeOverride;
 import org.sqljsonquery.queryspec.ResultsRepr;
+import org.sqljsonquery.queryspec.TableOutputField;
 import org.sqljsonquery.types.*;
 import static org.sqljsonquery.types.source_writers.JavaWriter.NullableFieldRepr.*;
 import static org.sqljsonquery.util.Files.newFileOrStdoutWriter;
@@ -140,6 +141,21 @@ public class JavaWriter implements SourceCodeWriter
          sb.append(getJavaTypeNameForDatabaseField(f));
          sb.append(" ");
          sb.append(f.getName());
+         sb.append(";\n");
+      }
+
+      for ( TableOutputField tof : generatedType.getExpressionFields() )
+      {
+         String fieldName = tof.getOutputName().orElseThrow(() ->
+            new RuntimeException("Output name is required for expression field " + tof.getFieldExpression())
+         );
+         FieldTypeOverride typeOverride = tof.getTypeOverride("Java").orElseThrow(() ->
+            new RuntimeException("Field type override is required for expression field " + tof.getFieldExpression())
+         );
+         sb.append("   public ");
+         sb.append(typeOverride.getTypeDeclaration());
+         sb.append(" ");
+         sb.append(fieldName);
          sb.append(";\n");
       }
 

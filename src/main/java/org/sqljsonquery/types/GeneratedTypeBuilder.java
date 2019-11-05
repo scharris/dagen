@@ -2,28 +2,25 @@ package org.sqljsonquery.types;
 
 import java.util.ArrayList;
 import java.util.List;
-import static java.util.Collections.emptyList;
 
 import org.sqljsonquery.dbmd.Field;
 import org.sqljsonquery.queryspec.FieldTypeOverride;
+import org.sqljsonquery.queryspec.TableOutputField;
 
 
 public class GeneratedTypeBuilder
 {
    private final List<DatabaseField> databaseFields;
+   private final List<TableOutputField> expressionFields;
    private final List<ChildCollectionField> childCollectionFields;
    private final List<ParentReferenceField> parentReferenceFields;
 
    public GeneratedTypeBuilder()
    {
       this.databaseFields = new ArrayList<>();
+      this.expressionFields = new ArrayList<>();
       this.childCollectionFields = new ArrayList<>();
       this.parentReferenceFields = new ArrayList<>();
-   }
-
-   public void addDatabaseField(String fieldName, Field f)
-   {
-      databaseFields.add(new DatabaseField(fieldName, f, emptyList()));
    }
 
    public void addDatabaseField(String fieldName, Field f, List<FieldTypeOverride> typeOverrides)
@@ -32,6 +29,11 @@ public class GeneratedTypeBuilder
    }
 
    public void addDatabaseFields(List<DatabaseField> tfs) { databaseFields.addAll(tfs); }
+
+   public void addExpressionField(TableOutputField tof)
+   {
+      expressionFields.add(tof);
+   }
 
    public void addChildCollectionField(String fieldName, GeneratedType childType, boolean nullable)
    {
@@ -67,6 +69,6 @@ public class GeneratedTypeBuilder
 
    public GeneratedType build(String name)
    {
-      return new GeneratedType(name, databaseFields, childCollectionFields, parentReferenceFields);
+      return new GeneratedType(name, databaseFields, expressionFields, childCollectionFields, parentReferenceFields);
    }
 }

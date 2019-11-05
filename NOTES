@@ -1,6 +1,3 @@
-Field type overrides should be in the query spec.
-  As list of {language, typeNameDecl} in TableOutputField.
-  Only TableOutputField needs support for field overrides, other fields are just references/collections for types generated here.
 
 
 Testing

@@ -148,8 +148,8 @@ public class QueryGenerator
       // Add this table's own output fields to the select clause.
       for ( TableOutputField tof : tableOutputSpec.getNativeFields() )
          q.addSelectClauseEntry(
-            alias + "." + tof.getDatabaseFieldName(), // db fields must be quoted as needed in queries spec itself
-            dbmd.quoteIfNeeded(getOutputFieldName(tof, tof.getDatabaseFieldName())),
+            tof.getValueExpressionForAlias(alias),
+            dbmd.quoteIfNeeded(getOutputFieldName(tof, tableOutputSpec.getTableName())),
             NATIVE_FIELD,
             tof.getFieldTypeOverrides()
          );
@@ -176,8 +176,8 @@ public class QueryGenerator
       );
 
       // Add general filter condition if provided to the WHERE clause.
-      makeFilterConditionForAlias(tableOutputSpec.getFilter(), alias).ifPresent(filterCond ->
-         q.addWhereClauseEntry("(" + filterCond + ")")
+      tableOutputSpec.getFilter().ifPresent(filter ->
+         q.addWhereClauseEntry("(" + substituteVarValue(filter, alias) + ")")
       );
 
       String sql = makeSqlFromParts(q);
@@ -338,7 +338,7 @@ public class QueryGenerator
       return makeJsonObjectRowsSql(tos, opt(parentPkCond));
    }
 
-   public String makeSqlFromParts(SqlQueryParts q)
+   private String makeSqlFromParts(SqlQueryParts q)
    {
       String selectEntriesStr =
          q.getSelectClauseEntries().stream()
@@ -359,26 +359,6 @@ public class QueryGenerator
             indent(whereEntriesStr));
    }
 
-   /**
-    * Make a condition for inclusion in a SQL WHERE clause for the given filter if provided, and table/query alias.
-    * The alias value is substituted in the filter expression in place of each occurrence of the alias variable.
-    * @param filter The filter condition, in the form alias:expr. Only the first colon is considered as the separator,
-    *               and any whitespace is trimmed from both the alias and expr sides prior to interpretation.
-    * @param alias The alias of the relation which is to be substituted into the filter expression.
-    * @return The condition suitable for inclusion in a SQL WHERE clause if filter was provided, else empty.
-    */
-   private Optional<String> makeFilterConditionForAlias(Optional<String> filter, String alias)
-   {
-      return filter.map(filterStr -> {
-         int firstColonIx = filterStr.indexOf(':');
-         if ( firstColonIx == -1 )
-            throw new RuntimeException("improper filter format for filter '" + filter + "'.");
-         String aliasVar = filterStr.substring(0, firstColonIx).trim();
-         String filterExpr = filterStr.substring(firstColonIx+1).trim();
-         return filterExpr.replace(aliasVar, alias);
-      });
-   }
-
    private ForeignKey getForeignKey
    (
       RelId childRelId,
@@ -394,9 +374,18 @@ public class QueryGenerator
          ));
    }
 
-   private String getOutputFieldName(TableOutputField tof, String dbFieldName)
+   private String getOutputFieldName(TableOutputField tof, String tableName)
    {
-      return tof.getOutputName().orElseGet(() -> outputFieldNameDefaultFn.apply(dbFieldName));
+      if ( tof.isSimpleField() )
+         return tof.getOutputName().orElseGet(() ->
+            outputFieldNameDefaultFn.apply(tof.getDatabaseFieldName())
+         );
+      else
+         return tof.getOutputName().orElseThrow(() -> // expression fields must have output name specified
+            new RuntimeException(
+               "Output name is required for expression field " + tof.getFieldExpression() + " of table " + tableName + "."
+            )
+         );
    }
 
    /// Return a possibly qualified identifier for the given relation, omitting the schema
@@ -438,19 +427,14 @@ public class QueryGenerator
       private final String sql;
       private final List<ColumnMetadata> resultColumnMetadatas;
 
-      public BaseQuery(String sql, List<ColumnMetadata> resultColumnMetadatas)
+      BaseQuery(String sql, List<ColumnMetadata> resultColumnMetadatas)
       {
          this.sql = sql;
          this.resultColumnMetadatas = unmodifiableList(new ArrayList<>(resultColumnMetadatas));
       }
 
-      public String getSql() { return sql; }
+      String getSql() { return sql; }
 
-      public List<String> getResultColumnNames()
-      {
-         return resultColumnMetadatas.stream().map(ColumnMetadata::getOutputName).collect(toList());
-      }
-
-      public List<ColumnMetadata> getResultColumnMetadatas() { return resultColumnMetadatas; }
+      List<ColumnMetadata> getResultColumnMetadatas() { return resultColumnMetadatas; }
    }
 }

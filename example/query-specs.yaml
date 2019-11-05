@@ -17,6 +17,11 @@ querySpecs:
             - language: Java
               typeDeclaration: Optional<Integer>
         - databaseFieldName: therapeutic_indications
+        - fieldExpression: "$a : $a.cid + 1000"
+          outputName: cidPlus1000
+          fieldTypeOverrides:
+            - language: Java
+              typeDeclaration: Optional<Integer>
       childCollections:
         - childCollectionName: references
           childTableOutputSpec:

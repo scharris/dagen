@@ -15,13 +15,13 @@ import org.sqljsonquery.types.GeneratedType;
 import org.sqljsonquery.types.GeneratedTypeBuilder;
 
 
-public class TypesGenerator
+class TypesGenerator
 {
    private final DatabaseMetadata dbmd;
    private final Optional<String> defaultSchema;
    private final Function<String,String> outputFieldNameDefaultFn;
 
-   public TypesGenerator
+   TypesGenerator
    (
       DatabaseMetadata dbmd,
       Optional<String> defaultSchema,
@@ -33,7 +33,7 @@ public class TypesGenerator
       this.outputFieldNameDefaultFn = outputFieldNameDefaultFn;
    }
 
-   public List<GeneratedType> generateTypes
+   List<GeneratedType> generateTypes
    (
       TableOutputSpec tos,
       Map<String,GeneratedType> previouslyGeneratedTypesByName
@@ -50,10 +50,15 @@ public class TypesGenerator
       // Add this table's own directly contained database fields to the generated type.
       for ( TableOutputField tof : tos.getNativeFields() )
       {
-         Field dbField = dbFieldsByName.get(dbmd.normalizeName(tof.getDatabaseFieldName()));
-         if ( dbField == null )
-            throw new RuntimeException("no metadata for field " + tos.getTableName() + "." + tof.getDatabaseFieldName());
-         typeBuilder.addDatabaseField(getOutputFieldName(tof, dbField), dbField, tof.getFieldTypeOverrides());
+         if ( tof.isSimpleField() )
+         {
+            Field dbField = dbFieldsByName.get(dbmd.normalizeName(tof.getDatabaseFieldName()));
+            if ( dbField == null )
+               throw new RuntimeException("no metadata for field " + tos.getTableName() + "." + tof.getDatabaseFieldName());
+            typeBuilder.addDatabaseField(getOutputFieldName(tof, dbField), dbField, tof.getFieldTypeOverrides());
+         }
+         else
+            typeBuilder.addExpressionField(tof);
       }
 
       // Add fields from inline parents, but do not add their top-level types to the generated types results.
@@ -103,9 +108,8 @@ public class TypesGenerator
          childGenTypes.forEach(t -> typesInScope.put(t.getTypeName(), t));
       }
 
-      // Finallly the top table's type must be added at leading position in the returned list.
-      // First we have to determine whether a previously generated type is identical, except for any extensions to its
-      // name made to make the name unique, in which case the previous type is added instead of creating a new one.
+      // Finally the top table's type must be added at leading position in the returned list. But if the type is
+      // essentially identical to one already in scope, then add the previously generated instance instead.
       String baseTypeName = upperCamelCase(tos.getTableName()); // Base type name is the desired name, without any trailing digits.
       if ( !typesInScope.containsKey(baseTypeName) ) // No previously generated type of same base name.
          generatedTypes.add(0, typeBuilder.build(baseTypeName));

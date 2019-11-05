@@ -1,28 +1,32 @@
 package org.sqljsonquery.types;
 
 import java.util.*;
-
 import static java.util.Collections.unmodifiableList;
 import static java.util.stream.Collectors.toList;
+
+import org.sqljsonquery.queryspec.TableOutputField;
 
 
 public class GeneratedType
 {
    private final String typeName; // always unqualified by module/package
    private final List<DatabaseField> databaseFields;
+   private final List<TableOutputField> expressionFields;
    private final List<ChildCollectionField> childCollectionFields;
    private final List<ParentReferenceField> parentReferenceFields;
 
-   public GeneratedType
+   GeneratedType
    (
       String typeName,
       List<DatabaseField> databaseFields,
+      List<TableOutputField> expressionFields,
       List<ChildCollectionField> childCollectionFields,
       List<ParentReferenceField> parentReferenceFields
    )
    {
       this.typeName = typeName;
       this.databaseFields = unmodifiableList(new ArrayList<>(databaseFields));
+      this.expressionFields = unmodifiableList(new ArrayList<>(expressionFields));
       this.childCollectionFields = unmodifiableList(new ArrayList<>(childCollectionFields));
       this.parentReferenceFields = unmodifiableList(new ArrayList<>(parentReferenceFields));
    }
@@ -36,6 +40,8 @@ public class GeneratedType
    {
       return databaseFields.stream().map(DatabaseField::toNullable).collect(toList());
    }
+
+   public List<TableOutputField> getExpressionFields() { return expressionFields; }
 
    public List<ChildCollectionField> getChildCollectionFields() { return childCollectionFields; }
 
@@ -58,6 +64,7 @@ public class GeneratedType
    {
       return
          databaseFields.equals(that.databaseFields) &&
+         expressionFields.equals(that.expressionFields) &&
          childCollectionFields.equals(that.childCollectionFields) &&
          parentReferenceFields.equals(that.parentReferenceFields);
    }
@@ -70,6 +77,7 @@ public class GeneratedType
       GeneratedType that = (GeneratedType) o;
       return typeName.equals(that.typeName) &&
          databaseFields.equals(that.databaseFields) &&
+         expressionFields.equals(that.expressionFields) &&
          childCollectionFields.equals(that.childCollectionFields) &&
          parentReferenceFields.equals(that.parentReferenceFields);
    }
@@ -77,7 +85,7 @@ public class GeneratedType
    @Override
    public int hashCode()
    {
-      return Objects.hash(typeName, databaseFields, childCollectionFields, parentReferenceFields);
+      return Objects.hash(typeName, databaseFields, expressionFields, childCollectionFields, parentReferenceFields);
    }
 
    @Override
@@ -86,6 +94,7 @@ public class GeneratedType
       return "GeneratedType{" +
          "typeName='" + typeName + '\'' +
          ", databaseFields=" + databaseFields +
+         ", expressionFields=" + expressionFields +
          ", childCollectionFields=" + childCollectionFields +
          ", parentReferenceFields=" + parentReferenceFields +
          '}';

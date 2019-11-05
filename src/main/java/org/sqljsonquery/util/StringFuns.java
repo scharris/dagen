@@ -104,6 +104,26 @@ public final class StringFuns
       return pat.map(p -> p.matcher(s).matches()).orElse(false);
    }
 
+   /**
+    * Substitute a value in place of all occurrences of a variable in the passed expression.
+    * @param varColonExpr An expression consisting of a variable name followed by an expression
+    *                     using the variable, in the form var:expr. Only the first colon is considered
+    *                     as the separator, and any whitespace is trimmed from both the variable name
+    *                     and expression sides prior to interpretation.
+    * @param varValue The value to be substituted into the expression.
+    * @return The expression value with the actual variable value replacing all occurrences of the variable.
+    */
+   public static String substituteVarValue(String varColonExpr, String varValue)
+   {
+      int firstColonIx = varColonExpr.indexOf(':');
+      if ( firstColonIx == -1 )
+         throw new RuntimeException("improper filter format for filter '" + varColonExpr + "'.");
+      String var = varColonExpr.substring(0, firstColonIx).trim();
+      String expr = varColonExpr.substring(firstColonIx+1).trim();
+      return expr.replace(var, varValue);
+   }
+
+
 
    private StringFuns() {}
 }
