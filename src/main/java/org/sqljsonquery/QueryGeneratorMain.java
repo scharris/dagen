@@ -10,6 +10,8 @@ import static java.util.Optional.empty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
+import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
+import com.fasterxml.jackson.module.jsonSchema.JsonSchemaGenerator;
 
 import org.sqljsonquery.types.source_writers.TypescriptWriter;
 import org.sqljsonquery.util.Pair;
@@ -48,6 +50,8 @@ public class QueryGeneratorMain
       ps.println("         baretype   : leave as bare type (Object variant for native types)");
       ps.println("   " + generatedTypesHeaderFileOptPrefix + "<file>  Contents of this file will be included at the " +
          "top of each generated type's source file (e.g. additional imports for overridden field types).");
+      ps.println("    --print-query-group-spec-json-schema: Print a json schema for the query group spec, to " +
+         "facilitate editing.");
    }
 
    public static void main(String[] args)
@@ -67,7 +71,9 @@ public class QueryGeneratorMain
    public static void execCommandLine(String[] allArgs)
    {
       if ( allArgs.length == 1 && allArgs[0].equals("-h") || allArgs[0].equals("--help") )
-         printUsage();
+      { printUsage(); return; }
+      if ( allArgs.length == 1 && allArgs[0].equals("--print-query-group-spec-json-schema") )
+      { printQueryGroupSpecJsonSchema(); return; }
 
       SplitArgs args = splitOptionsAndRequiredArgs(allArgs);
 
@@ -122,6 +128,22 @@ public class QueryGeneratorMain
       catch(Exception e)
       {
          error(e.getMessage());
+      }
+   }
+
+   private static void printQueryGroupSpecJsonSchema()
+   {
+      try
+      {
+         ObjectMapper objMapper = new ObjectMapper();
+         objMapper.registerModule(new Jdk8Module());
+         JsonSchemaGenerator schemaGen = new JsonSchemaGenerator(objMapper);
+         JsonSchema schema = schemaGen.generateSchema(QueryGroupSpec.class);
+         objMapper.writeValue(System.out, schema);
+      }
+      catch(Exception e)
+      {
+         throw new RuntimeException(e);
       }
    }
 

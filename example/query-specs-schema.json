@@ -1,0 +1,159 @@
+{
+  "type": "object",
+  "id": "urn:jsonschema:org:sqljsonquery:queryspec:QueryGroupSpec",
+  "properties": {
+    "defaultSchema": {
+      "type": "string"
+    },
+    "outputFieldNameDefault": {
+      "type": "string",
+      "enum": [
+        "AS_IN_DB",
+        "CAMELCASE"
+      ]
+    },
+    "generateUnqualifiedNamesForSchemas": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "querySpecs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "id": "urn:jsonschema:org:sqljsonquery:queryspec:QuerySpec",
+        "properties": {
+          "queryName": {
+            "type": "string"
+          },
+          "resultsRepresentations": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "MULTI_COLUMN_ROWS",
+                "JSON_OBJECT_ROWS",
+                "JSON_ARRAY_ROW"
+              ]
+            }
+          },
+          "generateResultTypes": {
+            "type": "boolean"
+          },
+          "tableOutputSpec": {
+            "type": "object",
+            "id": "urn:jsonschema:org:sqljsonquery:queryspec:TableOutputSpec",
+            "properties": {
+              "tableName": {
+                "type": "string"
+              },
+              "nativeFields": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "id": "urn:jsonschema:org:sqljsonquery:queryspec:TableOutputField",
+                  "properties": {
+                    "databaseFieldName": {
+                      "type": "string"
+                    },
+                    "fieldExpression": {
+                      "type": "string"
+                    },
+                    "outputName": {
+                      "type": "string"
+                    },
+                    "fieldTypeOverrides": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "id": "urn:jsonschema:org:sqljsonquery:queryspec:FieldTypeOverride",
+                        "properties": {
+                          "language": {
+                            "type": "string"
+                          },
+                          "typeDeclaration": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "inlineParents": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "id": "urn:jsonschema:org:sqljsonquery:queryspec:InlineParentSpec",
+                  "properties": {
+                    "inlineParentTableOutputSpec": {
+                      "type": "object",
+                      "$ref": "urn:jsonschema:org:sqljsonquery:queryspec:TableOutputSpec"
+                    },
+                    "childForeignKeyFields": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              },
+              "referencedParents": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "id": "urn:jsonschema:org:sqljsonquery:queryspec:ReferencedParentSpec",
+                  "properties": {
+                    "referenceFieldName": {
+                      "type": "string"
+                    },
+                    "referencedParentTableOutputSpec": {
+                      "type": "object",
+                      "$ref": "urn:jsonschema:org:sqljsonquery:queryspec:TableOutputSpec"
+                    },
+                    "childForeignKeyFields": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              },
+              "childCollections": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "id": "urn:jsonschema:org:sqljsonquery:queryspec:ChildCollectionSpec",
+                  "properties": {
+                    "childCollectionName": {
+                      "type": "string"
+                    },
+                    "childTableOutputSpec": {
+                      "type": "object",
+                      "$ref": "urn:jsonschema:org:sqljsonquery:queryspec:TableOutputSpec"
+                    },
+                    "foreignKeyFields": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "filter": {
+                      "type": "string"
+                    }
+                  }
+                }
+              },
+              "filter": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

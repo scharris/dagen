@@ -6,7 +6,7 @@ querySpecs:
       - JSON_OBJECT_ROWS
 #      - JSON_ARRAY_ROW
 #      - MULTI_COLUMN_ROWS
-    generateResultTypes: yes
+    generateResultTypes: true
     tableOutputSpec:
       tableName: drug
       nativeFields:
