@@ -16,7 +16,21 @@ public final class TableOutputField
    private Optional<String> outputName = Optional.empty();
    private List<FieldTypeOverride> fieldTypeOverrides = emptyList();
 
-   protected TableOutputField() {}
+   private TableOutputField() {}
+
+   public TableOutputField
+   (
+      Optional<String> databaseFieldName,
+      Optional<String> fieldExpression,
+      Optional<String> outputName,
+      List<FieldTypeOverride> fieldTypeOverrides
+   )
+   {
+      this.databaseFieldName = databaseFieldName;
+      this.fieldExpression = fieldExpression;
+      this.outputName = outputName;
+      this.fieldTypeOverrides = fieldTypeOverrides;
+   }
 
    public String getDatabaseFieldName() { return databaseFieldName.get(); }
 

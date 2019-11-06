@@ -22,7 +22,7 @@ public final class QueryGroupSpec
    private List<String> generateUnqualifiedNamesForSchemas = emptyList();
    private List<QuerySpec> querySpecs = emptyList();
 
-   protected QueryGroupSpec() {}
+   private QueryGroupSpec() {}
 
    public QueryGroupSpec
    (

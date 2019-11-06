@@ -10,7 +10,7 @@ public final class InlineParentSpec implements ParentSpec
    private TableOutputSpec inlineParentTableOutputSpec;
    private Optional<List<String>> childForeignKeyFields = Optional.empty();
 
-   protected InlineParentSpec() {}
+   private InlineParentSpec() {}
 
    public InlineParentSpec
    (

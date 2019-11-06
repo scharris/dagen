@@ -12,7 +12,7 @@ public final class ChildCollectionSpec
    private Optional<List<String>> foreignKeyFields = Optional.empty();
    private Optional<String> filter = Optional.empty();
 
-   protected ChildCollectionSpec() {}
+   private ChildCollectionSpec() {}
 
    public ChildCollectionSpec
    (

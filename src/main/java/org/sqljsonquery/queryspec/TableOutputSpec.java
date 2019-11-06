@@ -21,7 +21,7 @@ public final class TableOutputSpec
 
    private Optional<String> filter = Optional.empty();
 
-   protected TableOutputSpec() {}
+   private TableOutputSpec() {}
 
    public TableOutputSpec
    (

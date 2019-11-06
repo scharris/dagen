@@ -11,7 +11,7 @@ public final class ReferencedParentSpec implements ParentSpec
    private TableOutputSpec referencedParentTableOutputSpec;
    private Optional<List<String>> childForeignKeyFields = Optional.empty();
 
-   protected ReferencedParentSpec() {}
+   private ReferencedParentSpec() {}
 
    public ReferencedParentSpec
    (

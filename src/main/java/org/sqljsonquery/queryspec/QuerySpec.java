@@ -14,7 +14,7 @@ public final class QuerySpec
    private boolean generateResultTypes;
    private TableOutputSpec tableOutputSpec;
 
-   protected QuerySpec() {}
+   private QuerySpec() {}
 
    public QuerySpec
    (
