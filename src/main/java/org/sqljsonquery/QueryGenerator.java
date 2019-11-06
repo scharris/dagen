@@ -57,7 +57,8 @@ public class QueryGenerator
    {
       this.dbmd = dbmd;
       this.defaultSchema = defaultSchema;
-      this.generateUnqualifiedNamesForSchemas = generateUnqualifiedNamesForSchemas;
+      this.generateUnqualifiedNamesForSchemas =
+         generateUnqualifiedNamesForSchemas.stream().map(dbmd::normalizeName).collect(toSet());
       this.indentSpaces = 2;
       this.sqlDialect = getSqlDialect(this.dbmd, this.indentSpaces);
       this.typesGenerator = new TypesGenerator(dbmd, defaultSchema, outputFieldNameDefaultFn);
@@ -134,7 +135,7 @@ public class QueryGenerator
          q.addAliasToScope(pcCond.getOtherTableAlias())
       );
       String alias = q.makeNewAliasFor(relId.getName());
-      q.addFromClauseEntry(minimalIdentifier(relId) + " " + alias);
+      q.addFromClauseEntry(minimalRelIdentifier(relId) + " " + alias);
 
       // If exporting pk fields, add any that aren't already in the output fields list to the select clause.
       if ( exportAllPkFieldsAsHidden )
@@ -390,9 +391,10 @@ public class QueryGenerator
 
    /// Return a possibly qualified identifier for the given relation, omitting the schema
    /// qualifier if it has a schema for which it's specified to use unqualified names.
-   private String minimalIdentifier(RelId relId)
+   private String minimalRelIdentifier(RelId relId)
    {
-      if ( !relId.getSchema().isPresent() || generateUnqualifiedNamesForSchemas.contains(relId.getSchema().get()) )
+      if ( !relId.getSchema().isPresent() ||
+           generateUnqualifiedNamesForSchemas.contains(dbmd.normalizeName(relId.getSchema().get())) )
          return relId.getName();
       else
          return relId.getIdString();
