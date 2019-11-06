@@ -6,6 +6,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import static java.util.Optional.empty;
+import static java.util.stream.Collectors.toList;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
@@ -28,10 +29,11 @@ import static org.sqljsonquery.types.source_writers.JavaWriter.NullableFieldRepr
 
 public class QueryGeneratorMain
 {
-   static final String langOptPrefix = "--types-language:";
-   static final String pkgOptPrefix = "--package:";
-   static final String javaNullabilityOptPrefix = "--java-nullability:";
-   static final String generatedTypesHeaderFileOptPrefix = "--types-file-header:";
+   private static final String langOptPrefix = "--types-language:";
+   private static final String pkgOptPrefix = "--package:";
+   private static final String javaNullabilityOptPrefix = "--java-nullability:";
+   private static final String generatedTypesHeaderFileOptPrefix = "--types-file-header:";
+   private static final String includeSourceGenerationTimestamp = "--include-source-gen-timestamp";
 
    private static void printUsage()
    {
@@ -122,8 +124,17 @@ public class QueryGeneratorMain
 
          List<WrittenQueryReprPath> writtenQueryPaths = writeQueries(generatedQueries, queriesOutputDirPath);
 
-         SourceCodeWriter srcWriter = getSourceCodeWriter(args, srcOutputBaseDirPath);
-         srcWriter.writeSourceCode(generatedQueries, writtenQueryPaths);
+         List<SqlJsonQuery> queriesHavingTypes =
+            generatedQueries.stream()
+            .filter(gq -> !gq.getGeneratedResultTypes().isEmpty())
+            .collect(toList());
+
+         if ( !queriesHavingTypes.isEmpty() )
+         {
+            SourceCodeWriter srcWriter = getSourceCodeWriter(args, srcOutputBaseDirPath);
+            boolean includeTimestamp = args.optional.contains(includeSourceGenerationTimestamp);
+            srcWriter.writeSourceCode(queriesHavingTypes, writtenQueryPaths, includeTimestamp);
+         }
       }
       catch(Exception e)
       {
@@ -247,7 +258,7 @@ public class QueryGeneratorMain
 
    private static class SplitArgs
    {
-      public SplitArgs(List<String> optional, List<String> required)
+      SplitArgs(List<String> optional, List<String> required)
       {
          this.optional = optional;
          this.required = required;

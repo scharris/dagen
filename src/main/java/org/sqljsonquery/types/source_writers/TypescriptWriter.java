@@ -36,7 +36,8 @@ public class TypescriptWriter implements SourceCodeWriter
    public void writeSourceCode
    (
       List<SqlJsonQuery> generatedQueries,
-      List<WrittenQueryReprPath> writtenQueryPaths
+      List<WrittenQueryReprPath> writtenQueryPaths,
+      boolean includeTimestamp
    )
       throws IOException
    {
@@ -57,7 +58,8 @@ public class TypescriptWriter implements SourceCodeWriter
          {
             bw.write("// --------------------------------------------------------------------------\n");
             bw.write("// [ THIS SOURCE CODE WAS AUTO-GENERATED, ANY CHANGES MADE HERE MAY BE LOST. ]\n");
-            bw.write("//   " + Instant.now().toString().replace('T',' ') + "\n");
+            if ( includeTimestamp )
+               bw.write("//   " + Instant.now().toString().replace('T',' ') + "\n");
             bw.write("// --------------------------------------------------------------------------\n");
 
             if ( filesHeader.isPresent() )

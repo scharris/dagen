@@ -47,7 +47,8 @@ public class JavaWriter implements SourceCodeWriter
    public void writeSourceCode
    (
       List<SqlJsonQuery> generatedQueries,
-      List<WrittenQueryReprPath> writtenQueryPaths
+      List<WrittenQueryReprPath> writtenQueryPaths,
+      boolean includeTimestamp
    )
       throws IOException
    {
@@ -72,7 +73,8 @@ public class JavaWriter implements SourceCodeWriter
          {
             bw.write("// --------------------------------------------------------------------------\n");
             bw.write("// [ THIS SOURCE CODE WAS AUTO-GENERATED, ANY CHANGES MADE HERE MAY BE LOST. ]\n");
-            bw.write("//   " + Instant.now().toString().replace('T',' ') + "\n");
+            if ( includeTimestamp )
+               bw.write("//   " + Instant.now().toString().replace('T',' ') + "\n");
             bw.write("// --------------------------------------------------------------------------\n");
             bw.write("package " + targetPackage + ";\n\n");
             bw.write("import java.util.*;\n");
@@ -87,7 +89,7 @@ public class JavaWriter implements SourceCodeWriter
             bw.write("{\n");
 
             // Write members holding resource/file names for the result representations that were written for this query.
-            for ( ResultsRepr resultsRepr : writtenQueryPathsByRepr.keySet() )
+            for ( ResultsRepr resultsRepr : writtenQueryPathsByRepr.keySet() ) // TODO: sort keys
             {
                String memberName = writtenQueryPathsByRepr.size() == 1 ? "sqlResourceName" :
                   "sqlResourceName" + upperCamelCase(resultsRepr.toString());

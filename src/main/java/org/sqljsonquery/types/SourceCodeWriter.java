@@ -9,5 +9,5 @@ import org.sqljsonquery.WrittenQueryReprPath;
 
 public interface SourceCodeWriter
 {
-   void writeSourceCode(List<SqlJsonQuery> generatedQueries, List<WrittenQueryReprPath> writtenPaths) throws IOException;
+   void writeSourceCode(List<SqlJsonQuery> generatedQueries, List<WrittenQueryReprPath> writtenPaths, boolean includeTimestamp) throws IOException;
 }
