@@ -10,7 +10,7 @@ import static org.sqljsonquery.util.Optionals.opt;
 import static org.sqljsonquery.util.StringFuns.*;
 import org.sqljsonquery.dbmd.*;
 import static org.sqljsonquery.dbmd.ForeignKeyScope.REGISTERED_TABLES_ONLY;
-import org.sqljsonquery.queryspec.*;
+import org.sqljsonquery.query_spec.*;
 import org.sqljsonquery.types.GeneratedType;
 import org.sqljsonquery.types.GeneratedTypeBuilder;
 

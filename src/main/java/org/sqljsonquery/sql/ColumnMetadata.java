@@ -3,7 +3,7 @@ package org.sqljsonquery.sql;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.sqljsonquery.queryspec.FieldTypeOverride;
+import org.sqljsonquery.query_spec.FieldTypeOverride;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.unmodifiableList;
 

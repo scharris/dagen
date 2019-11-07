@@ -10,8 +10,8 @@ import java.sql.Types;
 
 import org.sqljsonquery.SqlJsonQuery;
 import org.sqljsonquery.WrittenQueryReprPath;
-import org.sqljsonquery.queryspec.FieldTypeOverride;
-import org.sqljsonquery.queryspec.ResultsRepr;
+import org.sqljsonquery.query_spec.FieldTypeOverride;
+import org.sqljsonquery.query_spec.ResultsRepr;
 import org.sqljsonquery.types.*;
 import static org.sqljsonquery.util.Files.newFileOrStdoutWriter;
 import static org.sqljsonquery.util.StringFuns.*;

@@ -4,7 +4,7 @@ import java.util.*;
 import static java.util.Collections.unmodifiableList;
 
 import org.sqljsonquery.dbmd.Field;
-import org.sqljsonquery.queryspec.FieldTypeOverride;
+import org.sqljsonquery.query_spec.FieldTypeOverride;
 import static org.sqljsonquery.util.Optionals.opt;
 
 

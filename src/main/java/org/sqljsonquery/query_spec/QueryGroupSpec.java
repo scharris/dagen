@@ -1,4 +1,4 @@
-package org.sqljsonquery.queryspec;
+package org.sqljsonquery.query_spec;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -12,7 +12,7 @@ import static java.util.function.Function.identity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import org.sqljsonquery.util.StringFuns;
-import static org.sqljsonquery.queryspec.OutputFieldNameDefault.CAMELCASE;
+import static org.sqljsonquery.query_spec.OutputFieldNameDefault.CAMELCASE;
 
 
 public final class QueryGroupSpec

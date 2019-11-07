@@ -7,11 +7,11 @@ import static java.util.stream.Collectors.*;
 import static java.util.Optional.empty;
 import static java.util.function.Function.identity;
 
+import org.sqljsonquery.dbmd.*;
+import static org.sqljsonquery.dbmd.ForeignKeyScope.REGISTERED_TABLES_ONLY;
 import static org.sqljsonquery.util.StringFuns.*;
 import static org.sqljsonquery.util.Optionals.opt;
-import org.sqljsonquery.dbmd.*;
-import org.sqljsonquery.queryspec.*;
-import static org.sqljsonquery.dbmd.ForeignKeyScope.REGISTERED_TABLES_ONLY;
+import org.sqljsonquery.query_spec.*;
 import org.sqljsonquery.sql.*;
 import org.sqljsonquery.sql.dialect.OracleDialect;
 import org.sqljsonquery.sql.dialect.PostgresDialect;

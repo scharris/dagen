@@ -4,10 +4,9 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-
-import org.sqljsonquery.queryspec.ResultsRepr;
-
 import static java.util.stream.Collectors.toMap;
+
+import org.sqljsonquery.query_spec.ResultsRepr;
 
 
 public class WrittenQueryReprPath

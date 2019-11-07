@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import static java.util.Collections.*;
 
-import org.sqljsonquery.queryspec.FieldTypeOverride;
+import org.sqljsonquery.query_spec.FieldTypeOverride;
 import static org.sqljsonquery.util.StringFuns.*;
 
 

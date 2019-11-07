@@ -4,8 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.sqljsonquery.dbmd.Field;
-import org.sqljsonquery.queryspec.FieldTypeOverride;
-import org.sqljsonquery.queryspec.TableOutputField;
+import org.sqljsonquery.query_spec.FieldTypeOverride;
+import org.sqljsonquery.query_spec.TableOutputField;
 
 
 public class GeneratedTypeBuilder

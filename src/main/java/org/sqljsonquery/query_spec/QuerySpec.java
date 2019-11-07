@@ -1,10 +1,10 @@
-package org.sqljsonquery.queryspec;
+package org.sqljsonquery.query_spec;
 
 import java.util.ArrayList;
 import java.util.List;
 import static java.util.Collections.*;
 
-import static org.sqljsonquery.queryspec.ResultsRepr.JSON_OBJECT_ROWS;
+import static org.sqljsonquery.query_spec.ResultsRepr.JSON_OBJECT_ROWS;
 
 
 public final class QuerySpec

@@ -4,7 +4,7 @@ import java.util.*;
 import static java.util.Collections.unmodifiableList;
 import static java.util.stream.Collectors.toList;
 
-import org.sqljsonquery.queryspec.TableOutputField;
+import org.sqljsonquery.query_spec.TableOutputField;
 
 
 public class GeneratedType

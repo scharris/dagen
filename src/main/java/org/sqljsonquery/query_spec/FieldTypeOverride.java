@@ -1,4 +1,4 @@
-package org.sqljsonquery.queryspec;
+package org.sqljsonquery.query_spec;
 
 
 /// An override for the type of a field in generated source code for a given programming language.

@@ -6,7 +6,7 @@ import java.util.Optional;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.unmodifiableList;
 
-import org.sqljsonquery.queryspec.FieldTypeOverride;
+import org.sqljsonquery.query_spec.FieldTypeOverride;
 
 
 public class SelectClauseEntry

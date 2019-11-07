@@ -1,7 +1,6 @@
-package org.sqljsonquery.queryspec;
+package org.sqljsonquery.query_spec;
 
 import java.util.*;
-
 import static java.util.Collections.emptyList;
 import static java.util.Collections.unmodifiableList;
 import static java.util.Objects.requireNonNull;
