@@ -117,7 +117,7 @@ public class QueryGeneratorMain
             dbmd,
             queryGroupSpec.getDefaultSchema(),
             new HashSet<>(queryGroupSpec.getGenerateUnqualifiedNamesForSchemas()),
-            queryGroupSpec.getDefaultOutputNameFunction()
+            queryGroupSpec.getDefaultFieldOutputNameFunction()
          );
 
          List<SqlJsonQuery> generatedQueries = gen.generateSqlJsonQueries(queryGroupSpec.getQuerySpecs());

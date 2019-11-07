@@ -48,7 +48,7 @@ public final class QueryGroupSpec
 
 
    @JsonIgnore
-   public Function<String,String> getDefaultOutputNameFunction()
+   public Function<String,String> getDefaultFieldOutputNameFunction()
    {
       switch ( outputFieldNameDefault )
       {
