@@ -8,8 +8,6 @@ Testing
 ------------------------------------------------------------
 Add MySQL/MariaDB support.
 
-Add Typescript output option.
-
 Add unit tests.
 
 
@@ -23,5 +21,5 @@ io.github.scharris
 
 Commit Notes
 ------------
-Make json object rows the default results representation.
+
 

@@ -1,0 +1,35 @@
+defaultSchema: drugs
+generateUnqualifiedNamesForSchemas: ["drugs"]
+modSpecs:
+  - modificationName: drug insert
+    command: INSERT
+    tableName: drug
+    fieldParameterNameDefault: CAMELCASE_FIELDNAME # (<- default) | QUESTION_MARK
+    fields:
+      - fieldName: id
+      - fieldName: name
+        value: ":theName" # explicit param name
+      - fieldName: compound_id
+        value: 2 - 1 # expression
+      - fieldName: mesh_id
+      # value ":meshId" due to chosen param name default
+      - fieldName: registered_by
+
+  - modificationName: drug update
+    command: UPDATE
+    tableName: drug
+    tableAlias: d
+    fieldParameterNameDefault: CAMELCASE_FIELDNAME # (<- default) | QUESTION_MARK
+    filter: d.cid < 0
+    fields:
+      - fieldName: name
+        value: name || name
+      - fieldName: compound_id
+      - fieldName: mesh_id
+
+  - modificationName: drug delete
+    command: DELETE
+    tableName: drug
+    tableAlias: d # optional
+    filter: d.cid < 0
+

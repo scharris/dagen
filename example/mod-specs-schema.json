@@ -1,0 +1,66 @@
+{
+  "type": "object",
+  "id": "urn:jsonschema:org:sqljsonquery:mod_spec:ModGroupSpec",
+  "properties": {
+    "defaultSchema": {
+      "type": "string"
+    },
+    "generateUnqualifiedNamesForSchemas": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "modSpecs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "id": "urn:jsonschema:org:sqljsonquery:mod_spec:ModSpec",
+        "properties": {
+          "modificationName": {
+            "type": "string"
+          },
+          "command": {
+            "type": "string",
+            "enum": [
+              "INSERT",
+              "UPDATE",
+              "DELETE"
+            ]
+          },
+          "tableName": {
+            "type": "string"
+          },
+          "tableAlias": {
+            "type": "string"
+          },
+          "filter": {
+            "type": "string"
+          },
+          "fieldParameterNameDefault": {
+            "type": "string",
+            "enum": [
+              "QUESTION_MARK",
+              "CAMELCASE_FIELDNAME"
+            ]
+          },
+          "fields": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "id": "urn:jsonschema:org:sqljsonquery:mod_spec:TableInputField",
+              "properties": {
+                "fieldName": {
+                  "type": "string"
+                },
+                "value": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
