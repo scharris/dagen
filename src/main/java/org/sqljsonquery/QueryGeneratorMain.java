@@ -14,16 +14,19 @@ import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchemaGenerator;
 
-import org.sqljsonquery.types.source_writers.TypescriptWriter;
+import org.sqljsonquery.util.AppUtils.SplitArgs;
 import org.sqljsonquery.util.Pair;
+import static org.sqljsonquery.util.AppUtils.splitOptionsAndRequiredArgs;
+import static org.sqljsonquery.util.AppUtils.throwError;
 import static org.sqljsonquery.util.Files.readString;
 import static org.sqljsonquery.util.Optionals.opt;
 import static org.sqljsonquery.util.Files.newFileOrStdoutWriter;
 import org.sqljsonquery.dbmd.DatabaseMetadata;
 import org.sqljsonquery.query_spec.QueryGroupSpec;
 import org.sqljsonquery.query_spec.ResultsRepr;
-import org.sqljsonquery.types.source_writers.JavaWriter;
 import org.sqljsonquery.types.SourceCodeWriter;
+import org.sqljsonquery.types.source_writers.JavaWriter;
+import org.sqljsonquery.types.source_writers.TypescriptWriter;
 import static org.sqljsonquery.types.source_writers.JavaWriter.NullableFieldRepr;
 
 
@@ -84,11 +87,11 @@ public class QueryGeneratorMain
 
       Path dbmdPath = Paths.get(args.required.get(0));
       if ( !Files.isRegularFile(dbmdPath) )
-         error("Database metdata file not found.");
+         throwError("Database metdata file not found.");
 
       Path queriesSpecFilePath = Paths.get(args.required.get(1));
       if ( !Files.isRegularFile(queriesSpecFilePath) )
-         error("Queries specification file not found.");
+         throwError("Queries specification file not found.");
 
       Optional<Pair<Path,Path>> outputDirs = args.required.size() > 2 ?
          opt(Pair.make(Paths.get(args.required.get(2)), Paths.get(args.required.get(3))))
@@ -105,12 +108,12 @@ public class QueryGeneratorMain
 
          Optional<Path> srcOutputBaseDirPath = outputDirs.map(Pair::fst);
          srcOutputBaseDirPath.ifPresent(path ->  {
-            if ( !Files.isDirectory(path) ) error("Source output base directory not found.");
+            if ( !Files.isDirectory(path) ) throwError("Source output base directory not found.");
          });
 
          Optional<Path> queriesOutputDirPath = outputDirs.map(Pair::snd);
          queriesOutputDirPath.ifPresent(path ->  {
-            if ( !Files.isDirectory(path) ) error("Queries output directory not found.");
+            if ( !Files.isDirectory(path) ) throwError("Queries output directory not found.");
          });
 
          QueryGenerator gen = new QueryGenerator(
@@ -138,7 +141,7 @@ public class QueryGeneratorMain
       }
       catch(Exception e)
       {
-         error(e.getMessage());
+         throwError(e.getMessage());
       }
    }
 
@@ -156,14 +159,6 @@ public class QueryGeneratorMain
       {
          throw new RuntimeException(e);
       }
-   }
-
-   private static SplitArgs splitOptionsAndRequiredArgs(String[] args)
-   {
-      List<String> optArgs = new ArrayList<>();
-      for (String arg : args)
-         if (arg.startsWith("-")) optArgs.add(arg);
-      return new SplitArgs(optArgs, Arrays.asList(Arrays.copyOfRange(args, optArgs.size(), args.length)));
    }
 
    private static SourceCodeWriter getSourceCodeWriter
@@ -248,23 +243,5 @@ public class QueryGeneratorMain
       }
 
       return res;
-   }
-
-   private static void error(String message)
-   {
-      System.err.println(message);
-      throw new RuntimeException(message);
-   }
-
-   private static class SplitArgs
-   {
-      SplitArgs(List<String> optional, List<String> required)
-      {
-         this.optional = optional;
-         this.required = required;
-      }
-
-      List<String> optional;
-      List<String> required;
    }
 }
