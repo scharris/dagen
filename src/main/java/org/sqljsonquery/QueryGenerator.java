@@ -13,8 +13,6 @@ import static org.sqljsonquery.util.StringFuns.*;
 import static org.sqljsonquery.util.Optionals.opt;
 import org.sqljsonquery.query_spec.*;
 import org.sqljsonquery.sql.*;
-import org.sqljsonquery.sql.dialect.OracleDialect;
-import org.sqljsonquery.sql.dialect.PostgresDialect;
 import org.sqljsonquery.sql.dialect.SqlDialect;
 import static org.sqljsonquery.sql.SelectClauseEntry.Source.*;
 import org.sqljsonquery.types.GeneratedType;
@@ -31,8 +29,6 @@ public class QueryGenerator
    private final Function<String,String> outputFieldNameDefaultFn;
 
    private static final String HIDDEN_PK_PREFIX = "_";
-
-   enum DbmsType { PG, ORA, ISO }
 
    /*
    Note: field name quoting
@@ -60,7 +56,7 @@ public class QueryGenerator
       this.generateUnqualifiedNamesForSchemas =
          generateUnqualifiedNamesForSchemas.stream().map(dbmd::normalizeName).collect(toSet());
       this.indentSpaces = 2;
-      this.sqlDialect = getSqlDialect(this.dbmd, this.indentSpaces);
+      this.sqlDialect = SqlDialect.fromDatabaseMetadata(this.dbmd, this.indentSpaces);
       this.typesGenerator = new TypesGenerator(dbmd, defaultSchema, outputFieldNameDefaultFn);
       this.outputFieldNameDefaultFn = outputFieldNameDefaultFn;
    }
@@ -403,25 +399,6 @@ public class QueryGenerator
    private String indent(String s)
    {
       return indentLines(s, indentSpaces, true);
-   }
-
-   private static DbmsType getDbmsType(String dbmsName)
-   {
-      String dbmsLower = dbmsName.toLowerCase();
-      if ( dbmsLower.contains("postgres") ) return DbmsType.PG;
-      else if ( dbmsLower.contains("oracle") ) return DbmsType.ORA;
-      else return DbmsType.ISO;
-   }
-
-   private static SqlDialect getSqlDialect(DatabaseMetadata dbmd, int indentSpaces)
-   {
-      DbmsType dbmsType = getDbmsType(dbmd.getDbmsName());
-      switch ( dbmsType )
-      {
-         case PG: return new PostgresDialect(indentSpaces);
-         case ORA: return new OracleDialect(indentSpaces);
-         default: throw new RuntimeException("dbms type " + dbmsType + " is currently not supported");
-      }
    }
 
    private static class BaseQuery
