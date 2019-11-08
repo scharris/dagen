@@ -53,7 +53,7 @@ public class ModStatementGenerator
             if ( mod.getFilter().isPresent() )
                AppUtils.throwError("A filter is not allowed in an INSERT command.");
             return new ModSql(
-               mod.getModificationName(),
+               mod.getStatementName(),
                makeInsertSql(
                   mod.getTableName(),
                   mod.getFilter(),
@@ -63,7 +63,7 @@ public class ModStatementGenerator
             );
          case UPDATE:
             return new ModSql(
-               mod.getModificationName(),
+               mod.getStatementName(),
                makeUpdateSql(
                   mod.getTableName(),
                   mod.getTableAlias(),
@@ -76,7 +76,7 @@ public class ModStatementGenerator
             if ( !mod.getFields().isEmpty() )
                AppUtils.throwError("Fields are not allowed in a delete command.");
             return new ModSql(
-               mod.getModificationName(),
+               mod.getStatementName(),
                makeDeleteSql(
                   mod.getTableName(),
                   mod.getTableAlias(),

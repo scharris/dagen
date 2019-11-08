@@ -13,7 +13,7 @@ public final class ModGroupSpec
 {
    private Optional<String> defaultSchema = empty();
    private List<String> generateUnqualifiedNamesForSchemas = emptyList();
-   private List<ModSpec> modSpecs = emptyList();
+   private List<ModSpec> modificationStatementSpecs = emptyList();
 
    private ModGroupSpec() {}
 
@@ -21,19 +21,19 @@ public final class ModGroupSpec
    (
       Optional<String> defaultSchema,
       List<String> generateUnqualifiedNamesForSchemas,
-      List<ModSpec> modSpecs
+      List<ModSpec> modificationStatementSpecs
    )
    {
       this.defaultSchema = defaultSchema;
       this.generateUnqualifiedNamesForSchemas = generateUnqualifiedNamesForSchemas;
-      this.modSpecs = unmodifiableList(new ArrayList<>(modSpecs));
+      this.modificationStatementSpecs = unmodifiableList(new ArrayList<>(modificationStatementSpecs));
    }
 
    public Optional<String> getDefaultSchema() { return defaultSchema; }
 
    public List<String> getGenerateUnqualifiedNamesForSchemas() { return generateUnqualifiedNamesForSchemas; }
 
-   public List<ModSpec> getModSpecs() { return modSpecs; }
+   public List<ModSpec> getModificationStatementSpecs() { return modificationStatementSpecs; }
 }
 
 

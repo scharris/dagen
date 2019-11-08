@@ -14,7 +14,7 @@ import static org.sqljson.specs.mod_stmts.FieldParameterNameDefault.CAMELCASE_FI
 
 public class ModSpec
 {
-   private String modificationName;
+   private String statementName;
    private ModType command;
    private String tableName; // possibly qualified
    private Optional<String> tableAlias = empty();
@@ -26,7 +26,7 @@ public class ModSpec
 
    public ModSpec
    (
-      String modificationName,
+      String statementName,
       ModType command,
       String tableName,
       Optional<String> tableAlias,
@@ -35,7 +35,7 @@ public class ModSpec
       List<TableInputField> fields
    )
    {
-      this.modificationName = modificationName;
+      this.statementName = statementName;
       this.command = command;
       this.tableName = tableName;
       this.tableAlias = tableAlias;
@@ -44,7 +44,7 @@ public class ModSpec
       this.fields = fields;
    }
 
-   public String getModificationName() { return modificationName; }
+   public String getStatementName() { return statementName; }
 
    public ModType getCommand() { return command; }
 

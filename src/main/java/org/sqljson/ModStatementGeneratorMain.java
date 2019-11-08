@@ -78,7 +78,7 @@ public class ModStatementGeneratorMain
             new HashSet<>(modGroupSpec.getGenerateUnqualifiedNamesForSchemas())
          );
 
-         List<ModSql> generatedMods = gen.generateModSqls(modGroupSpec.getModSpecs());
+         List<ModSql> generatedMods = gen.generateModSqls(modGroupSpec.getModificationStatementSpecs());
 
          writeModSqls(generatedMods, outputDir);
       }
