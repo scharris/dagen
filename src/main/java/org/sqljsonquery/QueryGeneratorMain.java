@@ -62,9 +62,15 @@ public class QueryGeneratorMain
    public static void main(String[] allArgs)
    {
       if ( allArgs.length == 1 && allArgs[0].equals("-h") || allArgs[0].equals("--help") )
-      { printUsage(); return; }
+      {
+         printUsage();
+         return;
+      }
       if ( allArgs.length == 1 && allArgs[0].equals("--print-query-group-spec-json-schema") )
-      { printQueryGroupSpecJsonSchema(); return; }
+      {
+         printQueryGroupSpecJsonSchema();
+         return;
+      }
 
       SplitArgs args = splitOptionsAndRequiredArgs(allArgs);
 
