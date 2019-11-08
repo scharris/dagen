@@ -59,21 +59,7 @@ public class QueryGeneratorMain
          "facilitate editing.");
    }
 
-   public static void main(String[] args)
-   {
-      try
-      {
-         execCommandLine(args);
-      }
-      catch(Exception e)
-      {
-         e.printStackTrace();
-         System.err.println(e.getMessage());
-         System.exit(1);
-      }
-   }
-
-   public static void execCommandLine(String[] allArgs)
+   public static void main(String[] allArgs)
    {
       if ( allArgs.length == 1 && allArgs[0].equals("-h") || allArgs[0].equals("--help") )
       { printUsage(); return; }
@@ -141,7 +127,9 @@ public class QueryGeneratorMain
       }
       catch(Exception e)
       {
-         throwError(e.getMessage());
+         e.printStackTrace();
+         System.err.println(e.getMessage());
+         System.exit(1);
       }
    }
 
