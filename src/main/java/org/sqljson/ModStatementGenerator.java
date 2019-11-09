@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Pattern;
-
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.*;
 
@@ -17,7 +16,6 @@ import org.sqljson.specs.mod_stmts.ParametersType;
 import org.sqljson.util.AppUtils;
 import org.sqljson.specs.mod_stmts.ModSpec;
 import org.sqljson.specs.mod_stmts.TableInputField;
-
 import static org.sqljson.specs.mod_stmts.ParametersType.NAMED;
 import static org.sqljson.util.StringFuns.*;
 

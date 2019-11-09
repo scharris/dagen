@@ -4,10 +4,9 @@ import java.util.List;
 import java.util.Optional;
 import static java.util.Collections.emptyList;
 
-import org.sqljson.util.StringFuns;
-
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import org.sqljson.util.StringFuns;
 
 
 public final class TableOutputField
