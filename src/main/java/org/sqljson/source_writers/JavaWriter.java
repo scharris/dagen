@@ -1,4 +1,4 @@
-package org.sqljson.result_types.source_writers;
+package org.sqljson.source_writers;
 
 import java.nio.file.Files;
 import java.util.*;
@@ -7,9 +7,11 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.sql.Types;
+import static java.util.Optional.empty;
+import static java.util.stream.Collectors.toList;
 
+import org.sqljson.GeneratedModStatement;
 import org.sqljson.result_types.*;
-
 import org.sqljson.specs.queries.FieldTypeOverride;
 import org.sqljson.specs.queries.ResultsRepr;
 import org.sqljson.specs.queries.TableOutputField;
@@ -18,7 +20,6 @@ import org.sqljson.WrittenQueryReprPath;
 import static org.sqljson.util.Files.newFileOrStdoutWriter;
 import static org.sqljson.util.Optionals.opt;
 import static org.sqljson.util.StringFuns.*;
-import static org.sqljson.result_types.source_writers.JavaWriter.NullableFieldRepr.*;
 
 
 public class JavaWriter implements SourceCodeWriter
@@ -29,6 +30,18 @@ public class JavaWriter implements SourceCodeWriter
    private Optional<String> filesHeader;
 
    public enum NullableFieldRepr { OPTWRAPPED, ANNOTATED, BARETYPE }
+
+   public JavaWriter
+   (
+      String targetPackage,
+      Optional<Path> srcOutputBaseDir
+   )
+   {
+      this.targetPackage = targetPackage;
+      this.srcOutputBaseDir = srcOutputBaseDir;
+      this.nullableFieldRepr = NullableFieldRepr.OPTWRAPPED;
+      this.filesHeader = empty();
+   }
 
    public JavaWriter
    (
@@ -45,7 +58,7 @@ public class JavaWriter implements SourceCodeWriter
    }
 
    @Override
-   public void writeSourceCode
+   public void writeQueries
    (
       List<GeneratedQuery> generatedQueries,
       List<WrittenQueryReprPath> writtenQueryPaths,
@@ -90,7 +103,7 @@ public class JavaWriter implements SourceCodeWriter
             bw.write("{\n");
 
             // Write members holding resource/file names for the result representations that were written for this query.
-            for ( ResultsRepr resultsRepr : writtenQueryPathsByRepr.keySet() ) // TODO: sort keys
+            for ( ResultsRepr resultsRepr : sorted(writtenQueryPathsByRepr.keySet()) )
             {
                String memberName = writtenQueryPathsByRepr.size() == 1 ? "sqlResourceName" :
                   "sqlResourceName" + upperCamelCase(resultsRepr.toString());
@@ -116,6 +129,92 @@ public class JavaWriter implements SourceCodeWriter
                   bw.write('\n');
 
                   writtenTypeNames.add(generatedType.getTypeName());
+               }
+            }
+
+            bw.write("}\n");
+         }
+         finally
+         {
+            if ( outputFilePath.isPresent() ) bw.close();
+            else bw.flush();
+         }
+      }
+   }
+
+   @Override
+   public void writeModStatements
+      (
+         List<GeneratedModStatement> generatedModStatements,
+         Map<String,Path> writtenPathsByModName,
+         boolean includeTimestamp
+      )
+      throws IOException
+   {
+      Optional<Path> outputDir = !targetPackage.isEmpty() ?
+         srcOutputBaseDir.map(d -> d.resolve(targetPackage.replace('.','/')))
+         : srcOutputBaseDir;
+
+      if ( outputDir.isPresent() )
+         Files.createDirectories(outputDir.get());
+
+      for ( GeneratedModStatement modStmt : generatedModStatements )
+      {
+         if ( !modStmt.getGenerateSource() ) continue;
+
+         String className = upperCamelCase(modStmt.getStatementName());
+         Optional<Path> outputFilePath = outputDir.map(d -> d.resolve(className + ".java"));
+
+         BufferedWriter bw = newFileOrStdoutWriter(outputFilePath);
+
+         try
+         {
+            bw.write("// --------------------------------------------------------------------------\n");
+            bw.write("// [ THIS SOURCE CODE WAS AUTO-GENERATED, ANY CHANGES MADE HERE MAY BE LOST. ]\n");
+            if ( includeTimestamp )
+               bw.write("//   " + Instant.now().toString().replace('T',' ') + "\n");
+            bw.write("// --------------------------------------------------------------------------\n");
+            bw.write("package " + targetPackage + ";\n\n");
+
+            bw.write("\n\n");
+            bw.write("public class " + className + "\n");
+            bw.write("{\n");
+
+            Path writtenPath = writtenPathsByModName.get(modStmt.getStatementName());
+
+            if ( writtenPath != null )
+            {
+               String resourceName = writtenPath.getFileName().toString();
+               bw.write("   public static final String sqlResourceName = \"" + resourceName + "\";\n");
+            }
+
+            bw.write("\n");
+
+            List<String> inputFieldParams = modStmt.getInputFieldParamNames();
+
+            for ( int paramIx = 0; paramIx < inputFieldParams.size(); ++paramIx )
+            {
+               String inputFieldParam = inputFieldParams.get(paramIx);
+
+               bw.write("   public static final ");
+
+               if ( modStmt.hasNamedParameters() )
+               {
+                  bw.write("String ");
+                  bw.write(inputFieldParam);
+                  bw.write("Param");
+                  bw.write(" = \"");
+                  bw.write(inputFieldParam);
+                  bw.write("\";\n\n");
+               }
+               else
+               {
+                  bw.write("int ");
+                  bw.write(inputFieldParam);
+                  bw.write("ParamNum");
+                  bw.write(" = ");
+                  bw.write(String.valueOf(paramIx + 1));
+                  bw.write(";\n\n");
                }
             }
 
@@ -262,19 +361,23 @@ public class JavaWriter implements SourceCodeWriter
    {
       StringBuilder sb = new StringBuilder();
 
-      if ( nullableFieldRepr == ANNOTATED )
+      if ( nullableFieldRepr == NullableFieldRepr.ANNOTATED)
          sb.append("@Null ");
-      else if ( nullableFieldRepr == OPTWRAPPED  )
+      else if ( nullableFieldRepr == NullableFieldRepr.OPTWRAPPED  )
          sb.append("Optional<");
-      else if ( nullableFieldRepr != BARETYPE )
+      else if ( nullableFieldRepr != NullableFieldRepr.BARETYPE )
          throw new RuntimeException("unexpected nullable field repr: " + nullableFieldRepr);
 
       sb.append(baseType);
 
-      if ( nullableFieldRepr == OPTWRAPPED  )
+      if ( nullableFieldRepr == NullableFieldRepr.OPTWRAPPED  )
          sb.append(">");
 
       return sb.toString();
    }
 
+   private List<ResultsRepr> sorted(Collection<ResultsRepr> xs)
+   {
+      return xs.stream().sorted().collect(toList());
+   }
 }

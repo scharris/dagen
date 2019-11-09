@@ -2,14 +2,10 @@ package org.sqljson.specs.mod_stmts;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.function.Function;
 import static java.util.Optional.empty;
 import static java.util.Collections.emptyList;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
-import org.sqljson.util.StringFuns;
-import static org.sqljson.specs.mod_stmts.FieldParameterNameDefault.CAMELCASE_FIELDNAME;
+import static org.sqljson.specs.mod_stmts.ParametersType.NAMED;
 
 
 public class ModSpec
@@ -19,8 +15,9 @@ public class ModSpec
    private String tableName; // possibly qualified
    private Optional<String> tableAlias = empty();
    private Optional<String> filter = empty();
-   private FieldParameterNameDefault fieldParameterNameDefault = CAMELCASE_FIELDNAME;
-   private List<TableInputField> fields = emptyList();
+   private ParametersType parametersType = NAMED;
+   private boolean generateSourceCode = true; // sql resource name and param info
+   private List<TableInputField> inputFields = emptyList();
 
    private ModSpec() {}
 
@@ -31,8 +28,9 @@ public class ModSpec
       String tableName,
       Optional<String> tableAlias,
       Optional<String> filter,
-      FieldParameterNameDefault fieldParameterNameDefault,
-      List<TableInputField> fields
+      ParametersType parametersType,
+      boolean generateSourceCode,
+      List<TableInputField> inputFields
    )
    {
       this.statementName = statementName;
@@ -40,8 +38,9 @@ public class ModSpec
       this.tableName = tableName;
       this.tableAlias = tableAlias;
       this.filter = filter;
-      this.fieldParameterNameDefault = fieldParameterNameDefault;
-      this.fields = fields;
+      this.parametersType = parametersType;
+      this.generateSourceCode = generateSourceCode;
+      this.inputFields = inputFields;
    }
 
    public String getStatementName() { return statementName; }
@@ -54,19 +53,9 @@ public class ModSpec
 
    public Optional<String> getFilter() { return filter; }
 
-   public FieldParameterNameDefault getFieldParameterNameDefault() { return fieldParameterNameDefault; }
+   public ParametersType getParametersType() { return parametersType; }
 
-   public List<TableInputField> getFields() { return fields; }
+   public boolean getGenerateSourceCode() { return generateSourceCode; }
 
-
-   @JsonIgnore
-   public Function<String,String> getDefaultParameterNameFunction()
-   {
-      switch ( fieldParameterNameDefault )
-      {
-         case CAMELCASE_FIELDNAME: return dbFieldName -> ":" + StringFuns.lowerCamelCase(dbFieldName);
-         case QUESTION_MARK: return dbFieldName -> "?";
-         default: throw new RuntimeException("Unexpected parameter name default enumeration value.");
-      }
-   }
+   public List<TableInputField> getInputFields() { return inputFields; }
 }

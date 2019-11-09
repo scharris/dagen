@@ -10,24 +10,31 @@ import static java.util.Optional.empty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
-import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
-import com.fasterxml.jackson.module.jsonSchema.JsonSchemaGenerator;
 
+import org.sqljson.util.*;
+import org.sqljson.util.AppUtils.SplitArgs;
+import static org.sqljson.util.AppUtils.splitOptionsAndRequiredArgs;
+import static org.sqljson.util.AppUtils.throwError;
+import static org.sqljson.util.Serialization.writeJsonSchema;
 import org.sqljson.dbmd.DatabaseMetadata;
-import org.sqljson.specs.mod_stmts.ModSql;
-import org.sqljson.util.AppUtils;
-import org.sqljson.util.Optionals;
 import org.sqljson.specs.mod_stmts.ModGroupSpec;
+import org.sqljson.source_writers.*;
 
 
 public class ModStatementGeneratorMain
 {
+   private static final String langOptPrefix = "--types-language:";
+   private static final String pkgOptPrefix = "--package:";
+
    private static void printUsage()
    {
       PrintStream ps = System.out;
-      ps.println("Expected arguments: [options] <db-metadata-file> <mods-spec-file> [<mods-output-dir>]");
+      ps.println("Expected arguments: [options] <db-metadata-file> <mods-spec-file> " +
+                 "[<src-output-base-dir> <sql-output-dir>]");
       ps.println("If the output directory is not provided, then output is written to standard out.");
       ps.println("Options:");
+      ps.println("   " + langOptPrefix + "<language>  Output language, \"Java\"|\"Typescript\".");
+      ps.println("   " + pkgOptPrefix + "<java-package>  The Java package for the generated query classes.");
       ps.println("    --print-spec-json-schema: Print a json schema for the mod group spec, to facilitate editing.");
    }
 
@@ -40,14 +47,14 @@ public class ModStatementGeneratorMain
       }
       if ( allArgs.length == 1 && allArgs[0].equals("--print-spec-json-schema") )
       {
-         printModGroupSpecJsonSchema();
+         writeJsonSchema(ModGroupSpec.class, System.out);
          return;
       }
 
-      AppUtils.SplitArgs args = AppUtils.splitOptionsAndRequiredArgs(allArgs);
+      SplitArgs args = splitOptionsAndRequiredArgs(allArgs);
 
-      if ( args.required.size() != 2 && args.required.size() != 3 )
-         throw new RuntimeException("expected 2 or 3 non-option arguments");
+      if ( args.required.size() != 2 && args.required.size() != 4 )
+         throw new RuntimeException("expected 2 or 4 non-option arguments");
 
       Path dbmdPath = Paths.get(args.required.get(0));
       if ( !Files.isRegularFile(dbmdPath) )
@@ -57,7 +64,9 @@ public class ModStatementGeneratorMain
       if ( !Files.isRegularFile(modsSpecFilePath) )
          AppUtils.throwError("Mods specification file not found.");
 
-      Optional<Path> outputDir = args.required.size() > 2 ? Optionals.opt(Paths.get(args.required.get(2))) : empty();
+      Optional<Pair<Path,Path>> outputDirs = args.required.size() > 2 ?
+         Optionals.opt(Pair.make(Paths.get(args.required.get(2)), Paths.get(args.required.get(3))))
+         : empty();
 
       try ( InputStream dbmdIS = Files.newInputStream(dbmdPath);
             InputStream modsSpecIS = Files.newInputStream(modsSpecFilePath) )
@@ -68,19 +77,33 @@ public class ModStatementGeneratorMain
          DatabaseMetadata dbmd = yamlMapper.readValue(dbmdIS, DatabaseMetadata.class);
          ModGroupSpec modGroupSpec = yamlMapper.readValue(modsSpecIS, ModGroupSpec.class);
 
-         outputDir.ifPresent(path ->  {
-            if ( !Files.isDirectory(path) ) AppUtils.throwError("Mods output directory not found.");
+         Optional<Path> srcOutputBaseDirPath = outputDirs.map(Pair::fst);
+         srcOutputBaseDirPath.ifPresent(path ->  {
+            if ( !Files.isDirectory(path) ) throwError("Source output base directory not found.");
          });
 
-         ModStatementGenerator gen = new ModStatementGenerator(
-            dbmd,
-            modGroupSpec.getDefaultSchema(),
-            new HashSet<>(modGroupSpec.getGenerateUnqualifiedNamesForSchemas())
-         );
+         Optional<Path> modStmtsOutputDirPath = outputDirs.map(Pair::snd);
+         modStmtsOutputDirPath.ifPresent(path ->  {
+            if ( !Files.isDirectory(path) ) throwError("Mod statements output directory not found.");
+         });
 
-         List<ModSql> generatedMods = gen.generateModSqls(modGroupSpec.getModificationStatementSpecs());
+         ModStatementGenerator gen =
+            new ModStatementGenerator(
+               dbmd,
+               modGroupSpec.getDefaultSchema(),
+               new HashSet<>(modGroupSpec.getGenerateUnqualifiedNamesForSchemas())
+            );
 
-         writeModSqls(generatedMods, outputDir);
+         List<GeneratedModStatement> generatedModStmts =
+            gen.generateModStatements(modGroupSpec.getModificationStatementSpecs());
+
+         Map<String,Path> writtenPathsByModName = writeModSqls(generatedModStmts, modStmtsOutputDirPath);
+
+         if ( generatedModStmts.stream().anyMatch(GeneratedModStatement::getGenerateSource) )
+         {
+            SourceCodeWriter srcWriter = getSourceCodeWriter(args, srcOutputBaseDirPath);
+            srcWriter.writeModStatements(generatedModStmts, writtenPathsByModName, false);
+         }
       }
       catch(Exception e)
       {
@@ -90,25 +113,9 @@ public class ModStatementGeneratorMain
       }
    }
 
-   private static void printModGroupSpecJsonSchema()
-   {
-      try
-      {
-         ObjectMapper objMapper = new ObjectMapper();
-         objMapper.registerModule(new Jdk8Module());
-         JsonSchemaGenerator schemaGen = new JsonSchemaGenerator(objMapper);
-         JsonSchema schema = schemaGen.generateSchema(ModGroupSpec.class);
-         objMapper.writeValue(System.out, schema);
-      }
-      catch(Exception e)
-      {
-         throw new RuntimeException(e);
-      }
-   }
-
    /**
     *
-    * @param modSqls The modification SQL statements to be written.
+    * @param generatedModStatements The modification SQL statements to be written.
     * @param outputDir The output directory in which to write directories if provided. If not provided, all queries
     *                  will be written to stdout.
     * @throws IOException if the output directory could not be created or a write operation fails
@@ -116,7 +123,7 @@ public class ModStatementGeneratorMain
     */
    private static Map<String,Path> writeModSqls
    (
-      List<ModSql> modSqls,
+      List<GeneratedModStatement> generatedModStatements,
       Optional<Path> outputDir
    )
       throws IOException
@@ -126,9 +133,9 @@ public class ModStatementGeneratorMain
       if ( outputDir.isPresent() )
          Files.createDirectories(outputDir.get());
 
-      for ( ModSql mod: modSqls )
+      for ( GeneratedModStatement mod: generatedModStatements)
       {
-         Optional<Path> outputFilePath = outputDir.map(d -> d.resolve(mod.getModName() + ".sql"));
+         Optional<Path> outputFilePath = outputDir.map(d -> d.resolve(mod.getStatementName() + ".sql"));
 
          BufferedWriter bw = org.sqljson.util.Files.newFileOrStdoutWriter(outputFilePath);
 
@@ -136,11 +143,11 @@ public class ModStatementGeneratorMain
          {
             bw.write(
                "-- [ THIS STATEMENT WAS AUTO-GENERATED, ANY CHANGES MADE HERE MAY BE LOST. ]\n" +
-               "-- " + mod.getModName() + "\n" +
+               "-- " + mod.getStatementName() + "\n" +
                mod.getSql() + "\n"
             );
 
-            outputFilePath.ifPresent(path -> res.put(mod.getModName(), path));
+            outputFilePath.ifPresent(path -> res.put(mod.getStatementName(), path));
          }
          finally
          {
@@ -150,5 +157,32 @@ public class ModStatementGeneratorMain
       }
 
       return res;
+   }
+
+   private static SourceCodeWriter getSourceCodeWriter
+   (
+      SplitArgs args,
+      Optional<Path> srcOutputBaseDir
+   )
+   {
+      String language = "";
+      String targetPackage = "";
+      for ( String opt : args.optional )
+      {
+         if ( opt.startsWith(langOptPrefix) ) language = opt.substring(langOptPrefix.length());
+         else if ( opt.startsWith(pkgOptPrefix) ) targetPackage = opt.substring(pkgOptPrefix.length());
+         else
+            throw new RuntimeException("Unrecognized option \"" + opt + "\".");
+      }
+
+      switch ( language )
+      {
+         case "Java":
+            return new JavaWriter(targetPackage, srcOutputBaseDir);
+         case "Typescript":
+            return new TypescriptWriter(srcOutputBaseDir, empty());
+         default:
+            throw new RuntimeException("target language not supported");
+      }
    }
 }

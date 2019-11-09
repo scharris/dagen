@@ -1,60 +1,62 @@
 {
-  "type": "object",
-  "id": "urn:jsonschema:org:sqljsonquery:mod_spec:ModGroupSpec",
-  "properties": {
-    "defaultSchema": {
-      "type": "string"
+  "type" : "object",
+  "id" : "urn:jsonschema:org:sqljson:specs:mod_stmts:ModGroupSpec",
+  "properties" : {
+    "defaultSchema" : {
+      "type" : "string"
     },
-    "generateUnqualifiedNamesForSchemas": {
-      "type": "array",
-      "items": {
-        "type": "string"
+    "generateUnqualifiedNamesForSchemas" : {
+      "type" : "array",
+      "items" : {
+        "type" : "string"
       }
     },
-    "modSpecs": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "id": "urn:jsonschema:org:sqljsonquery:mod_spec:ModSpec",
-        "properties": {
-          "modificationName": {
-            "type": "string"
+    "modificationStatementSpecs" : {
+      "type" : "array",
+      "items" : {
+        "type" : "object",
+        "id" : "urn:jsonschema:org:sqljson:specs:mod_stmts:ModSpec",
+        "properties" : {
+          "statementName" : {
+            "type" : "string"
           },
-          "command": {
-            "type": "string",
-            "enum": [
-              "INSERT",
-              "UPDATE",
-              "DELETE"
-            ]
+          "command" : {
+            "type" : "string",
+            "enum" : [ "INSERT", "UPDATE", "DELETE" ]
           },
-          "tableName": {
-            "type": "string"
+          "tableName" : {
+            "type" : "string"
           },
-          "tableAlias": {
-            "type": "string"
+          "tableAlias" : {
+            "type" : "string"
           },
-          "filter": {
-            "type": "string"
+          "filter" : {
+            "type" : "string"
           },
-          "fieldParameterNameDefault": {
-            "type": "string",
-            "enum": [
-              "QUESTION_MARK",
-              "CAMELCASE_FIELDNAME"
-            ]
+          "parametersType" : {
+            "type" : "string",
+            "enum" : [ "NUMBERED", "NAMED" ]
           },
-          "fields": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "id": "urn:jsonschema:org:sqljsonquery:mod_spec:TableInputField",
-              "properties": {
-                "fieldName": {
-                  "type": "string"
+          "generateSourceCode" : {
+            "type" : "boolean"
+          },
+          "inputFields" : {
+            "type" : "array",
+            "items" : {
+              "type" : "object",
+              "id" : "urn:jsonschema:org:sqljson:specs:mod_stmts:TableInputField",
+              "properties" : {
+                "fieldName" : {
+                  "type" : "string"
                 },
-                "value": {
-                  "type": "string"
+                "value" : {
+                  "type" : "string"
+                },
+                "expressionValueParamNames" : {
+                  "type" : "array",
+                  "items" : {
+                    "type" : "string"
+                  }
                 }
               }
             }

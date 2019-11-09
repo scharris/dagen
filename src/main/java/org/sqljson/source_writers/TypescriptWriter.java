@@ -1,4 +1,4 @@
-package org.sqljson.result_types.source_writers;
+package org.sqljson.source_writers;
 
 import java.nio.file.Files;
 import java.util.*;
@@ -8,6 +8,7 @@ import java.nio.file.Path;
 import java.time.Instant;
 import java.sql.Types;
 
+import org.sqljson.GeneratedModStatement;
 import org.sqljson.GeneratedQuery;
 import org.sqljson.result_types.*;
 import org.sqljson.specs.queries.FieldTypeOverride;
@@ -32,7 +33,7 @@ public class TypescriptWriter implements SourceCodeWriter
    }
 
    @Override
-   public void writeSourceCode
+   public void writeQueries
    (
       List<GeneratedQuery> generatedQueries,
       List<WrittenQueryReprPath> writtenQueryPaths,
@@ -101,6 +102,19 @@ public class TypescriptWriter implements SourceCodeWriter
             else bw.flush();
          }
       }
+   }
+
+   @Override
+   public void writeModStatements
+   (
+      List<GeneratedModStatement> generatedModStatements,
+      Map<String,Path> writtenPathsByModName,
+      boolean includeTimestamp
+   )
+      throws IOException
+   {
+      // TODO
+      throw new RuntimeException("Typescript source generation for mod statements is not yet implemented.");
    }
 
    public String makeGeneratedTypeSource(GeneratedType generatedType)

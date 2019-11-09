@@ -1,32 +1,68 @@
 defaultSchema: drugs
 generateUnqualifiedNamesForSchemas: ["drugs"]
 modificationStatementSpecs:
-  - statementName: drug insert
+
+  ##################################################################
+  - statementName: drug insert with named params
     command: INSERT
     tableName: drug
-    fieldParameterNameDefault: CAMELCASE_FIELDNAME # (<- default) | QUESTION_MARK
-    fields:
+    parametersType: NAMED # <- default, or NUMBERED
+    inputFields:
       - fieldName: id
       - fieldName: name
-        value: ":theName" # explicit param name
+        value: "(:namePrefix || ':' || :nameSuffix)"
+        expressionValueParamNames: [namePrefix, nameSuffix]
       - fieldName: compound_id
-        value: 2 - 1 # expression
+        value: (2 - 1) # expression, must be enclosed in parens
       - fieldName: mesh_id
       # value ":meshId" due to chosen param name default
       - fieldName: registered_by
 
-  - statementName: drug update
+  ##################################################################
+  - statementName: drug insert with numbered params
+    command: INSERT
+    tableName: drug
+    parametersType: NUMBERED
+    inputFields:
+      - fieldName: id
+      - fieldName: name
+        value: "(? || ':' || ?)"
+        expressionValueParamNames: [namePrefix, nameSuffix]
+      - fieldName: compound_id
+        value: (2 - 1) # expression, must be enclosed in parens
+        expressionValueParamNames: []
+      - fieldName: mesh_id
+      - fieldName: registered_by
+
+  ##################################################################
+  - statementName: drug update with named params
     command: UPDATE
     tableName: drug
     tableAlias: d
-    fieldParameterNameDefault: CAMELCASE_FIELDNAME # (<- default) | QUESTION_MARK
+    parametersType: NAMED
     filter: d.cid < 0
-    fields:
+    inputFields:
       - fieldName: name
-        value: name || name
+        value: "(:namePartOne || '-' || :namePartTwo)"
+        expressionValueParamNames: [namePartOne, namePartTwo]
       - fieldName: compound_id
       - fieldName: mesh_id
 
+  ##################################################################
+  - statementName: drug update with numbered params
+    command: UPDATE
+    tableName: drug
+    tableAlias: d
+    parametersType: NUMBERED
+    filter: d.cid < 0
+    inputFields:
+      - fieldName: name
+        value: "(? || '-' || ?)"
+        expressionValueParamNames: [namePartOne, namePartTwo]
+      - fieldName: compound_id
+      - fieldName: mesh_id
+
+  ##################################################################
   - statementName: drug delete
     command: DELETE
     tableName: drug

@@ -11,11 +11,7 @@ import static java.util.stream.Collectors.toList;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
-import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
-import com.fasterxml.jackson.module.jsonSchema.JsonSchemaGenerator;
 
-import org.sqljson.result_types.SourceCodeWriter;
-import org.sqljson.result_types.source_writers.JavaWriter;
 import org.sqljson.specs.queries.QueryGroupSpec;
 import org.sqljson.specs.queries.ResultsRepr;
 import org.sqljson.util.Optionals;
@@ -23,8 +19,11 @@ import org.sqljson.util.Pair;
 import org.sqljson.util.AppUtils.SplitArgs;
 import static org.sqljson.util.AppUtils.splitOptionsAndRequiredArgs;
 import static org.sqljson.util.AppUtils.throwError;
+import static org.sqljson.util.Serialization.writeJsonSchema;
 import org.sqljson.dbmd.DatabaseMetadata;
-import org.sqljson.result_types.source_writers.TypescriptWriter;
+import org.sqljson.source_writers.SourceCodeWriter;
+import org.sqljson.source_writers.JavaWriter;
+import org.sqljson.source_writers.TypescriptWriter;
 
 
 public class QueryGeneratorMain
@@ -39,7 +38,7 @@ public class QueryGeneratorMain
    {
       PrintStream ps = System.out;
       ps.println("Expected arguments: [options] <db-metadata-file> <queries-spec-file> " +
-                 "[<src-output-base-dir> <queries-output-dir>]");
+                 "[<types-output-base-dir> <sql-output-dir>]");
       ps.println("If output directories are not provided, then all output is written to standard out.");
       ps.println("Options:");
       ps.println("   " + langOptPrefix + "<language>  Output language, \"Java\"|\"Typescript\".");
@@ -65,7 +64,7 @@ public class QueryGeneratorMain
       }
       if ( allArgs.length == 1 && allArgs[0].equals("--print-query-group-spec-json-schema") )
       {
-         printQueryGroupSpecJsonSchema();
+         writeJsonSchema(QueryGroupSpec.class, System.out);
          return;
       }
 
@@ -86,8 +85,8 @@ public class QueryGeneratorMain
          Optionals.opt(Pair.make(Paths.get(args.required.get(2)), Paths.get(args.required.get(3))))
          : empty();
 
-      try (InputStream dbmdIS = Files.newInputStream(dbmdPath);
-           InputStream queriesSpecIS = Files.newInputStream(queriesSpecFilePath) )
+      try ( InputStream dbmdIS = Files.newInputStream(dbmdPath);
+            InputStream queriesSpecIS = Files.newInputStream(queriesSpecFilePath) )
       {
          ObjectMapper yamlMapper = new ObjectMapper(new YAMLFactory());
          yamlMapper.registerModule(new Jdk8Module());
@@ -126,7 +125,7 @@ public class QueryGeneratorMain
          {
             SourceCodeWriter srcWriter = getSourceCodeWriter(args, srcOutputBaseDirPath);
             boolean includeTimestamp = args.optional.contains(includeSourceGenerationTimestamp);
-            srcWriter.writeSourceCode(queriesHavingTypes, writtenQueryPaths, includeTimestamp);
+            srcWriter.writeQueries(queriesHavingTypes, writtenQueryPaths, includeTimestamp);
          }
       }
       catch(Exception e)
@@ -134,22 +133,6 @@ public class QueryGeneratorMain
          e.printStackTrace();
          System.err.println(e.getMessage());
          System.exit(1);
-      }
-   }
-
-   private static void printQueryGroupSpecJsonSchema()
-   {
-      try
-      {
-         ObjectMapper objMapper = new ObjectMapper();
-         objMapper.registerModule(new Jdk8Module());
-         JsonSchemaGenerator schemaGen = new JsonSchemaGenerator(objMapper);
-         JsonSchema schema = schemaGen.generateSchema(QueryGroupSpec.class);
-         objMapper.writeValue(System.out, schema);
-      }
-      catch(Exception e)
-      {
-         throw new RuntimeException(e);
       }
    }
 
