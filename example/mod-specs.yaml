@@ -40,13 +40,17 @@ modificationStatementSpecs:
     tableName: drug
     tableAlias: d
     parametersType: NAMED
-    filter: d.cid < 0
     inputFields:
       - fieldName: name
         value: "(:namePartOne || '-' || :namePartTwo)"
         expressionValueParamNames: [namePartOne, namePartTwo]
       - fieldName: compound_id
       - fieldName: mesh_id
+    fieldParamEqualities:
+      - fieldName: cid
+      - fieldName: mesh_id
+        paramName: oldMeshId
+    otherCondition: d.compound_id < 0
 
   ##################################################################
   - statementName: drug update with numbered params
@@ -54,18 +58,21 @@ modificationStatementSpecs:
     tableName: drug
     tableAlias: d
     parametersType: NUMBERED
-    filter: d.cid < 0
     inputFields:
       - fieldName: name
         value: "(? || '-' || ?)"
         expressionValueParamNames: [namePartOne, namePartTwo]
       - fieldName: compound_id
       - fieldName: mesh_id
+    fieldParamEqualities:
+      - fieldName: cid
+      - fieldName: mesh_id
+        paramName: oldMeshId
+    otherCondition: d.compound_id < 0
 
   ##################################################################
   - statementName: drug delete
     command: DELETE
     tableName: drug
-    tableAlias: d # optional
-    filter: d.cid < 0
-
+    fieldParamEqualities:
+      - fieldName: cid

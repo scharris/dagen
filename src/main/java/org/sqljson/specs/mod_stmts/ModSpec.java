@@ -14,10 +14,11 @@ public class ModSpec
    private ModType command;
    private String tableName; // possibly qualified
    private Optional<String> tableAlias = empty();
-   private Optional<String> filter = empty();
    private ParametersType parametersType = NAMED;
    private boolean generateSourceCode = true; // sql resource name and param info
    private List<TableInputField> inputFields = emptyList();
+   private List<FieldParamEquality> fieldParamEqualities = emptyList();
+   private Optional<String> otherCondition = empty(); // augments field param equalities
 
    private ModSpec() {}
 
@@ -27,20 +28,22 @@ public class ModSpec
       ModType command,
       String tableName,
       Optional<String> tableAlias,
-      Optional<String> filter,
       ParametersType parametersType,
       boolean generateSourceCode,
-      List<TableInputField> inputFields
+      List<TableInputField> inputFields,
+      List<FieldParamEquality> fieldParamEqualities,
+      Optional<String> otherCondition
    )
    {
       this.statementName = statementName;
       this.command = command;
       this.tableName = tableName;
       this.tableAlias = tableAlias;
-      this.filter = filter;
       this.parametersType = parametersType;
       this.generateSourceCode = generateSourceCode;
       this.inputFields = inputFields;
+      this.fieldParamEqualities = fieldParamEqualities;
+      this.otherCondition = otherCondition;
    }
 
    public String getStatementName() { return statementName; }
@@ -51,11 +54,13 @@ public class ModSpec
 
    public Optional<String> getTableAlias() { return tableAlias; }
 
-   public Optional<String> getFilter() { return filter; }
-
    public ParametersType getParametersType() { return parametersType; }
 
    public boolean getGenerateSourceCode() { return generateSourceCode; }
 
    public List<TableInputField> getInputFields() { return inputFields; }
+
+   public List<FieldParamEquality> getFieldParamEqualities() { return fieldParamEqualities; }
+
+   public Optional<String> getOtherCondition() { return otherCondition; }
 }

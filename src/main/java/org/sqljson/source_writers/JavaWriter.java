@@ -190,11 +190,11 @@ public class JavaWriter implements SourceCodeWriter
 
             bw.write("\n");
 
-            List<String> inputFieldParams = modStmt.getInputFieldParamNames();
+            List<String> paramNames = modStmt.getAllParameterNames();
 
-            for ( int paramIx = 0; paramIx < inputFieldParams.size(); ++paramIx )
+            for ( int paramIx = 0; paramIx < paramNames.size(); ++paramIx )
             {
-               String inputFieldParam = inputFieldParams.get(paramIx);
+               String inputFieldParam = paramNames.get(paramIx);
 
                bw.write("   public static final ");
 

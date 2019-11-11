@@ -6,17 +6,20 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Pattern;
 import static java.util.Collections.emptyList;
+import static java.util.Optional.empty;
 import static java.util.stream.Collectors.*;
 
 import org.sqljson.dbmd.DatabaseMetadata;
 import org.sqljson.dbmd.Field;
 import org.sqljson.dbmd.RelId;
 import org.sqljson.dbmd.RelMetadata;
+import org.sqljson.specs.mod_stmts.FieldParamEquality;
 import org.sqljson.specs.mod_stmts.ParametersType;
 import org.sqljson.util.AppUtils;
 import org.sqljson.specs.mod_stmts.ModSpec;
 import org.sqljson.specs.mod_stmts.TableInputField;
 import static org.sqljson.specs.mod_stmts.ParametersType.NAMED;
+import static org.sqljson.util.Optionals.opt;
 import static org.sqljson.util.StringFuns.*;
 
 
@@ -48,7 +51,7 @@ public class ModStatementGenerator
 
    private GeneratedModStatement generateModStatement(ModSpec mod)
    {
-      validateModFieldValues(mod);
+      validateInputFieldValues(mod);
 
       switch ( mod.getCommand() )
       {
@@ -59,19 +62,18 @@ public class ModStatementGenerator
       }
    }
 
-   private void validateModFieldValues(ModSpec modSpec)
+   private void validateInputFieldValues(ModSpec modSpec)
    {
       boolean namedParams = modSpec.getParametersType() == NAMED;
 
       for ( TableInputField inputField : modSpec.getInputFields() )
       {
-         String value = getFieldValue(inputField, modSpec);
+         String value = getInputFieldValue(inputField, modSpec);
 
          boolean notParenthesized = !value.startsWith("(") || !value.endsWith(")");
 
          if ( namedParams )
          {
-            System.out.println("Checking value: " + value);
             if ( notParenthesized && !simpleParamNameRegex.matcher(value).matches() )
                throw new RuntimeException(
                   "Invalid parameter value for field \"" + inputField.getFieldName() + "\" " +
@@ -93,14 +95,14 @@ public class ModStatementGenerator
    {
       if ( modSpec.getTableAlias().isPresent() )
          AppUtils.throwError("A table alias is not allowed in an INSERT command.");
-      if ( modSpec.getFilter().isPresent() )
-         AppUtils.throwError("A filter is not allowed in an INSERT command.");
+      if ( !modSpec.getFieldParamEqualities().isEmpty() || modSpec.getOtherCondition().isPresent() )
+         AppUtils.throwError("Conditions are not allowed for INSERT commands.");
 
       String sql = makeInsertSql(modSpec);
 
       List<String> inputFieldParams = getInputFieldParamNames(modSpec);
 
-      return new GeneratedModStatement(modSpec, sql, inputFieldParams);
+      return new GeneratedModStatement(modSpec, sql, inputFieldParams, emptyList());
    }
 
    private String makeInsertSql(ModSpec modSpec)
@@ -108,25 +110,27 @@ public class ModStatementGenerator
       RelId relId = dbmd.identifyTable(modSpec.getTableName(), defaultSchema);
       RelMetadata tmd = getTableMetadata(relId);
 
-      verifyFieldsExist(modSpec.getInputFields(), tmd);
+      verifyAllReferencedFieldsExist(modSpec, tmd);
 
       String fieldNames =
          modSpec.getInputFields().stream()
          .map(TableInputField::getFieldName)
-         .collect(joining(","));
+         .collect(joining(",\n"));
 
       String fieldValues =
          modSpec.getInputFields().stream()
-         .map(f -> getFieldValue(f, modSpec))
+         .map(f -> getInputFieldValue(f, modSpec))
          .collect(joining(",\n"));
 
       return
          "insert into " + minimalRelIdentifier(tmd.getRelationId()) + "\n" +
-            "  (" + fieldNames + ")\n" +
-            "values(\n" +
-               indentLines(fieldValues, indentSpaces) + "\n" +
-            ")" +
-            modSpec.getFilter().map(cond -> "\nwhere " + cond).orElse("");
+            "  (\n" +
+               indentLines(fieldNames, 2 + indentSpaces) + "\n" +
+            "  )\n" +
+            "values\n" +
+            "  (\n" +
+               indentLines(fieldValues, 2 + indentSpaces) + "\n" +
+            "  )";
    }
 
    private GeneratedModStatement generateUpdateStatement(ModSpec modSpec)
@@ -135,7 +139,9 @@ public class ModStatementGenerator
 
       List<String> inputFieldParams = getInputFieldParamNames(modSpec);
 
-      return new GeneratedModStatement(modSpec, sql, inputFieldParams);
+      List<String> conditionParams = getConditionParamNames(modSpec);
+
+      return new GeneratedModStatement(modSpec, sql, inputFieldParams, conditionParams);
    }
 
    private String makeUpdateSql(ModSpec modSpec)
@@ -143,22 +149,27 @@ public class ModStatementGenerator
       RelId relId = dbmd.identifyTable(modSpec.getTableName(), defaultSchema);
       RelMetadata tmd = getTableMetadata(relId);
 
-      verifyFieldsExist(modSpec.getInputFields(), tmd);
+      verifyAllReferencedFieldsExist(modSpec, tmd);
 
       String fieldAssignments =
          modSpec.getInputFields().stream()
-         .map(f -> f.getFieldName() + " = " + getFieldValue(f, modSpec))
+         .map(f -> f.getFieldName() + " = " + getInputFieldValue(f, modSpec))
          .collect(joining(",\n"));
 
       if ( modSpec.getInputFields().isEmpty() )
          throw new RuntimeException("At least one field is required in an update modification command.");
+
+      Optional<String> whereCond = getCondition(modSpec);
 
       return
          "update " + minimalRelIdentifier(tmd.getRelationId()) +
             modSpec.getTableAlias().map(a -> " " + a).orElse("") + "\n" +
             "set\n" +
             indentLines(fieldAssignments, indentSpaces) +
-            modSpec.getFilter().map(cond -> "\nwhere " + cond).orElse("");
+            whereCond.map(cond ->
+               "\nwhere\n" +
+                  indentLines(cond, indentSpaces)
+            ).orElse("");
    }
 
    private GeneratedModStatement generateDeleteStatement(ModSpec modSpec)
@@ -166,27 +177,32 @@ public class ModStatementGenerator
       if ( !modSpec.getInputFields().isEmpty() )
          AppUtils.throwError("Fields are not allowed in a delete command.");
 
-      String sql = makeDeleteSql(modSpec.getTableName(), modSpec.getTableAlias(), modSpec.getFilter());
+      String sql = makeDeleteSql(modSpec);
 
-      return new GeneratedModStatement(modSpec, sql, emptyList());
+      List<String> conditionParams = getConditionParamNames(modSpec);
+
+      return new GeneratedModStatement(modSpec, sql, emptyList(), conditionParams);
    }
 
-   private String makeDeleteSql
-   (
-      String tableName,
-      Optional<String> tableAlias,
-      Optional<String> whereCond
-   )
+   private String makeDeleteSql(ModSpec modSpec)
    {
-      RelId relId = dbmd.identifyTable(tableName, defaultSchema);
+      RelId relId = dbmd.identifyTable(modSpec.getTableName(), defaultSchema);
       RelMetadata tmd = getTableMetadata(relId);
 
+      verifyAllReferencedFieldsExist(modSpec, tmd);
+
+      Optional<String> whereCond = getCondition(modSpec);
+
       return
-         "delete from " + minimalRelIdentifier(tmd.getRelationId()) + tableAlias.map(a -> " " + a).orElse("") +
-         whereCond.map(cond -> "\nwhere " + cond).orElse("");
+         "delete from " + minimalRelIdentifier(tmd.getRelationId()) +
+            modSpec.getTableAlias().map(a -> " " + a).orElse("") +
+         whereCond.map(cond ->
+            "\nwhere\n"
+               + indentLines(cond, indentSpaces)
+         ).orElse("");
    }
 
-   private String getFieldValue
+   private String getInputFieldValue
    (
       TableInputField f,
       ModSpec modSpec
@@ -197,19 +213,19 @@ public class ModStatementGenerator
       );
    }
 
-   private String getDefaultParamName(String inputFieldName)
-   {
-      return lowerCamelCase(unDoubleQuote(inputFieldName));
-   }
-
    private String getDefaultParamValueExpression(TableInputField inputField, ModSpec modSpec)
    {
       switch ( modSpec.getParametersType() )
       {
-         case NAMED: return  ":" + getDefaultParamName(inputField.getFieldName());
+         case NAMED: return  ":" + getDefaultInputFieldParamName(inputField.getFieldName());
          case NUMBERED: return "?";
          default: throw new RuntimeException("Unexpected parameter name default enumeration value.");
       }
+   }
+
+   private String getDefaultInputFieldParamName(String inputFieldName)
+   {
+      return lowerCamelCase(unDoubleQuote(inputFieldName));
    }
 
    /// Return names for parameters used in the table input fields of the passed mod statement specification.
@@ -227,7 +243,7 @@ public class ModStatementGenerator
             {
                case NAMED:
                {
-                  String paramValueExpr = getFieldValue(inputField, modSpec);
+                  String paramValueExpr = getInputFieldValue(inputField, modSpec);
 
                   if ( !paramValueExpr.startsWith(":") )
                      throw new RuntimeException(
@@ -239,7 +255,7 @@ public class ModStatementGenerator
                   break;
                }
                case NUMBERED:
-                  res.add(getDefaultParamName(inputField.getFieldName()));
+                  res.add(getDefaultInputFieldParamName(inputField.getFieldName()));
                   break;
                default:
                   throw new RuntimeException("Unrecognized parameters type " + modSpec.getParametersType());
@@ -247,8 +263,9 @@ public class ModStatementGenerator
          }
          else // Input field spec has custom expression value (parenthesized), it must list any involved param names.
          {
-            String valueExpression = inputField.getValue().get(); // Value must be present, else it would have defaulted
-                                                                  // to just a simple param value.
+            String valueExpression = inputField.getValue().orElseThrow(() ->
+               new RuntimeException("Programming error: input value should be present when not a simple param value.")
+            );
             // Check that the declared parameters actually occur in the value expression string.
             if ( modSpec.getParametersType() == NAMED )
             {
@@ -267,24 +284,37 @@ public class ModStatementGenerator
       return res;
    }
 
-   private void verifyFieldsExist
-   (
-      List<TableInputField> tableInputFields,
-      RelMetadata tableMetadata
-   )
+   private String getDefaultCondParamName(String inputFieldName)
    {
-      Set<String> dbmdTableFields = tableMetadata.getFields().stream().map(Field::getName).collect(toSet());
+      return lowerCamelCase(unDoubleQuote(inputFieldName)) + "Cond";
+   }
 
-      List<String> missingTableInputFields =
-         tableInputFields.stream()
-            .map(TableInputField::getFieldName)
-            .filter(fieldName -> !dbmdTableFields.contains(dbmd.normalizeName(fieldName)))
-            .collect(toList());
 
-      if ( !missingTableInputFields.isEmpty() )
-         throw new RuntimeException(
-            "Field(s) not found in table " + tableMetadata.getRelationId() + ": " + missingTableInputFields + "."
+   private List<String> getConditionParamNames(ModSpec modSpec)
+   {
+      return
+        modSpec.getFieldParamEqualities().stream()
+        .map(eq -> eq.getParamName().orElse(getDefaultCondParamName(eq.getFieldName())))
+        .collect(toList());
+   }
+
+   private Optional<String> getCondition(ModSpec modSpec)
+   {
+      List<String> conds = new ArrayList<>();
+
+      for ( FieldParamEquality fieldParamEq : modSpec.getFieldParamEqualities() )
+      {
+         String paramName = fieldParamEq.getParamName().orElse(getDefaultCondParamName(fieldParamEq.getFieldName()));
+         String paramValExpr = modSpec.getParametersType() == NAMED ? ":" + paramName : "?";
+         conds.add(
+            maybeQualify(modSpec.getTableAlias(), fieldParamEq.getFieldName()) + " = " + paramValExpr
          );
+      }
+
+      // Other condition goes last so it will not interfere with parameter numbering in case it introduces its own params.
+      modSpec.getOtherCondition().ifPresent(otherCond -> conds.add("(" + otherCond + ")"));
+
+      return conds.isEmpty() ? empty() : opt(String.join("\nand\n", conds));
    }
 
    private RelMetadata getTableMetadata(RelId relId)
@@ -298,7 +328,7 @@ public class ModStatementGenerator
    {
       switch ( parametersType )
       {
-         case NAMED: return  ":" + getDefaultParamName(inputFieldName);
+         case NAMED: return  ":" + getDefaultInputFieldParamName(inputFieldName);
          case NUMBERED: return "?";
          default: throw new RuntimeException("Unexpected parameter name default enumeration value.");
       }
@@ -315,8 +345,43 @@ public class ModStatementGenerator
          return relId.getIdString();
    }
 
+   private void verifyAllReferencedFieldsExist(ModSpec modSpec, RelMetadata relMetadata)
+   {
+      List<String> inputFieldNames = modSpec.getInputFields().stream().map(TableInputField::getFieldName).collect(toList());
+      verifyTableFieldsExist(inputFieldNames, relMetadata);
+
+      List<String> whereCondFieldNames =
+         modSpec.getFieldParamEqualities().stream().map(FieldParamEquality::getFieldName).collect(toList());
+      verifyTableFieldsExist(whereCondFieldNames, relMetadata);
+   }
+
+   private void verifyTableFieldsExist
+   (
+      List<String> fieldNames,
+      RelMetadata tableMetadata
+   )
+      throws DatabaseObjectsNotFoundException
+   {
+      Set<String> dbmdTableFields = tableMetadata.getFields().stream().map(Field::getName).collect(toSet());
+
+      List<String> missingTableInputFields =
+         fieldNames.stream()
+         .filter(fieldName -> !dbmdTableFields.contains(dbmd.normalizeName(fieldName)))
+         .collect(toList());
+
+      if ( !missingTableInputFields.isEmpty() )
+         throw new DatabaseObjectsNotFoundException(
+            "Field(s) not found in table " + tableMetadata.getRelationId() + ": " + missingTableInputFields + "."
+         );
+   }
+
    private String commaJoinFieldNames(List<TableInputField> fields)
    {
       return fields.stream().map(TableInputField::getFieldName).collect(joining(","));
+   }
+
+   private String maybeQualify(Optional<String> qualifier, String objectName)
+   {
+      return qualifier.map(q -> q + ".").orElse("") + objectName;
    }
 }

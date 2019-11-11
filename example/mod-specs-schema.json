@@ -30,9 +30,6 @@
           "tableAlias" : {
             "type" : "string"
           },
-          "filter" : {
-            "type" : "string"
-          },
           "parametersType" : {
             "type" : "string",
             "enum" : [ "NUMBERED", "NAMED" ]
@@ -60,6 +57,24 @@
                 }
               }
             }
+          },
+          "fieldParamEqualities" : {
+            "type" : "array",
+            "items" : {
+              "type" : "object",
+              "id" : "urn:jsonschema:org:sqljson:specs:mod_stmts:FieldParamEquality",
+              "properties" : {
+                "fieldName" : {
+                  "type" : "string"
+                },
+                "paramName" : {
+                  "type" : "string"
+                }
+              }
+            }
+          },
+          "otherFilter" : {
+            "type" : "string"
           }
         }
       }
