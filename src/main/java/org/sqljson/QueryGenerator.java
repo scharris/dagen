@@ -83,7 +83,7 @@ public class QueryGenerator
             queryTypesGenerator.generateTypes(querySpec.getTableOutputSpec(), emptyMap())
             : emptyList();
 
-      return new GeneratedQuery(queryName, querySqls, generatedTypes);
+      return new GeneratedQuery(queryName, querySqls, generatedTypes, querySpec.getGenerateSource());
    }
 
    private String makeSqlForResultsRepr(QuerySpec querySpec, ResultsRepr resultsRepr)

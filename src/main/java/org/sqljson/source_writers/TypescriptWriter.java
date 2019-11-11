@@ -46,7 +46,7 @@ public class TypescriptWriter implements SourceCodeWriter
 
       for ( GeneratedQuery q : generatedQueries )
       {
-         String moduleName = StringFuns.upperCamelCase(q.getName()) + "ResultTypes";
+         String moduleName = StringFuns.upperCamelCase(q.getName());
          Optional<Path> outputFilePath = srcOutputDir.map(d -> d.resolve(moduleName + ".ts"));
 
          BufferedWriter bw = org.sqljson.util.Files.newFileOrStdoutWriter(outputFilePath);
@@ -77,22 +77,25 @@ public class TypescriptWriter implements SourceCodeWriter
             }
             bw.write("\n");
 
-            String topTypeName = q.getGeneratedResultTypes().get(0).getTypeName();
-            bw.write("export const principalResultType = '" + topTypeName + "';\n\n");
-
-            Set<String> writtenTypeNames = new HashSet<>();
-
-            for ( GeneratedType generatedType: q.getGeneratedResultTypes() )
+            if ( !q.getGeneratedResultTypes().isEmpty() )
             {
-               if ( !writtenTypeNames.contains(generatedType.getTypeName()) )
+               String topTypeName = q.getGeneratedResultTypes().get(0).getTypeName();
+               bw.write("export const principalResultType = '" + topTypeName + "';\n\n");
+
+               Set<String> writtenTypeNames = new HashSet<>();
+
+               for ( GeneratedType generatedType: q.getGeneratedResultTypes() )
                {
-                  String srcCode = makeGeneratedTypeSource(generatedType);
+                  if ( !writtenTypeNames.contains(generatedType.getTypeName()) )
+                  {
+                     String srcCode = makeGeneratedTypeSource(generatedType);
 
-                  bw.write('\n');
-                  bw.write(srcCode);
-                  bw.write('\n');
+                     bw.write('\n');
+                     bw.write(srcCode);
+                     bw.write('\n');
 
-                  writtenTypeNames.add(generatedType.getTypeName());
+                     writtenTypeNames.add(generatedType.getTypeName());
+                  }
                }
             }
          }

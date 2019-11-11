@@ -116,16 +116,16 @@ public class QueryGeneratorMain
 
          List<WrittenQueryReprPath> writtenQueryPaths = writeQueries(generatedQueries, queriesOutputDirPath);
 
-         List<GeneratedQuery> queriesHavingTypes =
+         List<GeneratedQuery> queriesWithSourceCodeEnabled =
             generatedQueries.stream()
-            .filter(gq -> !gq.getGeneratedResultTypes().isEmpty())
+            .filter(GeneratedQuery::getGenerateSourceEnabled)
             .collect(toList());
 
-         if ( !queriesHavingTypes.isEmpty() )
+         if ( !queriesWithSourceCodeEnabled.isEmpty() )
          {
             SourceCodeWriter srcWriter = getSourceCodeWriter(args, srcOutputBaseDirPath);
             boolean includeTimestamp = args.optional.contains(includeSourceGenerationTimestamp);
-            srcWriter.writeQueries(queriesHavingTypes, writtenQueryPaths, includeTimestamp);
+            srcWriter.writeQueries(queriesWithSourceCodeEnabled, writtenQueryPaths, includeTimestamp);
          }
       }
       catch(Exception e)

@@ -1,3 +1,10 @@
+Allow generating source without result types.
+
+Add fieldParamEqualities for queries.
+  Add to TOS so can be next to the filters themselves and can use TOS as context.
+    Field names should be checked against output field names, database table field names, both?
+    Check how existing filters are being interpreted currently.
+  Then rename filter to "otherCondition"?
 
 
 Github Pages Setup

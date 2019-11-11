@@ -75,7 +75,7 @@ public class JavaWriter implements SourceCodeWriter
 
       for ( GeneratedQuery q : generatedQueries )
       {
-         String queryClassName = upperCamelCase(q.getName()) + "ResultTypes";
+         String queryClassName = upperCamelCase(q.getName());
          Optional<Path> outputFilePath = outputDir.map(d -> d.resolve(queryClassName + ".java"));
 
          BufferedWriter bw = newFileOrStdoutWriter(outputFilePath);
@@ -112,23 +112,27 @@ public class JavaWriter implements SourceCodeWriter
             }
             bw.write("\n");
 
-            String topClass = q.getGeneratedResultTypes().get(0).getTypeName();
-            bw.write("   public static final Class<" + topClass + "> principalResultClass = " +
-                     topClass + ".class;\n\n");
-
-            Set<String> writtenTypeNames = new HashSet<>();
-
-            for ( GeneratedType generatedType: q.getGeneratedResultTypes() )
+            if ( !q.getGeneratedResultTypes().isEmpty() )
             {
-               if ( !writtenTypeNames.contains(generatedType.getTypeName()) )
+               String topClass = q.getGeneratedResultTypes().get(0).getTypeName();
+
+               bw.write("   public static final Class<" + topClass + "> principalResultClass = " +
+                        topClass + ".class;\n\n");
+
+               Set<String> writtenTypeNames = new HashSet<>();
+
+               for ( GeneratedType generatedType: q.getGeneratedResultTypes() )
                {
-                  String srcCode = makeGeneratedTypeSource(generatedType);
+                  if ( !writtenTypeNames.contains(generatedType.getTypeName()) )
+                  {
+                     String srcCode = makeGeneratedTypeSource(generatedType);
 
-                  bw.write('\n');
-                  bw.write(indentLines(srcCode, 3));
-                  bw.write('\n');
+                     bw.write('\n');
+                     bw.write(indentLines(srcCode, 3));
+                     bw.write('\n');
 
-                  writtenTypeNames.add(generatedType.getTypeName());
+                     writtenTypeNames.add(generatedType.getTypeName());
+                  }
                }
             }
 
