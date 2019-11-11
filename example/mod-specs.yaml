@@ -46,7 +46,7 @@ modificationStatementSpecs:
         expressionValueParamNames: [namePartOne, namePartTwo]
       - fieldName: compound_id
       - fieldName: mesh_id
-    fieldParamEqualities:
+    fieldParamConditions:
       - fieldName: cid
       - fieldName: mesh_id
         paramName: oldMeshId
@@ -64,7 +64,7 @@ modificationStatementSpecs:
         expressionValueParamNames: [namePartOne, namePartTwo]
       - fieldName: compound_id
       - fieldName: mesh_id
-    fieldParamEqualities:
+    fieldParamConditions:
       - fieldName: cid
       - fieldName: mesh_id
         paramName: oldMeshId
@@ -74,5 +74,21 @@ modificationStatementSpecs:
   - statementName: drug delete
     command: DELETE
     tableName: drug
-    fieldParamEqualities:
+    fieldParamConditions:
       - fieldName: cid
+
+  ##################################################################
+  - statementName: lesser drugs delete
+    command: DELETE
+    tableName: drug
+    fieldParamConditions:
+      - fieldName: cid
+        op: LT
+
+  ##################################################################
+  - statementName: drugs list delete
+    command: DELETE
+    tableName: drug
+    fieldParamConditions:
+      - fieldName: cid
+        op: IN

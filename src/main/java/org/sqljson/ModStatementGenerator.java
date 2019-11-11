@@ -13,7 +13,7 @@ import org.sqljson.dbmd.DatabaseMetadata;
 import org.sqljson.dbmd.Field;
 import org.sqljson.dbmd.RelId;
 import org.sqljson.dbmd.RelMetadata;
-import org.sqljson.specs.mod_stmts.FieldParamEquality;
+import org.sqljson.specs.mod_stmts.FieldParamCondition;
 import org.sqljson.specs.mod_stmts.ParametersType;
 import org.sqljson.util.AppUtils;
 import org.sqljson.specs.mod_stmts.ModSpec;
@@ -95,7 +95,7 @@ public class ModStatementGenerator
    {
       if ( modSpec.getTableAlias().isPresent() )
          AppUtils.throwError("A table alias is not allowed in an INSERT command.");
-      if ( !modSpec.getFieldParamEqualities().isEmpty() || modSpec.getOtherCondition().isPresent() )
+      if ( !modSpec.getFieldParamConditions().isEmpty() || modSpec.getOtherCondition().isPresent() )
          AppUtils.throwError("Conditions are not allowed for INSERT commands.");
 
       String sql = makeInsertSql(modSpec);
@@ -293,7 +293,7 @@ public class ModStatementGenerator
    private List<String> getConditionParamNames(ModSpec modSpec)
    {
       return
-        modSpec.getFieldParamEqualities().stream()
+        modSpec.getFieldParamConditions().stream()
         .map(eq -> eq.getParamName().orElse(getDefaultCondParamName(eq.getFieldName())))
         .collect(toList());
    }
@@ -302,13 +302,36 @@ public class ModStatementGenerator
    {
       List<String> conds = new ArrayList<>();
 
-      for ( FieldParamEquality fieldParamEq : modSpec.getFieldParamEqualities() )
+      for ( FieldParamCondition fieldParamCond : modSpec.getFieldParamConditions() )
       {
-         String paramName = fieldParamEq.getParamName().orElse(getDefaultCondParamName(fieldParamEq.getFieldName()));
+         String mqFieldName = maybeQualify(modSpec.getTableAlias(), fieldParamCond.getFieldName());
+         String paramName = fieldParamCond.getParamName().orElse(getDefaultCondParamName(fieldParamCond.getFieldName()));
          String paramValExpr = modSpec.getParametersType() == NAMED ? ":" + paramName : "?";
-         conds.add(
-            maybeQualify(modSpec.getTableAlias(), fieldParamEq.getFieldName()) + " = " + paramValExpr
-         );
+
+         switch ( fieldParamCond.getOp() )
+         {
+            case EQ:
+               conds.add(mqFieldName + " = " + paramValExpr);
+               break;
+            case LT:
+               conds.add(mqFieldName + " < " + paramValExpr);
+               break;
+            case LE:
+               conds.add(mqFieldName + " <= " + paramValExpr);
+               break;
+            case GT:
+               conds.add(mqFieldName + " > " + paramValExpr);
+               break;
+            case GE:
+               conds.add(mqFieldName + " >= " + paramValExpr);
+               break;
+            case EQ_ANY:
+               conds.add(mqFieldName + " = ANY(" + paramValExpr + ")");
+               break;
+            case IN:
+               conds.add(mqFieldName + " IN (" + paramValExpr + ")");
+               break;
+         }
       }
 
       // Other condition goes last so it will not interfere with parameter numbering in case it introduces its own params.
@@ -351,7 +374,7 @@ public class ModStatementGenerator
       verifyTableFieldsExist(inputFieldNames, relMetadata);
 
       List<String> whereCondFieldNames =
-         modSpec.getFieldParamEqualities().stream().map(FieldParamEquality::getFieldName).collect(toList());
+         modSpec.getFieldParamConditions().stream().map(FieldParamCondition::getFieldName).collect(toList());
       verifyTableFieldsExist(whereCondFieldNames, relMetadata);
    }
 
