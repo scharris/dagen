@@ -15,22 +15,25 @@ public class GeneratedQuery
    private final Map<ResultsRepr,String> generatedSqls;
    private final List<GeneratedType> generatedResultTypes;
    private final boolean generateSourceEnabled;
+   private final List<String> paramNames;
 
    public GeneratedQuery
    (
       String queryName,
       Map<ResultsRepr,String> generatedSqls,
       List<GeneratedType> generatedResultTypes,
-      boolean generateSourceEnabled
+      boolean generateSourceEnabled,
+      List<String> paramNames
    )
    {
       this.queryName = queryName;
       this.generatedSqls = unmodifiableMap(new HashMap<>(generatedSqls));
       this.generatedResultTypes = unmodifiableList(new ArrayList<>(generatedResultTypes));
       this.generateSourceEnabled = generateSourceEnabled;
+      this.paramNames = unmodifiableList(new ArrayList<>(paramNames));
    }
 
-   public String getName() { return queryName; }
+   public String getQueryName() { return queryName; }
 
    public Set<ResultsRepr> getResultRepresentations() { return new HashSet<>(generatedSqls.keySet()); }
 
@@ -41,4 +44,6 @@ public class GeneratedQuery
    public List<GeneratedType> getGeneratedResultTypes() { return generatedResultTypes; }
 
    public boolean getGenerateSourceEnabled() { return generateSourceEnabled; }
+
+   public List<String> getParamNames() { return paramNames; }
 }

@@ -15,6 +15,7 @@ import org.sqljson.util.*;
 import org.sqljson.util.AppUtils.SplitArgs;
 import static org.sqljson.util.AppUtils.splitOptionsAndRequiredArgs;
 import static org.sqljson.util.AppUtils.throwError;
+import static org.sqljson.util.Files.newFileOrStdoutWriter;
 import static org.sqljson.util.Serialization.writeJsonSchema;
 import org.sqljson.dbmd.DatabaseMetadata;
 import org.sqljson.specs.mod_stmts.ModGroupSpec;
@@ -23,6 +24,7 @@ import org.sqljson.source_writers.*;
 
 public class ModStatementGeneratorMain
 {
+   private static final String sqlResourcePathInGeneratedSourceOptPrefix = "--sql-resource-path-in-generated-src:";
    private static final String langOptPrefix = "--types-language:";
    private static final String pkgOptPrefix = "--package:";
 
@@ -33,6 +35,7 @@ public class ModStatementGeneratorMain
                  "[<src-output-base-dir> <sql-output-dir>]");
       ps.println("If the output directory is not provided, then output is written to standard out.");
       ps.println("Options:");
+      ps.println("   " + sqlResourcePathInGeneratedSourceOptPrefix + "<path>: a prefix to the SQL file name written into source code.");
       ps.println("   " + langOptPrefix + "<language>  Output language, \"Java\"|\"Typescript\".");
       ps.println("   " + pkgOptPrefix + "<java-package>  The Java package for the generated query classes.");
       ps.println("    --print-spec-json-schema: Print a json schema for the mod group spec, to facilitate editing.");
@@ -137,7 +140,7 @@ public class ModStatementGeneratorMain
       {
          Optional<Path> outputFilePath = outputDir.map(d -> d.resolve(mod.getStatementName() + ".sql"));
 
-         BufferedWriter bw = org.sqljson.util.Files.newFileOrStdoutWriter(outputFilePath);
+         BufferedWriter bw = newFileOrStdoutWriter(outputFilePath);
 
          try
          {
@@ -165,11 +168,14 @@ public class ModStatementGeneratorMain
       Optional<Path> srcOutputBaseDir
    )
    {
+      String sqlResourceNamePrefix = "";
       String language = "";
       String targetPackage = "";
       for ( String opt : args.optional )
       {
-         if ( opt.startsWith(langOptPrefix) ) language = opt.substring(langOptPrefix.length());
+         if ( opt.startsWith(sqlResourcePathInGeneratedSourceOptPrefix) )
+            sqlResourceNamePrefix = opt.substring(sqlResourcePathInGeneratedSourceOptPrefix.length());
+         else if ( opt.startsWith(langOptPrefix) ) language = opt.substring(langOptPrefix.length());
          else if ( opt.startsWith(pkgOptPrefix) ) targetPackage = opt.substring(pkgOptPrefix.length());
          else
             throw new RuntimeException("Unrecognized option \"" + opt + "\".");
@@ -178,9 +184,9 @@ public class ModStatementGeneratorMain
       switch ( language )
       {
          case "Java":
-            return new JavaWriter(targetPackage, srcOutputBaseDir);
+            return new JavaWriter(targetPackage, srcOutputBaseDir, sqlResourceNamePrefix);
          case "Typescript":
-            return new TypescriptWriter(srcOutputBaseDir, empty());
+            return new TypescriptWriter(srcOutputBaseDir, empty(), sqlResourceNamePrefix);
          default:
             throw new RuntimeException("target language not supported");
       }

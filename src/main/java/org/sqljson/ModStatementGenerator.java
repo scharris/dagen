@@ -10,15 +10,15 @@ import static java.util.Optional.empty;
 import static java.util.stream.Collectors.*;
 
 import org.sqljson.dbmd.DatabaseMetadata;
-import org.sqljson.dbmd.Field;
 import org.sqljson.dbmd.RelId;
 import org.sqljson.dbmd.RelMetadata;
-import org.sqljson.specs.mod_stmts.FieldParamCondition;
+import org.sqljson.specs.FieldParamCondition;
 import org.sqljson.specs.mod_stmts.ParametersType;
 import org.sqljson.util.AppUtils;
 import org.sqljson.specs.mod_stmts.ModSpec;
 import org.sqljson.specs.mod_stmts.TableInputField;
 import static org.sqljson.specs.mod_stmts.ParametersType.NAMED;
+import static org.sqljson.util.DatabaseUtils.verifyTableFieldsExist;
 import static org.sqljson.util.Optionals.opt;
 import static org.sqljson.util.StringFuns.*;
 
@@ -108,9 +108,8 @@ public class ModStatementGenerator
    private String makeInsertSql(ModSpec modSpec)
    {
       RelId relId = dbmd.identifyTable(modSpec.getTableName(), defaultSchema);
-      RelMetadata tmd = getTableMetadata(relId);
 
-      verifyAllReferencedFieldsExist(modSpec, tmd);
+      verifyAllReferencedFieldsExist(modSpec, relId);
 
       String fieldNames =
          modSpec.getInputFields().stream()
@@ -123,7 +122,7 @@ public class ModStatementGenerator
          .collect(joining(",\n"));
 
       return
-         "insert into " + minimalRelIdentifier(tmd.getRelationId()) + "\n" +
+         "insert into " + minimalRelIdentifier(relId) + "\n" +
             "  (\n" +
                indentLines(fieldNames, 2 + indentSpaces) + "\n" +
             "  )\n" +
@@ -147,9 +146,8 @@ public class ModStatementGenerator
    private String makeUpdateSql(ModSpec modSpec)
    {
       RelId relId = dbmd.identifyTable(modSpec.getTableName(), defaultSchema);
-      RelMetadata tmd = getTableMetadata(relId);
 
-      verifyAllReferencedFieldsExist(modSpec, tmd);
+      verifyAllReferencedFieldsExist(modSpec, relId);
 
       String fieldAssignments =
          modSpec.getInputFields().stream()
@@ -162,13 +160,14 @@ public class ModStatementGenerator
       Optional<String> whereCond = getCondition(modSpec);
 
       return
-         "update " + minimalRelIdentifier(tmd.getRelationId()) +
+         "update " + minimalRelIdentifier(relId) +
             modSpec.getTableAlias().map(a -> " " + a).orElse("") + "\n" +
             "set\n" +
             indentLines(fieldAssignments, indentSpaces) +
             whereCond.map(cond ->
-               "\nwhere\n" +
-                  indentLines(cond, indentSpaces)
+               "\nwhere (\n" +
+                  indentLines(cond, indentSpaces) + "\n" +
+               ")"
             ).orElse("");
    }
 
@@ -187,18 +186,18 @@ public class ModStatementGenerator
    private String makeDeleteSql(ModSpec modSpec)
    {
       RelId relId = dbmd.identifyTable(modSpec.getTableName(), defaultSchema);
-      RelMetadata tmd = getTableMetadata(relId);
 
-      verifyAllReferencedFieldsExist(modSpec, tmd);
+      verifyAllReferencedFieldsExist(modSpec, relId);
 
       Optional<String> whereCond = getCondition(modSpec);
 
       return
-         "delete from " + minimalRelIdentifier(tmd.getRelationId()) +
+         "delete from " + minimalRelIdentifier(relId) +
             modSpec.getTableAlias().map(a -> " " + a).orElse("") +
          whereCond.map(cond ->
-            "\nwhere\n"
-               + indentLines(cond, indentSpaces)
+            "\nwhere (\n"
+               + indentLines(cond, indentSpaces) + "\n" +
+            ")"
          ).orElse("");
    }
 
@@ -304,47 +303,19 @@ public class ModStatementGenerator
 
       for ( FieldParamCondition fieldParamCond : modSpec.getFieldParamConditions() )
       {
-         String mqFieldName = maybeQualify(modSpec.getTableAlias(), fieldParamCond.getFieldName());
-         String paramName = fieldParamCond.getParamName().orElse(getDefaultCondParamName(fieldParamCond.getFieldName()));
-         String paramValExpr = modSpec.getParametersType() == NAMED ? ":" + paramName : "?";
-
-         switch ( fieldParamCond.getOp() )
-         {
-            case EQ:
-               conds.add(mqFieldName + " = " + paramValExpr);
-               break;
-            case LT:
-               conds.add(mqFieldName + " < " + paramValExpr);
-               break;
-            case LE:
-               conds.add(mqFieldName + " <= " + paramValExpr);
-               break;
-            case GT:
-               conds.add(mqFieldName + " > " + paramValExpr);
-               break;
-            case GE:
-               conds.add(mqFieldName + " >= " + paramValExpr);
-               break;
-            case EQ_ANY:
-               conds.add(mqFieldName + " = ANY(" + paramValExpr + ")");
-               break;
-            case IN:
-               conds.add(mqFieldName + " IN (" + paramValExpr + ")");
-               break;
-         }
+         conds.add(
+            fieldParamCond.toSql(
+               modSpec.getTableAlias(),
+               modSpec.getParametersType(),
+               this::getDefaultCondParamName
+            )
+         );
       }
 
       // Other condition goes last so it will not interfere with parameter numbering in case it introduces its own params.
       modSpec.getOtherCondition().ifPresent(otherCond -> conds.add("(" + otherCond + ")"));
 
       return conds.isEmpty() ? empty() : opt(String.join("\nand\n", conds));
-   }
-
-   private RelMetadata getTableMetadata(RelId relId)
-   {
-      return dbmd.getRelationMetadata(relId).orElseThrow(() ->
-         new RuntimeException("Table " + relId + " not found.")
-      );
    }
 
    public String getDefaultInputFieldValue(String inputFieldName, ParametersType parametersType)
@@ -368,43 +339,27 @@ public class ModStatementGenerator
          return relId.getIdString();
    }
 
-   private void verifyAllReferencedFieldsExist(ModSpec modSpec, RelMetadata relMetadata)
-   {
-      List<String> inputFieldNames = modSpec.getInputFields().stream().map(TableInputField::getFieldName).collect(toList());
-      verifyTableFieldsExist(inputFieldNames, relMetadata);
-
-      List<String> whereCondFieldNames =
-         modSpec.getFieldParamConditions().stream().map(FieldParamCondition::getFieldName).collect(toList());
-      verifyTableFieldsExist(whereCondFieldNames, relMetadata);
-   }
-
-   private void verifyTableFieldsExist
+   private void verifyAllReferencedFieldsExist
    (
-      List<String> fieldNames,
-      RelMetadata tableMetadata
+      ModSpec modSpec,
+      RelId relId
    )
       throws DatabaseObjectsNotFoundException
    {
-      Set<String> dbmdTableFields = tableMetadata.getFields().stream().map(Field::getName).collect(toSet());
+      RelMetadata relMetadata = dbmd.getRelationMetadata(relId).orElseThrow(() ->
+         new DatabaseObjectsNotFoundException("Table " + relId.toString() + " not found.")
+      );
 
-      List<String> missingTableInputFields =
-         fieldNames.stream()
-         .filter(fieldName -> !dbmdTableFields.contains(dbmd.normalizeName(fieldName)))
-         .collect(toList());
+      List<String> inputFieldNames = modSpec.getInputFields().stream().map(TableInputField::getFieldName).collect(toList());
+      verifyTableFieldsExist(inputFieldNames, relMetadata, dbmd);
 
-      if ( !missingTableInputFields.isEmpty() )
-         throw new DatabaseObjectsNotFoundException(
-            "Field(s) not found in table " + tableMetadata.getRelationId() + ": " + missingTableInputFields + "."
-         );
+      List<String> whereCondFieldNames =
+         modSpec.getFieldParamConditions().stream().map(FieldParamCondition::getFieldName).collect(toList());
+      verifyTableFieldsExist(whereCondFieldNames, relMetadata, dbmd);
    }
 
    private String commaJoinFieldNames(List<TableInputField> fields)
    {
       return fields.stream().map(TableInputField::getFieldName).collect(joining(","));
-   }
-
-   private String maybeQualify(Optional<String> qualifier, String objectName)
-   {
-      return qualifier.map(q -> q + ".").orElse("") + objectName;
    }
 }

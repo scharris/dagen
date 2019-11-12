@@ -17,6 +17,7 @@ import org.sqljson.specs.queries.ResultsRepr;
 import org.sqljson.specs.queries.TableOutputField;
 import org.sqljson.GeneratedQuery;
 import org.sqljson.WrittenQueryReprPath;
+
 import static org.sqljson.util.Files.newFileOrStdoutWriter;
 import static org.sqljson.util.Optionals.opt;
 import static org.sqljson.util.StringFuns.*;
@@ -28,19 +29,22 @@ public class JavaWriter implements SourceCodeWriter
    private Optional<Path> srcOutputBaseDir;
    private NullableFieldRepr nullableFieldRepr;
    private Optional<String> filesHeader;
+   private String sqlResourceNamePrefix;
 
    public enum NullableFieldRepr { OPTWRAPPED, ANNOTATED, BARETYPE }
 
    public JavaWriter
    (
       String targetPackage,
-      Optional<Path> srcOutputBaseDir
+      Optional<Path> srcOutputBaseDir,
+      String sqlResourceNamePrefix
    )
    {
       this.targetPackage = targetPackage;
       this.srcOutputBaseDir = srcOutputBaseDir;
       this.nullableFieldRepr = NullableFieldRepr.OPTWRAPPED;
       this.filesHeader = empty();
+      this.sqlResourceNamePrefix = sqlResourceNamePrefix;
    }
 
    public JavaWriter
@@ -48,13 +52,15 @@ public class JavaWriter implements SourceCodeWriter
       String targetPackage,
       Optional<Path> srcOutputBaseDir,
       NullableFieldRepr nullableFieldRepr,
-      Optional<String> filesHeader
+      Optional<String> filesHeader,
+      String sqlResourceNamePrefix
    )
    {
       this.targetPackage = targetPackage;
       this.srcOutputBaseDir = srcOutputBaseDir;
       this.nullableFieldRepr = nullableFieldRepr;
       this.filesHeader = filesHeader;
+      this.sqlResourceNamePrefix = sqlResourceNamePrefix;
    }
 
    @Override
@@ -75,13 +81,13 @@ public class JavaWriter implements SourceCodeWriter
 
       for ( GeneratedQuery q : generatedQueries )
       {
-         String queryClassName = upperCamelCase(q.getName());
+         String queryClassName = upperCamelCase(q.getQueryName());
          Optional<Path> outputFilePath = outputDir.map(d -> d.resolve(queryClassName + ".java"));
 
          BufferedWriter bw = newFileOrStdoutWriter(outputFilePath);
 
          Map<ResultsRepr,Path> writtenQueryPathsByRepr =
-            WrittenQueryReprPath.writtenPathsForQuery(q.getName(), writtenQueryPaths);
+            WrittenQueryReprPath.writtenPathsForQuery(q.getQueryName(), writtenQueryPaths);
 
          try
          {
@@ -105,12 +111,14 @@ public class JavaWriter implements SourceCodeWriter
             // Write members holding resource/file names for the result representations that were written for this query.
             for ( ResultsRepr resultsRepr : sorted(writtenQueryPathsByRepr.keySet()) )
             {
-               String memberName = writtenQueryPathsByRepr.size() == 1 ? "sqlResourceName" :
-                  "sqlResourceName" + upperCamelCase(resultsRepr.toString());
-               String resourceName = writtenQueryPathsByRepr.get(resultsRepr).getFileName().toString();
+               String memberName = writtenQueryPathsByRepr.size() == 1 ? "sqlResource" :
+                  "sqlResource" + upperCamelCase(resultsRepr.toString());
+               String resourceName = sqlResourceNamePrefix + writtenQueryPathsByRepr.get(resultsRepr).getFileName();
                bw.write("   public static final String " + memberName + " = \"" + resourceName + "\";\n");
             }
             bw.write("\n");
+
+            writeParamMembers(q.getParamNames(), bw, true);
 
             if ( !q.getGeneratedResultTypes().isEmpty() )
             {
@@ -188,39 +196,13 @@ public class JavaWriter implements SourceCodeWriter
 
             if ( writtenPath != null )
             {
-               String resourceName = writtenPath.getFileName().toString();
-               bw.write("   public static final String sqlResourceName = \"" + resourceName + "\";\n");
+               String resourceName = sqlResourceNamePrefix + writtenPath.getFileName().toString();
+               bw.write("   public static final String sqlResource = \"" + resourceName + "\";\n");
             }
 
             bw.write("\n");
 
-            List<String> paramNames = modStmt.getAllParameterNames();
-
-            for ( int paramIx = 0; paramIx < paramNames.size(); ++paramIx )
-            {
-               String inputFieldParam = paramNames.get(paramIx);
-
-               bw.write("   public static final ");
-
-               if ( modStmt.hasNamedParameters() )
-               {
-                  bw.write("String ");
-                  bw.write(inputFieldParam);
-                  bw.write("Param");
-                  bw.write(" = \"");
-                  bw.write(inputFieldParam);
-                  bw.write("\";\n\n");
-               }
-               else
-               {
-                  bw.write("int ");
-                  bw.write(inputFieldParam);
-                  bw.write("ParamNum");
-                  bw.write(" = ");
-                  bw.write(String.valueOf(paramIx + 1));
-                  bw.write(";\n\n");
-               }
-            }
+            writeParamMembers(modStmt.getAllParameterNames(), bw, modStmt.hasNamedParameters());
 
             bw.write("}\n");
          }
@@ -287,6 +269,41 @@ public class JavaWriter implements SourceCodeWriter
       sb.append("}\n");
 
       return sb.toString();
+   }
+
+   private void writeParamMembers
+   (
+      List<String> paramNames,
+      BufferedWriter bw,
+      boolean hasNamedParams
+   )
+      throws IOException
+   {
+      for ( int paramIx = 0; paramIx < paramNames.size(); ++paramIx )
+      {
+         String paramName = paramNames.get(paramIx);
+
+         bw.write("   public static final ");
+
+         if ( hasNamedParams )
+         {
+            bw.write("String ");
+            bw.write(paramName);
+            bw.write("Param");
+            bw.write(" = \"");
+            bw.write(paramName);
+            bw.write("\";\n\n");
+         }
+         else
+         {
+            bw.write("int ");
+            bw.write(paramName);
+            bw.write("ParamNum");
+            bw.write(" = ");
+            bw.write(String.valueOf(paramIx + 1));
+            bw.write(";\n\n");
+         }
+      }
    }
 
    private String getJavaTypeNameForDatabaseField(DatabaseField f)

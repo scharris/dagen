@@ -123,7 +123,10 @@ public final class StringFuns
       return expr.replace(var, varValue);
    }
 
-
+   public static String maybeQualify(Optional<String> qualifier, String objectName)
+   {
+      return qualifier.map(q -> q + ".").orElse("") + objectName;
+   }
 
    private StringFuns() {}
 }

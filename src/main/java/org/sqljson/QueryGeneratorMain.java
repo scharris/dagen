@@ -19,6 +19,7 @@ import org.sqljson.util.Pair;
 import org.sqljson.util.AppUtils.SplitArgs;
 import static org.sqljson.util.AppUtils.splitOptionsAndRequiredArgs;
 import static org.sqljson.util.AppUtils.throwError;
+import static org.sqljson.util.Files.newFileOrStdoutWriter;
 import static org.sqljson.util.Serialization.writeJsonSchema;
 import org.sqljson.dbmd.DatabaseMetadata;
 import org.sqljson.source_writers.SourceCodeWriter;
@@ -28,6 +29,7 @@ import org.sqljson.source_writers.TypescriptWriter;
 
 public class QueryGeneratorMain
 {
+   private static final String sqlResourcePathInGeneratedSourceOptPrefix = "--sql-resource-path-in-generated-src:";
    private static final String langOptPrefix = "--types-language:";
    private static final String pkgOptPrefix = "--package:";
    private static final String javaNullabilityOptPrefix = "--java-nullability:";
@@ -41,6 +43,7 @@ public class QueryGeneratorMain
                  "[<types-output-base-dir> <sql-output-dir>]");
       ps.println("If output directories are not provided, then all output is written to standard out.");
       ps.println("Options:");
+      ps.println("   " + sqlResourcePathInGeneratedSourceOptPrefix + "<path>: a prefix to the SQL file name written into source code.");
       ps.println("   " + langOptPrefix + "<language>  Output language, \"Java\"|\"Typescript\".");
       ps.println("   " + pkgOptPrefix + "<java-package>  The Java package for the generated query classes.");
       ps.println("   " + javaNullabilityOptPrefix + "<nullable-fields-option>  How nullable fields should be" +
@@ -51,7 +54,7 @@ public class QueryGeneratorMain
       ps.println("         baretype   : leave as bare type (Object variant for native types)");
       ps.println("   " + generatedTypesHeaderFileOptPrefix + "<file>  Contents of this file will be included at the " +
          "top of each generated type's source file (e.g. additional imports for overridden field types).");
-      ps.println("    --print-query-group-spec-json-schema: Print a json schema for the query group spec, to " +
+      ps.println("    --print-spec-json-schema: Print a json schema for the query group spec, to " +
          "facilitate editing.");
    }
 
@@ -62,7 +65,7 @@ public class QueryGeneratorMain
          printUsage();
          return;
       }
-      if ( allArgs.length == 1 && allArgs[0].equals("--print-query-group-spec-json-schema") )
+      if ( allArgs.length == 1 && allArgs[0].equals("--print-spec-json-schema") )
       {
          writeJsonSchema(QueryGroupSpec.class, System.out);
          return;
@@ -109,7 +112,7 @@ public class QueryGeneratorMain
                dbmd,
                queryGroupSpec.getDefaultSchema(),
                new HashSet<>(queryGroupSpec.getGenerateUnqualifiedNamesForSchemas()),
-               queryGroupSpec.getDefaultFieldOutputNameFunction()
+               queryGroupSpec.getOutputFieldNameDefault().toFunctionOfFieldName()
             );
 
          List<GeneratedQuery> generatedQueries = gen.generateQueries(queryGroupSpec.getQuerySpecs());
@@ -144,16 +147,23 @@ public class QueryGeneratorMain
    {
       String language = "";
       String targetPackage = "";
+      String sqlResourceNamePrefix = "";
       JavaWriter.NullableFieldRepr nullableFieldRepr = JavaWriter.NullableFieldRepr.ANNOTATED;
       Optional<String> typeFilesHeader = empty();
       for ( String opt : args.optional )
       {
-         if ( opt.startsWith(langOptPrefix) ) language = opt.substring(langOptPrefix.length());
-         else if ( opt.startsWith(pkgOptPrefix) ) targetPackage = opt.substring(pkgOptPrefix.length());
-         else if ( opt.startsWith(javaNullabilityOptPrefix) ) nullableFieldRepr =
-            JavaWriter.NullableFieldRepr.valueOf(opt.substring(javaNullabilityOptPrefix.length()).toUpperCase());
-         else if ( opt.startsWith(generatedTypesHeaderFileOptPrefix) ) typeFilesHeader =
-            Optionals.opt(org.sqljson.util.Files.readString(Paths.get(opt.substring(generatedTypesHeaderFileOptPrefix.length()))));
+         if ( opt.startsWith(sqlResourcePathInGeneratedSourceOptPrefix) )
+            sqlResourceNamePrefix = opt.substring(sqlResourcePathInGeneratedSourceOptPrefix.length());
+         else if ( opt.startsWith(langOptPrefix) )
+            language = opt.substring(langOptPrefix.length());
+         else if ( opt.startsWith(pkgOptPrefix) )
+            targetPackage = opt.substring(pkgOptPrefix.length());
+         else if ( opt.startsWith(javaNullabilityOptPrefix) )
+            nullableFieldRepr =
+               JavaWriter.NullableFieldRepr.valueOf(opt.substring(javaNullabilityOptPrefix.length()).toUpperCase());
+         else if ( opt.startsWith(generatedTypesHeaderFileOptPrefix) )
+            typeFilesHeader =
+               Optionals.opt(org.sqljson.util.Files.readString(Paths.get(opt.substring(generatedTypesHeaderFileOptPrefix.length()))));
          else
             throw new RuntimeException("Unrecognized option \"" + opt + "\".");
       }
@@ -161,9 +171,9 @@ public class QueryGeneratorMain
       switch ( language )
       {
          case "Java":
-            return new JavaWriter(targetPackage, srcOutputBaseDir, nullableFieldRepr, typeFilesHeader);
+            return new JavaWriter(targetPackage, srcOutputBaseDir, nullableFieldRepr, typeFilesHeader, sqlResourceNamePrefix);
          case "Typescript":
-            return new TypescriptWriter(srcOutputBaseDir, typeFilesHeader);
+            return new TypescriptWriter(srcOutputBaseDir, typeFilesHeader, sqlResourceNamePrefix);
          default:
             throw new RuntimeException("target language not supported");
       }
@@ -193,20 +203,20 @@ public class QueryGeneratorMain
       {
          for ( ResultsRepr repr: q.getResultRepresentations() )
          {
-            String fileName = q.getName() + "(" + repr.toString().toLowerCase().replace('_',' ') + ").sql";
+            String fileName = q.getQueryName() + "(" + repr.toString().toLowerCase().replace('_',' ') + ").sql";
             Optional<Path> outputFilePath = outputDir.map(d -> d.resolve(fileName));
 
-            BufferedWriter bw = org.sqljson.util.Files.newFileOrStdoutWriter(outputFilePath);
+            BufferedWriter bw = newFileOrStdoutWriter(outputFilePath);
 
             try
             {
                bw.write(
                   "-- [ THIS QUERY WAS AUTO-GENERATED, ANY CHANGES MADE HERE MAY BE LOST. ]\n" +
-                  "-- " + repr + " results representation for " + q.getName() + "\n" +
+                  "-- " + repr + " results representation for " + q.getQueryName() + "\n" +
                   q.getSql(repr) + "\n"
                );
 
-               res.add(new WrittenQueryReprPath(q.getName(), repr, outputFilePath));
+               res.add(new WrittenQueryReprPath(q.getQueryName(), repr, outputFilePath));
             }
             finally
             {

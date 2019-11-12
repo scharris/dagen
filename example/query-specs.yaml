@@ -106,4 +106,8 @@ querySpecs:
                   nativeFields:
                     - databaseFieldName: id
                     - databaseFieldName: short_name
-      filter: '$d : not $d.id = 2' # "<alias-var> : <expr using alias-var>", both sides trimmed
+      fieldParamConditions:
+        - fieldName: mesh_id
+          op: IN
+      otherCondition: '$d : not $d.id = 2' # "<alias-var> : <expr using alias-var>", both sides trimmed
+

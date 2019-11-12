@@ -21,15 +21,18 @@ public class TypescriptWriter implements SourceCodeWriter
 {
    private Optional<Path> srcOutputDir;
    private Optional<String> filesHeader;
+   private String sqlResourceNamePrefix;
 
    public TypescriptWriter
    (
       Optional<Path> srcOutputDir,
-      Optional<String> filesHeader
+      Optional<String> filesHeader,
+      String sqlResourceNamePrefix
    )
    {
       this.srcOutputDir = srcOutputDir;
       this.filesHeader = filesHeader;
+      this.sqlResourceNamePrefix = sqlResourceNamePrefix;
    }
 
    @Override
@@ -46,13 +49,13 @@ public class TypescriptWriter implements SourceCodeWriter
 
       for ( GeneratedQuery q : generatedQueries )
       {
-         String moduleName = StringFuns.upperCamelCase(q.getName());
+         String moduleName = StringFuns.upperCamelCase(q.getQueryName());
          Optional<Path> outputFilePath = srcOutputDir.map(d -> d.resolve(moduleName + ".ts"));
 
          BufferedWriter bw = org.sqljson.util.Files.newFileOrStdoutWriter(outputFilePath);
 
          Map<ResultsRepr,Path> writtenQueryPathsByRepr =
-            WrittenQueryReprPath.writtenPathsForQuery(q.getName(), writtenQueryPaths);
+            WrittenQueryReprPath.writtenPathsForQuery(q.getQueryName(), writtenQueryPaths);
 
          try
          {
@@ -70,9 +73,10 @@ public class TypescriptWriter implements SourceCodeWriter
             // Write members holding resource/file names for the result representations that were written for this query.
             for ( ResultsRepr resultsRepr : writtenQueryPathsByRepr.keySet() )
             {
-               String memberName = writtenQueryPathsByRepr.size() == 1 ? "sqlResourceName" :
-                  "sqlResourceName" + StringFuns.upperCamelCase(resultsRepr.toString());
-               String resourceName = writtenQueryPathsByRepr.get(resultsRepr).getFileName().toString();
+               String memberName = writtenQueryPathsByRepr.size() == 1 ? "sqlResource" :
+                  "sqlResource" + StringFuns.upperCamelCase(resultsRepr.toString());
+               String resourceName =
+                  sqlResourceNamePrefix + writtenQueryPathsByRepr.get(resultsRepr).getFileName().toString();
                bw.write("export const " + memberName + " = \"" + resourceName + "\";\n");
             }
             bw.write("\n");

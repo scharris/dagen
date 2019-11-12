@@ -5,6 +5,7 @@ import java.util.Optional;
 import static java.util.Optional.empty;
 import static java.util.Collections.emptyList;
 
+import org.sqljson.specs.FieldParamCondition;
 import static org.sqljson.specs.mod_stmts.ParametersType.NAMED;
 
 

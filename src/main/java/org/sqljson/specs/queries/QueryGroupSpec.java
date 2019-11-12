@@ -3,15 +3,10 @@ package org.sqljson.specs.queries;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.Function;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.unmodifiableList;
 import static java.util.Optional.empty;
-import static java.util.function.Function.identity;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
-import org.sqljson.util.StringFuns;
 import static org.sqljson.specs.queries.OutputFieldNameDefault.CAMELCASE;
 
 
@@ -45,16 +40,4 @@ public final class QueryGroupSpec
    public List<String> getGenerateUnqualifiedNamesForSchemas() { return generateUnqualifiedNamesForSchemas; }
 
    public List<QuerySpec> getQuerySpecs() { return querySpecs; }
-
-
-   @JsonIgnore
-   public Function<String,String> getDefaultFieldOutputNameFunction()
-   {
-      switch ( outputFieldNameDefault )
-      {
-         case AS_IN_DB: return identity();
-         case CAMELCASE: return StringFuns::lowerCamelCase;
-         default: throw new RuntimeException("Unexpected output field name default.");
-      }
-   }
 }
