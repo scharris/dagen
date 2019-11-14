@@ -1,7 +1,7 @@
 // --------------------------------------------------------------------------
 // [ THIS SOURCE CODE WAS AUTO-GENERATED, ANY CHANGES MADE HERE MAY BE LOST. ]
 // --------------------------------------------------------------------------
-package some.package;
+package ;
 
 import java.util.*;
 import java.math.*;
