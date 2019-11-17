@@ -30,16 +30,17 @@ insert into manufacturer(id, name)
   values(3, 'SellsAll Drug Co.');
 
 
-insert into compound(id, display_name, nctr_isis_id, cas, entered_by)
+insert into compound(id, display_name, nctr_isis_id, cas, entered_by, entered)
   select n,
     'Test Compound ' || n,
     'ISIS-' || n,
     '5'||n||n||n||n||'-'||n||n,
-    1
+    1,
+    CURRENT_TIMESTAMP
   from (select rownum n from dual connect by rownum <= 5)
 ;
 
-insert into drug(id, name, compound_id, therapeutic_indications, mesh_id, cid, registered_by)
+insert into drug(id, name, compound_id, therapeutic_indications, mesh_id, cid, registered_by, registered, market_entry_date)
   select
     n,
     'Test Drug ' || n,
@@ -47,7 +48,9 @@ insert into drug(id, name, compound_id, therapeutic_indications, mesh_id, cid, r
     'Indication ' || n,
     'MESH' || n,
     n * 99,
-    1
+    1,
+    CURRENT_TIMESTAMP,
+    CURRENT_DATE - 100*n
   from (select rownum n from dual connect by rownum <= 5)
 ;
 

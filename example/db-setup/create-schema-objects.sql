@@ -8,7 +8,7 @@ alter role drugs set search_path = "drugs";
 psql -U drugs
 drugs> \i create-schema-objects.sql
 drugs> \i create-test-data-pg.sql
- */
+*/
 
 create table analyst (
     id integer not null constraint analyst_pk primary key,
@@ -27,10 +27,7 @@ create table compound
     cas                varchar(50),
     mol_formula        varchar(2000),
     mol_weight         numeric,
-    inchi              varchar(2000),
-    inchi_key          varchar(27),
-    standard_inchi     varchar(2000),
-    standard_inchi_key varchar(27),
+    entered            timestamp with time zone,
     entered_by         integer not null
         constraint compound_analyst_fk
             references analyst
@@ -55,19 +52,15 @@ create table drug
             unique,
     cid                     integer,
     therapeutic_indications varchar(4000),
+    registered            timestamptz,
     registered_by         integer not null
         constraint drug_analyst_fk
-            references analyst
+            references analyst,
+    market_entry_date  date
 );
 
 create index drug_compoundid_ix
     on drug (compound_id);
-
-create index compound_inchikey_ix
-    on compound (inchi_key);
-
-create index compound_stdinchikey_ix
-    on compound (standard_inchi_key);
 
 create index compound_canonsmiles_ix
     on compound (canonical_smiles);

@@ -23,13 +23,15 @@ public class DrugsQuery
       public String name;
       public Optional<String> meshId;
       public Optional<Integer> cid;
+      public Optional<Instant> registered;
+      public Optional<LocalDate> marketEntryDate;
       public Optional<String> therapeuticIndications;
       public Optional<Integer> cidPlus1000;
       public List<DrugReference> references;
       public List<Brand> brands;
       public List<Advisory> advisories;
       public List<DrugFunctionalCategory> functionalCategories;
-      public Analyst analyst;
+      public Analyst registeredByAnalyst;
       public Compound compound;
    }
 
@@ -44,7 +46,8 @@ public class DrugsQuery
       public Optional<String> displayName;
       public Optional<String> nctrIsisId;
       public Optional<String> cas;
-      public Analyst analyst;
+      public Optional<Instant> entered;
+      public Analyst enteredByAnalyst;
    }
 
    public static class DrugReference

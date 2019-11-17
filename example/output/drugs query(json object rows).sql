@@ -5,13 +5,15 @@ select
     'name', q.name,
     'meshId', q."meshId",
     'cid', q.cid,
+    'registered', q.registered,
+    'marketEntryDate', q."marketEntryDate",
     'therapeuticIndications', q."therapeuticIndications",
     'cidPlus1000', q."cidPlus1000",
     'references', q.references,
     'brands', q.brands,
     'advisories', q.advisories,
     'functionalCategories', q."functionalCategories",
-    'analyst', q.analyst,
+    'registeredByAnalyst', q."registeredByAnalyst",
     'compound', q.compound
   ) json
 from (
@@ -19,6 +21,8 @@ from (
     d.name as name,
     d.mesh_id "meshId",
     d.cid as cid,
+    d.registered as registered,
+    d.market_entry_date "marketEntryDate",
     d.therapeutic_indications "therapeuticIndications",
     d.cid + 1000 "cidPlus1000",
     (
@@ -165,20 +169,22 @@ from (
           d.registered_by = a.id
         )
       ) q
-    ) as analyst,
+    ) "registeredByAnalyst",
     (
       select
         jsonb_build_object(
           'displayName', q."displayName",
           'nctrIsisId', q."nctrIsisId",
           'cas', q.cas,
-          'analyst', q.analyst
+          'entered', q.entered,
+          'enteredByAnalyst', q."enteredByAnalyst"
         ) json
       from (
         select
           c.display_name "displayName",
           c.nctr_isis_id "nctrIsisId",
           c.cas as cas,
+          c.entered as entered,
           (
             select
               jsonb_build_object(
@@ -195,7 +201,7 @@ from (
                 c.entered_by = a.id
               )
             ) q
-          ) as analyst
+          ) "enteredByAnalyst"
         from
           compound c
         where (

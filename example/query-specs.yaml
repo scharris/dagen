@@ -2,10 +2,7 @@ defaultSchema: drugs
 generateUnqualifiedNamesForSchemas: ["drugs"]
 querySpecs:
   - queryName: drugs query
-    resultsRepresentations: # (defaults to ["JSON_OBJECT_ROWS"] if not present)
-      - JSON_OBJECT_ROWS
-#      - JSON_ARRAY_ROW
-#      - MULTI_COLUMN_ROWS
+    resultsRepresentations: [JSON_OBJECT_ROWS] # (<- the default, other options: JSON_ARRAY_ROW, MULTI_COLUMN_ROWS)
     generateResultTypes: true
     tableOutputSpec:
       tableName: drug
@@ -16,6 +13,8 @@ querySpecs:
           fieldTypeOverrides:
             - language: Java
               typeDeclaration: Optional<Integer>
+        - databaseFieldName: registered
+        - databaseFieldName: market_entry_date
         - databaseFieldName: therapeutic_indications
         - fieldExpression: "$a : $a.cid + 1000"
           outputName: cidPlus1000
@@ -84,7 +83,7 @@ querySpecs:
                     - databaseFieldName: description
                       outputName: authorityDescription
       referencedParents:
-        - referenceFieldName: analyst
+        - referenceFieldName: registeredByAnalyst
           referencedParentTableOutputSpec:
             tableName: analyst
             nativeFields:
@@ -99,8 +98,9 @@ querySpecs:
               - databaseFieldName: display_name
               - databaseFieldName: nctr_isis_id
               - databaseFieldName: cas
+              - databaseFieldName: entered
             referencedParents:
-              - referenceFieldName: analyst
+              - referenceFieldName: enteredByAnalyst
                 referencedParentTableOutputSpec:
                   tableName: analyst
                   nativeFields:
