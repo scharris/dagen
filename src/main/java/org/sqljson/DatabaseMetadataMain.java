@@ -39,7 +39,7 @@ public class DatabaseMetadataMain
       ps.println(
          "dbmd properties file properties:\n  " +
             "  date-mapping (DATES_AS_DRIVER_REPORTED | DATES_AS_TIMESTAMPS | DATES_AS_DATES)\n" +
-            "  relations-owner (schema name | *any-owners*)\n" +
+            "  schema (schema name | *any-owners*)\n" +
             "  exclude-relations-fqname-regex\n"
       );
    }
@@ -105,7 +105,7 @@ public class DatabaseMetadataMain
                dateMappingStr.map(DatabaseMetadataFetcher.DateMapping::valueOf)
                .orElse(DatabaseMetadataFetcher.DateMapping.DATES_AS_DRIVER_REPORTED);
 
-            Optional<String> relsOwner = getProperty(props, "relations-owner").flatMap(o ->
+            Optional<String> relsOwner = getProperty(props, "schema", "relations-owner").flatMap(o ->
                o.equals("*any-owners*") ? empty() : opt(o)
             );
 
