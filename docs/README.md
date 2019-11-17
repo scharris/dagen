@@ -4,25 +4,6 @@
 This tool generates SQL/JSON queries, which can fetch complex nested data from
 any number of related tables in a single query operation with the database. 
 
-## Isn't that what joins are for?
-Traditionally data access libraries for relational databases have required 
-returning "rectangular" results, rows and columns of simple types,
-and encouraged using joins to fetch data from multiple tables in a single query.
-However joins are not the right tool for fetching data for the important case
-that data from independent child tables of a parent table are needed in a query.
-In this case joins suffer from combinatorial explosion in the number of result
-rows, yielding a number of rows equal to the product of the number of child
-records involved (we want the N1 + N2 + ... + Nk) child rows but get instead 
-N1 * N2 * ... * Nk rows after the join). Likewise the join approach would
-produce a large amount of duplicated data which would have to be "de-convolved"
-in the receiving client from the combinations introduced by the carteision
-product operation. Definitely using joins for such a case would be inefficient,
-tedious and error-prone.
-
-TODO: diagram showing independent child tables
- N1 + N2 + N3 results for SQL/JSON
- N1 * N2 * N3 from a join.
-
 ## No runtime library necessary (other than what you probably already have)
 The queries are generated as plain SQL text, as part of the application build
 phase typically. The SQL can then be included in an application as static
@@ -56,5 +37,27 @@ application build process.
 4) At application run time, load the SQL resource file for a query, submit to
 the database, specifying any embedded parameter values, and deserialize results
 to the generated top level type for the query.
+
+
+## Isn't that what joins are for?
+If we limit ourselves to "rectangular" results of rows and columns of simple
+types, which most database access libraries do, then joins seem to be the
+solution to the problem of pulling related data from multiple tables in a single
+query. However joins are not the right tool for fetching data for the important
+case that data from *independent child tables* of a parent table are needed in
+a query. In this case joins suffer from a combinatorial explosion in the number
+of result rows, yielding the product of the number of child rows involved
+whereas ideally they would only contribute their sum (at most) to the results.
+Likewise the join approach would produce a large amount of duplicated data which
+would have to be "de-convolved" in the receiving client from the combinations
+introduced by the cartesion product operation. Definitely using joins for such
+a case would be inefficient, tedious, and error-prone.
+
+## Example
+![Example schema diagram](images/DrugsSchema.png)
+
+TODO: diagram showing independent child tables
+ N1 + N2 + N3 results for SQL/JSON
+ N1 * N2 * N3 from a join.
 
 

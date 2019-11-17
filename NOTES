@@ -1,13 +1,29 @@
 
 
+Testing
+-------
+
+
+GUI Query Spec Editor
+---------------------
+Ask for schema definition.
+User chooses top table.
+  Add TOS.
+
+TOS ops
+  Add/Remove field
+  Change/customize output name for field.
+  Add inline parent fields.
+    (Starts new TOS editor to the side.)  
+  Add referenced parent. 
+    (Starts new TOS editor to the side.)  
+  Add child collection
+    (Starts new TOS editor to the side.)  
+
 Github Pages Setup
 ------------------
 https://scharris.github.io/sqljson-query/
 https://stackoverflow.com/questions/9082499/custom-domain-for-github-project-pages
-
-
-Testing
--------
 
 
 
