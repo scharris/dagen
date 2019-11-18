@@ -85,7 +85,65 @@
           <release>8</release>
         </configuration>
       </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <version>1.6.0</version>
+        <executions>
+          <!-- Generate example database metadata at example/db/dbmd-pg.yaml. -->
+          <execution>
+            <id>gen-dbmd</id>
+            <goals>
+              <goal>java</goal>
+            </goals>
+            <configuration>
+              <mainClass>org.sqljson.DatabaseMetadataMain</mainClass>
+              <arguments>
+                <argument>example/db/dbmd-pg.props</argument>
+                <argument>example/db/dbmd-pg.props</argument>
+                <argument>example/db/dbmd-pg.yaml</argument>
+              </arguments>
+            </configuration>
+          </execution>
+          <!-- Generate example queries and result types at example/db/output/. -->
+          <execution>
+            <id>gen-queries</id>
+            <goals>
+              <goal>java</goal>
+            </goals>
+            <configuration>
+              <mainClass>org.sqljson.QueryGeneratorMain</mainClass>
+              <arguments>
+                <argument>--types-language:Java</argument>
+                <argument>--java-nullability:optwrapped</argument>
+                <argument>--types-file-header:example/types-file-imports</argument>
+                <argument>example/db/dbmd-pg.yaml</argument>
+                <arguement>example/query-specs.yaml</arguement>
+                <argument>example/output</argument>
+                <argument>example/output</argument>
+              </arguments>
+            </configuration>
+          </execution>
+          <!-- Generate example mod statements and supporting param info classes at example/db/output/mod-stmts/. -->
+          <execution>
+            <id>gen-mod-stmts</id>
+            <goals>
+              <goal>java</goal>
+            </goals>
+            <configuration>
+              <mainClass>org.sqljson.ModStatementGeneratorMain</mainClass>
+              <arguments>
+                <argument>--types-language:Java</argument>
+                <argument>--package:org.mymods</argument>
+                <argument>example/db/dbmd-pg.yaml</argument>
+                <arguement>example/mod-specs.yaml</arguement>
+                <argument>example/output/mod-stmts</argument>
+                <argument>example/output/mod-stmts</argument>
+              </arguments>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
     </plugins>
   </build>
-
 </project>

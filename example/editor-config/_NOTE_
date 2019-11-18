@@ -1,0 +1,3 @@
+These are the json schemas for the query specs and modification statements
+files, query-specs.yaml and mod-specs.yaml. Configuring these in the editor may
+allow for error highlighting, auto-completions, etc.

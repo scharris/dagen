@@ -52,7 +52,7 @@ create table drug
             unique,
     cid                     integer,
     therapeutic_indications varchar(4000),
-    registered            timestamptz,
+    registered            timestamp with time zone,
     registered_by         integer not null
         constraint drug_analyst_fk
             references analyst,

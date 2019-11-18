@@ -1,5 +1,4 @@
 
-
 Testing
 -------
 
@@ -30,18 +29,8 @@ https://stackoverflow.com/questions/9082499/custom-domain-for-github-project-pag
 ------------------------------------------------------------
 Add MySQL/MariaDB support.
 
-Add unit tests.
-
 
 Publishing to Maven Central
 --------------------------- 
 https://maven.apache.org/repository/guide-central-repository-upload.html
 https://central.sonatype.org/pages/choosing-your-coordinates.html
-io.github.scharris
-
-
-
-Commit Notes
-------------
-
-
