@@ -472,7 +472,7 @@ public class QueryGenerator
          dbmd.getForeignKeyFromTo(childRelId, parentRelId, foreignKeyFields, ForeignKeyScope.REGISTERED_TABLES_ONLY)
          .orElseThrow(() -> new RuntimeException(
             "foreign key not found from " + childRelId.getName() + " to " + parentRelId.getName() +
-            " via fks " + foreignKeyFields
+            " via " + (foreignKeyFields.map(fks -> "foreign keys " + fks).orElse(" implicit foreign key field(s)."))
          ));
    }
 
