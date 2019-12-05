@@ -2,12 +2,12 @@
 psql -U postgres
 create user drugs with password 'drugs';
 create database drugs owner drugs;
-create schema drugs authorization drugs;
-alter role drugs set search_path = "drugs";
 ^D
 psql -U drugs
-drugs> \i create-schema-objects.sql
-drugs> \i create-test-data-pg.sql
+create schema drugs authorization drugs;
+alter role drugs set search_path = "drugs";
+\i example/db/ddl/create-schema-objects.sql
+\i example/db/ddl/create-test-data-pg.sql
 */
 
 create table analyst (
