@@ -1,15 +1,3 @@
-/* Database setup (Postgres)
-psql -U postgres
-create user drugs with password 'drugs';
-create database drugs owner drugs;
-^D
-psql -U drugs
-create schema drugs authorization drugs;
-alter role drugs set search_path = "drugs";
-\i example/db/ddl/create-schema-objects.sql
-\i example/db/ddl/create-test-data-pg.sql
-*/
-
 create table analyst (
     id integer not null constraint analyst_pk primary key,
     short_name varchar(50) not null
