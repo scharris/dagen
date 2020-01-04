@@ -1,7 +1,14 @@
+Add notes for how to run the example.
+  Start pg via example/db/init-pg.sh.
+  mvn -Pgen-dbmd compile
+  mvn -Pgen-queries compile
+  mvn -Pgen-mod-stmts compile
 
-Testing
+Tests
 -------
-
+1) select from single table with subset of fields selected.
+2) same with filter added
+3) add child table
 
 GUI Query Spec Editor
 ---------------------
