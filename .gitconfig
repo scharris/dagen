@@ -1,7 +1,0 @@
-[http "https://ncsvmgitlab.fda.gov/"]
-	sslVerify = false
-[http "https://git.fda.gov/"]
-	sslVerify = false
-[user]
-	name = Stephen C. Harris
-	email = steveofar@hotmail.com
