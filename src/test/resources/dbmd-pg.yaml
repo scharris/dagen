@@ -1,0 +1,684 @@
+---
+schemaName: "drugs"
+dbmsName: "PostgreSQL"
+dbmsVersion: "12.1 (Debian 12.1-1.pgdg100+1)"
+dbmsMajorVersion: 12
+dbmsMinorVersion: 1
+caseSensitivity: "INSENSITIVE_STORED_LOWER"
+relationMetadatas:
+- relationId:
+    schema: "drugs"
+    name: "advisory"
+  relationType: "Table"
+  relationComment: null
+  fields:
+  - name: "id"
+    databaseType: "int4"
+    nullable: false
+    primaryKeyPartNumber: 1
+    comment: null
+    jdbcTypeCode: 4
+    length: null
+    precision: 10
+    fractionalDigits: 0
+  - name: "drug_id"
+    databaseType: "int4"
+    nullable: false
+    primaryKeyPartNumber: null
+    comment: null
+    jdbcTypeCode: 4
+    length: null
+    precision: 10
+    fractionalDigits: 0
+  - name: "advisory_type_id"
+    databaseType: "int4"
+    nullable: false
+    primaryKeyPartNumber: null
+    comment: null
+    jdbcTypeCode: 4
+    length: null
+    precision: 10
+    fractionalDigits: 0
+  - name: "text"
+    databaseType: "varchar"
+    nullable: false
+    primaryKeyPartNumber: null
+    comment: null
+    jdbcTypeCode: 12
+    length: 2000
+    precision: null
+    fractionalDigits: null
+- relationId:
+    schema: "drugs"
+    name: "advisory_type"
+  relationType: "Table"
+  relationComment: null
+  fields:
+  - name: "id"
+    databaseType: "int4"
+    nullable: false
+    primaryKeyPartNumber: 1
+    comment: null
+    jdbcTypeCode: 4
+    length: null
+    precision: 10
+    fractionalDigits: 0
+  - name: "name"
+    databaseType: "varchar"
+    nullable: false
+    primaryKeyPartNumber: null
+    comment: null
+    jdbcTypeCode: 12
+    length: 50
+    precision: null
+    fractionalDigits: null
+  - name: "authority_id"
+    databaseType: "int4"
+    nullable: false
+    primaryKeyPartNumber: null
+    comment: null
+    jdbcTypeCode: 4
+    length: null
+    precision: 10
+    fractionalDigits: 0
+- relationId:
+    schema: "drugs"
+    name: "analyst"
+  relationType: "Table"
+  relationComment: null
+  fields:
+  - name: "id"
+    databaseType: "int4"
+    nullable: false
+    primaryKeyPartNumber: 1
+    comment: null
+    jdbcTypeCode: 4
+    length: null
+    precision: 10
+    fractionalDigits: 0
+  - name: "short_name"
+    databaseType: "varchar"
+    nullable: false
+    primaryKeyPartNumber: null
+    comment: null
+    jdbcTypeCode: 12
+    length: 50
+    precision: null
+    fractionalDigits: null
+- relationId:
+    schema: "drugs"
+    name: "authority"
+  relationType: "Table"
+  relationComment: null
+  fields:
+  - name: "id"
+    databaseType: "int4"
+    nullable: false
+    primaryKeyPartNumber: 1
+    comment: null
+    jdbcTypeCode: 4
+    length: null
+    precision: 10
+    fractionalDigits: 0
+  - name: "name"
+    databaseType: "varchar"
+    nullable: false
+    primaryKeyPartNumber: null
+    comment: null
+    jdbcTypeCode: 12
+    length: 200
+    precision: null
+    fractionalDigits: null
+  - name: "url"
+    databaseType: "varchar"
+    nullable: true
+    primaryKeyPartNumber: null
+    comment: null
+    jdbcTypeCode: 12
+    length: 500
+    precision: null
+    fractionalDigits: null
+  - name: "description"
+    databaseType: "varchar"
+    nullable: true
+    primaryKeyPartNumber: null
+    comment: null
+    jdbcTypeCode: 12
+    length: 2000
+    precision: null
+    fractionalDigits: null
+  - name: "weight"
+    databaseType: "int4"
+    nullable: true
+    primaryKeyPartNumber: null
+    comment: null
+    jdbcTypeCode: 4
+    length: null
+    precision: 10
+    fractionalDigits: 0
+- relationId:
+    schema: "drugs"
+    name: "brand"
+  relationType: "Table"
+  relationComment: null
+  fields:
+  - name: "drug_id"
+    databaseType: "int4"
+    nullable: false
+    primaryKeyPartNumber: 1
+    comment: null
+    jdbcTypeCode: 4
+    length: null
+    precision: 10
+    fractionalDigits: 0
+  - name: "brand_name"
+    databaseType: "varchar"
+    nullable: false
+    primaryKeyPartNumber: 2
+    comment: null
+    jdbcTypeCode: 12
+    length: 200
+    precision: null
+    fractionalDigits: null
+  - name: "language_code"
+    databaseType: "varchar"
+    nullable: true
+    primaryKeyPartNumber: null
+    comment: null
+    jdbcTypeCode: 12
+    length: 10
+    precision: null
+    fractionalDigits: null
+  - name: "manufacturer_id"
+    databaseType: "int4"
+    nullable: true
+    primaryKeyPartNumber: null
+    comment: null
+    jdbcTypeCode: 4
+    length: null
+    precision: 10
+    fractionalDigits: 0
+- relationId:
+    schema: "drugs"
+    name: "compound"
+  relationType: "Table"
+  relationComment: null
+  fields:
+  - name: "id"
+    databaseType: "int4"
+    nullable: false
+    primaryKeyPartNumber: 1
+    comment: null
+    jdbcTypeCode: 4
+    length: null
+    precision: 10
+    fractionalDigits: 0
+  - name: "display_name"
+    databaseType: "varchar"
+    nullable: true
+    primaryKeyPartNumber: null
+    comment: null
+    jdbcTypeCode: 12
+    length: 50
+    precision: null
+    fractionalDigits: null
+  - name: "nctr_isis_id"
+    databaseType: "varchar"
+    nullable: true
+    primaryKeyPartNumber: null
+    comment: null
+    jdbcTypeCode: 12
+    length: 100
+    precision: null
+    fractionalDigits: null
+  - name: "smiles"
+    databaseType: "varchar"
+    nullable: true
+    primaryKeyPartNumber: null
+    comment: null
+    jdbcTypeCode: 12
+    length: 2000
+    precision: null
+    fractionalDigits: null
+  - name: "canonical_smiles"
+    databaseType: "varchar"
+    nullable: true
+    primaryKeyPartNumber: null
+    comment: null
+    jdbcTypeCode: 12
+    length: 2000
+    precision: null
+    fractionalDigits: null
+  - name: "cas"
+    databaseType: "varchar"
+    nullable: true
+    primaryKeyPartNumber: null
+    comment: null
+    jdbcTypeCode: 12
+    length: 50
+    precision: null
+    fractionalDigits: null
+  - name: "mol_formula"
+    databaseType: "varchar"
+    nullable: true
+    primaryKeyPartNumber: null
+    comment: null
+    jdbcTypeCode: 12
+    length: 2000
+    precision: null
+    fractionalDigits: null
+  - name: "mol_weight"
+    databaseType: "numeric"
+    nullable: true
+    primaryKeyPartNumber: null
+    comment: null
+    jdbcTypeCode: 2
+    length: null
+    precision: 131089
+    fractionalDigits: 0
+  - name: "entered"
+    databaseType: "timestamptz"
+    nullable: true
+    primaryKeyPartNumber: null
+    comment: null
+    jdbcTypeCode: 93
+    length: null
+    precision: null
+    fractionalDigits: null
+  - name: "entered_by"
+    databaseType: "int4"
+    nullable: false
+    primaryKeyPartNumber: null
+    comment: null
+    jdbcTypeCode: 4
+    length: null
+    precision: 10
+    fractionalDigits: 0
+- relationId:
+    schema: "drugs"
+    name: "drug"
+  relationType: "Table"
+  relationComment: null
+  fields:
+  - name: "id"
+    databaseType: "int4"
+    nullable: false
+    primaryKeyPartNumber: 1
+    comment: null
+    jdbcTypeCode: 4
+    length: null
+    precision: 10
+    fractionalDigits: 0
+  - name: "name"
+    databaseType: "varchar"
+    nullable: false
+    primaryKeyPartNumber: null
+    comment: null
+    jdbcTypeCode: 12
+    length: 500
+    precision: null
+    fractionalDigits: null
+  - name: "compound_id"
+    databaseType: "int4"
+    nullable: false
+    primaryKeyPartNumber: null
+    comment: null
+    jdbcTypeCode: 4
+    length: null
+    precision: 10
+    fractionalDigits: 0
+  - name: "mesh_id"
+    databaseType: "varchar"
+    nullable: true
+    primaryKeyPartNumber: null
+    comment: null
+    jdbcTypeCode: 12
+    length: 7
+    precision: null
+    fractionalDigits: null
+  - name: "drugbank_id"
+    databaseType: "varchar"
+    nullable: true
+    primaryKeyPartNumber: null
+    comment: null
+    jdbcTypeCode: 12
+    length: 7
+    precision: null
+    fractionalDigits: null
+  - name: "cid"
+    databaseType: "int4"
+    nullable: true
+    primaryKeyPartNumber: null
+    comment: null
+    jdbcTypeCode: 4
+    length: null
+    precision: 10
+    fractionalDigits: 0
+  - name: "therapeutic_indications"
+    databaseType: "varchar"
+    nullable: true
+    primaryKeyPartNumber: null
+    comment: null
+    jdbcTypeCode: 12
+    length: 4000
+    precision: null
+    fractionalDigits: null
+  - name: "registered"
+    databaseType: "timestamptz"
+    nullable: true
+    primaryKeyPartNumber: null
+    comment: null
+    jdbcTypeCode: 93
+    length: null
+    precision: null
+    fractionalDigits: null
+  - name: "registered_by"
+    databaseType: "int4"
+    nullable: false
+    primaryKeyPartNumber: null
+    comment: null
+    jdbcTypeCode: 4
+    length: null
+    precision: 10
+    fractionalDigits: 0
+  - name: "market_entry_date"
+    databaseType: "date"
+    nullable: true
+    primaryKeyPartNumber: null
+    comment: null
+    jdbcTypeCode: 91
+    length: null
+    precision: null
+    fractionalDigits: null
+- relationId:
+    schema: "drugs"
+    name: "drug_functional_category"
+  relationType: "Table"
+  relationComment: null
+  fields:
+  - name: "drug_id"
+    databaseType: "int4"
+    nullable: false
+    primaryKeyPartNumber: 1
+    comment: null
+    jdbcTypeCode: 4
+    length: null
+    precision: 10
+    fractionalDigits: 0
+  - name: "functional_category_id"
+    databaseType: "int4"
+    nullable: false
+    primaryKeyPartNumber: 2
+    comment: null
+    jdbcTypeCode: 4
+    length: null
+    precision: 10
+    fractionalDigits: 0
+  - name: "authority_id"
+    databaseType: "int4"
+    nullable: false
+    primaryKeyPartNumber: 3
+    comment: null
+    jdbcTypeCode: 4
+    length: null
+    precision: 10
+    fractionalDigits: 0
+  - name: "seq"
+    databaseType: "int4"
+    nullable: true
+    primaryKeyPartNumber: null
+    comment: null
+    jdbcTypeCode: 4
+    length: null
+    precision: 10
+    fractionalDigits: 0
+- relationId:
+    schema: "drugs"
+    name: "drug_reference"
+  relationType: "Table"
+  relationComment: null
+  fields:
+  - name: "drug_id"
+    databaseType: "int4"
+    nullable: false
+    primaryKeyPartNumber: 1
+    comment: null
+    jdbcTypeCode: 4
+    length: null
+    precision: 10
+    fractionalDigits: 0
+  - name: "reference_id"
+    databaseType: "int4"
+    nullable: false
+    primaryKeyPartNumber: 2
+    comment: null
+    jdbcTypeCode: 4
+    length: null
+    precision: 10
+    fractionalDigits: 0
+  - name: "priority"
+    databaseType: "int4"
+    nullable: true
+    primaryKeyPartNumber: null
+    comment: null
+    jdbcTypeCode: 4
+    length: null
+    precision: 10
+    fractionalDigits: 0
+- relationId:
+    schema: "drugs"
+    name: "functional_category"
+  relationType: "Table"
+  relationComment: null
+  fields:
+  - name: "id"
+    databaseType: "int4"
+    nullable: false
+    primaryKeyPartNumber: 1
+    comment: null
+    jdbcTypeCode: 4
+    length: null
+    precision: 10
+    fractionalDigits: 0
+  - name: "name"
+    databaseType: "varchar"
+    nullable: false
+    primaryKeyPartNumber: null
+    comment: null
+    jdbcTypeCode: 12
+    length: 500
+    precision: null
+    fractionalDigits: null
+  - name: "description"
+    databaseType: "varchar"
+    nullable: true
+    primaryKeyPartNumber: null
+    comment: null
+    jdbcTypeCode: 12
+    length: 2000
+    precision: null
+    fractionalDigits: null
+  - name: "parent_functional_category_id"
+    databaseType: "int4"
+    nullable: true
+    primaryKeyPartNumber: null
+    comment: null
+    jdbcTypeCode: 4
+    length: null
+    precision: 10
+    fractionalDigits: 0
+- relationId:
+    schema: "drugs"
+    name: "manufacturer"
+  relationType: "Table"
+  relationComment: null
+  fields:
+  - name: "id"
+    databaseType: "int4"
+    nullable: false
+    primaryKeyPartNumber: 1
+    comment: null
+    jdbcTypeCode: 4
+    length: null
+    precision: 10
+    fractionalDigits: 0
+  - name: "name"
+    databaseType: "varchar"
+    nullable: false
+    primaryKeyPartNumber: null
+    comment: null
+    jdbcTypeCode: 12
+    length: 200
+    precision: null
+    fractionalDigits: null
+- relationId:
+    schema: "drugs"
+    name: "reference"
+  relationType: "Table"
+  relationComment: null
+  fields:
+  - name: "id"
+    databaseType: "int4"
+    nullable: false
+    primaryKeyPartNumber: 1
+    comment: null
+    jdbcTypeCode: 4
+    length: null
+    precision: 10
+    fractionalDigits: 0
+  - name: "publication"
+    databaseType: "varchar"
+    nullable: false
+    primaryKeyPartNumber: null
+    comment: null
+    jdbcTypeCode: 12
+    length: 2000
+    precision: null
+    fractionalDigits: null
+foreignKeys:
+- sourceRelationId:
+    schema: "drugs"
+    name: "advisory"
+  targetRelationId:
+    schema: "drugs"
+    name: "advisory_type"
+  foreignKeyComponents:
+  - foreignKeyFieldName: "advisory_type_id"
+    primaryKeyFieldName: "id"
+- sourceRelationId:
+    schema: "drugs"
+    name: "advisory"
+  targetRelationId:
+    schema: "drugs"
+    name: "drug"
+  foreignKeyComponents:
+  - foreignKeyFieldName: "drug_id"
+    primaryKeyFieldName: "id"
+- sourceRelationId:
+    schema: "drugs"
+    name: "advisory_type"
+  targetRelationId:
+    schema: "drugs"
+    name: "authority"
+  foreignKeyComponents:
+  - foreignKeyFieldName: "authority_id"
+    primaryKeyFieldName: "id"
+- sourceRelationId:
+    schema: "drugs"
+    name: "brand"
+  targetRelationId:
+    schema: "drugs"
+    name: "drug"
+  foreignKeyComponents:
+  - foreignKeyFieldName: "drug_id"
+    primaryKeyFieldName: "id"
+- sourceRelationId:
+    schema: "drugs"
+    name: "brand"
+  targetRelationId:
+    schema: "drugs"
+    name: "manufacturer"
+  foreignKeyComponents:
+  - foreignKeyFieldName: "manufacturer_id"
+    primaryKeyFieldName: "id"
+- sourceRelationId:
+    schema: "drugs"
+    name: "compound"
+  targetRelationId:
+    schema: "drugs"
+    name: "analyst"
+  foreignKeyComponents:
+  - foreignKeyFieldName: "entered_by"
+    primaryKeyFieldName: "id"
+- sourceRelationId:
+    schema: "drugs"
+    name: "drug"
+  targetRelationId:
+    schema: "drugs"
+    name: "analyst"
+  foreignKeyComponents:
+  - foreignKeyFieldName: "registered_by"
+    primaryKeyFieldName: "id"
+- sourceRelationId:
+    schema: "drugs"
+    name: "drug"
+  targetRelationId:
+    schema: "drugs"
+    name: "compound"
+  foreignKeyComponents:
+  - foreignKeyFieldName: "compound_id"
+    primaryKeyFieldName: "id"
+- sourceRelationId:
+    schema: "drugs"
+    name: "drug_functional_category"
+  targetRelationId:
+    schema: "drugs"
+    name: "authority"
+  foreignKeyComponents:
+  - foreignKeyFieldName: "authority_id"
+    primaryKeyFieldName: "id"
+- sourceRelationId:
+    schema: "drugs"
+    name: "drug_functional_category"
+  targetRelationId:
+    schema: "drugs"
+    name: "drug"
+  foreignKeyComponents:
+  - foreignKeyFieldName: "drug_id"
+    primaryKeyFieldName: "id"
+- sourceRelationId:
+    schema: "drugs"
+    name: "drug_functional_category"
+  targetRelationId:
+    schema: "drugs"
+    name: "functional_category"
+  foreignKeyComponents:
+  - foreignKeyFieldName: "functional_category_id"
+    primaryKeyFieldName: "id"
+- sourceRelationId:
+    schema: "drugs"
+    name: "drug_reference"
+  targetRelationId:
+    schema: "drugs"
+    name: "drug"
+  foreignKeyComponents:
+  - foreignKeyFieldName: "drug_id"
+    primaryKeyFieldName: "id"
+- sourceRelationId:
+    schema: "drugs"
+    name: "drug_reference"
+  targetRelationId:
+    schema: "drugs"
+    name: "reference"
+  foreignKeyComponents:
+  - foreignKeyFieldName: "reference_id"
+    primaryKeyFieldName: "id"
+- sourceRelationId:
+    schema: "drugs"
+    name: "functional_category"
+  targetRelationId:
+    schema: "drugs"
+    name: "functional_category"
+  foreignKeyComponents:
+  - foreignKeyFieldName: "parent_functional_category_id"
+    primaryKeyFieldName: "id"

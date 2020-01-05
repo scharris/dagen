@@ -1,5 +1,6 @@
 Tests
 -------
+Just assume that test db is started, for now, properly initialized with test data.
 1) select from single table with subset of fields selected.
 2) same with filter added
 3) add child table
