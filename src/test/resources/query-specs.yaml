@@ -1,7 +1,8 @@
 defaultSchema: drugs
 generateUnqualifiedNamesForSchemas: ["drugs"]
 querySpecs:
-  - queryName: drug 2 three native fields query
+
+  - queryName: drug native fields query
     resultsRepresentations: [JSON_OBJECT_ROWS, MULTI_COLUMN_ROWS]
     generateResultTypes: true
     tableOutputSpec:
@@ -11,3 +12,5 @@ querySpecs:
         - databaseFieldName: name
         - databaseFieldName: mesh_id
       otherCondition: '$d : $d.id = 2'
+
+  # TODO: Customize these for further tests.

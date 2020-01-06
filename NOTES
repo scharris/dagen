@@ -1,9 +1,9 @@
 Tests
 -------
-Just assume that test db is started, for now, properly initialized with test data.
-1) select from single table with subset of fields selected.
-2) same with filter added
-3) add child table
+Try to generate types and sql files for tests prior to test stage compile.
+  Library classes should already be present in target/classes.
+  Run exec plugin to generate sources into src/test/java/generated, using target/classes as classpath.
+     generate-test-sources
 
 GUI Query Spec Editor
 ---------------------

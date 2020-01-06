@@ -2,18 +2,14 @@ package org.sqljson;
 
 import java.io.IOException;
 import java.sql.Connection;
-import java.util.HashSet;
-import java.util.List;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.sqljson.dbmd.DatabaseMetadata;
-import org.sqljson.specs.queries.QueryGroupSpec;
-import org.sqljson.specs.queries.ResultsRepr;
+
+import static generated.query.DrugNativeFieldsQuery.Drug;
 
 
 class QueryGeneratorTests extends TestsBase
@@ -26,12 +22,12 @@ class QueryGeneratorTests extends TestsBase
     }
 
     @Test
-    @DisplayName("Query for single drug table row in multi-column-rows mode yields expected column values.")
-    void drugId2NativeFieldsMultiColumnRowsQuery() throws Exception
+    @DisplayName("Query for single drug table row in multi-column-rows result mode yields expected column values.")
+    void oneDrugNativeFieldsMultiColumnRowsQuery() throws Exception
     {
         try ( Connection conn = getConnection() )
         {
-            String sql = generateQuerySql("drug-id2-native-fields.yaml", ResultsRepr.MULTI_COLUMN_ROWS);
+            String sql = getGeneratedQuerySql("drug native fields query(multi column rows).sql");
 
             doQuery(sql, rs -> {
                 rs.next();
@@ -42,27 +38,36 @@ class QueryGeneratorTests extends TestsBase
         }
     }
 
-    private QueryGenerator getQueryGenerator(QueryGroupSpec queryGroupSpec)
+    @Test
+    @DisplayName("Query for one drug selecting a subset of native fields, deserialize result row to generated type.")
+    void readOneDrug() throws Exception
     {
-        return new QueryGenerator(
-            dbmd,
-            queryGroupSpec.getDefaultSchema(),
-            new HashSet<>(queryGroupSpec.getGenerateUnqualifiedNamesForSchemas()),
-            queryGroupSpec.getOutputFieldNameDefault().toFunctionOfFieldName()
-        );
+        try ( Connection conn = getConnection() )
+        {
+            String sql = getGeneratedQuerySql("drug native fields query(json object rows).sql");
+
+            doQuery(sql, rs -> {
+                rs.next();
+                Drug res = readJson(rs.getString(1), Drug.class);
+                assertEquals(res.id, 2);
+                assertEquals(res.name, "Test Drug 2");
+                assertEquals(res.meshId, opt("MESH2"));
+            });
+        }
     }
 
+    /*
     private List<GeneratedQuery> generateQueries(String querySpecResourceName) throws IOException
     {
         QueryGroupSpec queryGroupSpec = readQueryGroupSpec(querySpecResourceName);
-        QueryGenerator gen = getQueryGenerator(queryGroupSpec);
-        return gen.generateQueries(queryGroupSpec.getQuerySpecs());
+        QueryGenerator queryGenerator =
+            new QueryGenerator(
+                dbmd,
+                queryGroupSpec.getDefaultSchema(),
+                new HashSet<>(queryGroupSpec.getGenerateUnqualifiedNamesForSchemas()),
+                queryGroupSpec.getOutputFieldNameDefault().toFunctionOfFieldName()
+            );
+        return queryGenerator.generateQueries(queryGroupSpec.getQuerySpecs());
     }
-
-    private String generateQuerySql(String querySpecResourceName, ResultsRepr resultsRepr) throws IOException
-    {
-        List<GeneratedQuery> generatedQueries = generateQueries(querySpecResourceName);
-        assertEquals(generatedQueries.size(), 1);
-        return generatedQueries.get(0).getSql(resultsRepr);
-    }
+    */
 }
