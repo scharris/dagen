@@ -59,6 +59,12 @@
       <version>2.6</version>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-jdbc</artifactId>
+      <version>5.2.2.RELEASE</version>
+       <scope>test</scope>
+    </dependency>
   </dependencies>
 
   <build>
@@ -110,6 +116,28 @@
             </goals>
           </execution>
         </executions>
+      </plugin>
+      <!--A "clean" should also remove contents from client's build directory and artifacts for container images. -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-clean-plugin</artifactId>
+        <version>3.1.0</version>
+        <configuration>
+          <filesets>
+            <fileset>
+              <directory>src/test/java/generated</directory>
+              <includes>
+                <include>**/*.java</include>
+              </includes>
+            </fileset>
+            <fileset>
+              <directory>src/test/resources/generated</directory>
+              <includes>
+                <include>**/*.sql</include>
+              </includes>
+            </fileset>
+          </filesets>
+        </configuration>
       </plugin>
       <plugin>
         <groupId>org.codehaus.mojo</groupId>

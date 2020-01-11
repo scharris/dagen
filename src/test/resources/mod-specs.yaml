@@ -3,18 +3,33 @@ generateUnqualifiedNamesForSchemas: ["drugs"]
 modificationStatementSpecs:
 
   ##################################################################
-  - statementName: drug insert with named params
+  - statementName: drug insert
     command: INSERT
     tableName: drug
     parametersType: NAMED # <- default, or NUMBERED
     inputFields:
       - fieldName: id
+      - fieldName: mesh_id
+      - fieldName: registered_by
+
+  ##################################################################
+  - statementName: drug insert with literal field value expression
+    command: INSERT
+    tableName: drug
+    parametersType: NAMED # <- default, or NUMBERED
+    inputFields:
+      - fieldName: id
+      - fieldName: compound_id
+        value: (2 - 1) # expression, must be enclosed in parens
+
+  ##################################################################
+  - statementName: drug insert with multi param field value expression
+    command: INSERT
+    tableName: drug
+    parametersType: NAMED
+    inputFields:
+      - fieldName: id
       - fieldName: name
         value: "(:namePrefix || ':' || :nameSuffix)"
         expressionValueParamNames: [namePrefix, nameSuffix]
-      - fieldName: compound_id
-        value: (2 - 1) # expression, must be enclosed in parens
-      - fieldName: mesh_id
-      # value ":meshId" due to chosen param name default
-      - fieldName: registered_by
 

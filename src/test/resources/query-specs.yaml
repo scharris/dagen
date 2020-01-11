@@ -2,7 +2,8 @@ defaultSchema: drugs
 generateUnqualifiedNamesForSchemas: ["drugs"]
 querySpecs:
 
-  - queryName: drug native fields query
+  # Query for a single drug with only a subset of native fields (no parent or child tables involved).
+  - queryName: drug fields query
     resultsRepresentations: [JSON_OBJECT_ROWS, MULTI_COLUMN_ROWS]
     generateResultTypes: true
     tableOutputSpec:
@@ -13,4 +14,133 @@ querySpecs:
         - databaseFieldName: mesh_id
       otherCondition: '$d : $d.id = 2'
 
-  # TODO: Customize these for further tests.
+  # Like the above but with an additional field with a customized type provided here.
+  - queryName: drug fields customized type query
+    resultsRepresentations: [JSON_OBJECT_ROWS]
+    generateResultTypes: true
+    tableOutputSpec:
+      tableName: drug
+      nativeFields:
+        - databaseFieldName: id
+        - databaseFieldName: cid
+          fieldTypeOverrides:
+            - language: Java
+              typeDeclaration: Optional<Integer>
+      otherCondition: '$d : $d.id = 2'
+
+
+  - queryName: drug with field expression query
+    resultsRepresentations: [JSON_OBJECT_ROWS]
+    generateResultTypes: true
+    tableOutputSpec:
+      tableName: drug
+      nativeFields:
+        - databaseFieldName: id
+        - fieldExpression: "$a : $a.cid + 1000"
+          outputName: cidPlus1000
+          fieldTypeOverrides:
+            - language: Java
+              typeDeclaration: Optional<Integer>
+      otherCondition: '$d : $d.id = 2'
+
+  # Drug with brands child collection.
+  - queryName: drug with brands query
+    resultsRepresentations: [JSON_OBJECT_ROWS]
+    generateResultTypes: true
+    tableOutputSpec:
+      tableName: drug
+      nativeFields:
+        - databaseFieldName: id
+        - databaseFieldName: name
+      childCollections:
+        - childCollectionName: brands
+          childTableOutputSpec:
+            tableName: brand
+            nativeFields:
+              - databaseFieldName: brand_name
+              - databaseFieldName: manufacturer_id
+      otherCondition: '$d : $d.id = 2'
+
+  # drug with brands and advisories
+  - queryName: drug with brands and advisories query
+    resultsRepresentations: [JSON_OBJECT_ROWS]
+    generateResultTypes: true
+    tableOutputSpec:
+      tableName: drug
+      nativeFields:
+        - databaseFieldName: id
+        - databaseFieldName: name
+      childCollections:
+        - childCollectionName: brands
+          childTableOutputSpec:
+            tableName: brand
+            nativeFields:
+              - databaseFieldName: brand_name
+              - databaseFieldName: manufacturer_id
+        - childCollectionName: advisories
+          childTableOutputSpec:
+            tableName: advisory
+            nativeFields:
+              - databaseFieldName: text
+                outputName: advisoryText
+      otherCondition: '$d : $d.id = 2'
+
+  # Inline parent query, where parent's fields are included inline in the child table.
+  - queryName: advisory with inline advisory type query
+    resultsRepresentations: [JSON_OBJECT_ROWS]
+    generateResultTypes: true
+    tableOutputSpec:
+      tableName: advisory
+      nativeFields:
+        - databaseFieldName: id
+        - databaseFieldName: drug_id
+        - databaseFieldName: text
+      inlineParents:
+          - inlineParentTableOutputSpec:
+              tableName: advisory_type
+              nativeFields:
+                - databaseFieldName: name
+                  outputName: advisoryType
+      otherCondition: '$a : $a.id = 201'
+
+
+  # Referenced (wrapped) parent query, where parent is available through an object reference.
+  - queryName: drug with wrapped analyst query
+    resultsRepresentations: [JSON_OBJECT_ROWS]
+    generateResultTypes: true
+    tableOutputSpec:
+      tableName: drug
+      nativeFields:
+        - databaseFieldName: id
+        - databaseFieldName: name
+        - databaseFieldName: mesh_id
+      referencedParents:
+        - referenceFieldName: registeredByAnalyst
+          referencedParentTableOutputSpec:
+            tableName: analyst
+            nativeFields:
+              - databaseFieldName: id
+              - databaseFieldName: short_name
+      otherCondition: '$d : $d.id = 2'
+
+
+  - queryName: drug with explicit compound reference query
+    resultsRepresentations: [JSON_OBJECT_ROWS]
+    generateResultTypes: true
+    tableOutputSpec:
+      tableName: drug
+      nativeFields:
+        - databaseFieldName: id
+        - databaseFieldName: name
+        - databaseFieldName: mesh_id
+      referencedParents:
+        - referenceFieldName: compound
+          childForeignKeyFields:
+            - compound_id
+          referencedParentTableOutputSpec:
+            tableName: compound
+            nativeFields:
+              - databaseFieldName: display_name
+              - databaseFieldName: nctr_isis_id
+      otherCondition: '$d : $d.id = 2'
+

@@ -1,9 +1,13 @@
 Tests
--------
-Try to generate types and sql files for tests prior to test stage compile.
-  Library classes should already be present in target/classes.
-  Run exec plugin to generate sources into src/test/java/generated, using target/classes as classpath.
-     generate-test-sources
+-----
+TODO:
+  Need to add non-null values as necessary for drug inserts.
+  Come up with a way of reliably rolling back any data changes made by each test.
+
+
+
+Add to docs that test database needs to be started prior to testing:
+  sudo example/db/init-pg.sh
 
 GUI Query Spec Editor
 ---------------------

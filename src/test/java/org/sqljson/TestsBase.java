@@ -6,6 +6,8 @@ import java.nio.charset.StandardCharsets;
 import java.sql.*;
 import java.util.Optional;
 import java.util.Properties;
+import java.util.function.Consumer;
+import javax.sql.DataSource;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
@@ -13,17 +15,22 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-
 import org.apache.commons.io.IOUtils;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.jdbc.core.namedparam.SqlParameterSource;
+import org.springframework.jdbc.datasource.DriverManagerDataSource;
+
 import org.sqljson.dbmd.DatabaseMetadata;
 import org.sqljson.specs.queries.QueryGroupSpec;
 
 
 public class TestsBase
 {
-    private final ObjectMapper yamlMapper;
-    private final ObjectMapper jsonMapper;
+    protected final ObjectMapper yamlMapper;
+    protected final ObjectMapper jsonMapper;
+    protected final DataSource testDatabaseDataSource;
 
     TestsBase()
     {
@@ -33,6 +40,8 @@ public class TestsBase
         jsonMapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, true);
         jsonMapper.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);
         jsonMapper.registerModule(new Jdk8Module());
+
+        testDatabaseDataSource = makeTestDatabaseDataSource();
     }
 
     DatabaseMetadata getDatabaseMetadata(String resource) throws IOException
@@ -52,36 +61,80 @@ public class TestsBase
         }
     }
 
+    String getGeneratedModStatementSql(String resourceName) throws IOException
+    {
+        try ( InputStream is = getResourceStream("generated/mod-stmt-sql/" + resourceName) )
+        {
+            return IOUtils.toString(is, StandardCharsets.UTF_8);
+        }
+    }
+
     InputStream getResourceStream(String resource)
     {
         return TestsBase.class.getClassLoader().getResourceAsStream(resource);
     }
 
-    QueryGroupSpec readQueryGroupSpec(String name) throws IOException
+    QueryGroupSpec readBadQuerySpec(String name)
     {
-        InputStream qSpecInputStream = getResourceStream("query-specs/" + name);
-        return yamlMapper.readValue(qSpecInputStream, QueryGroupSpec.class);
+        try
+        {
+            InputStream qSpecInputStream = getResourceStream("bad-query-specs/" + name);
+            return yamlMapper.readValue(qSpecInputStream, QueryGroupSpec.class);
+        }
+        catch(IOException e)
+        {
+            throw new RuntimeException(e);
+        }
     }
 
-    Connection getConnection() throws SQLException
+    static Connection getTestDatabaseConnection() throws SQLException
+    {
+        return makeTestDatabaseDataSource().getConnection();
+    }
+
+    static DataSource makeTestDatabaseDataSource()
     {
         String url = "jdbc:postgresql://localhost/drugs";
         Properties props = new Properties();
         props.setProperty("user", "drugs");
         props.setProperty("password","drugs");
-        return DriverManager.getConnection(url, props);
+        return new DriverManagerDataSource(url, props);
     }
 
     void doQuery(String sql, ResultsProcessor resultsProcessor) throws SQLException
     {
-        try( Connection conn = getConnection();
-             Statement stmt = conn.createStatement(); )
+        try( Connection conn = testDatabaseDataSource.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql) )
         {
-            resultsProcessor.process(stmt.executeQuery(sql));
+            resultsProcessor.process(rs);
         }
     }
 
-    protected ObjectMapper getJsonObjectMapper() { return jsonMapper; }
+    void doUpdateWithNamedParams(String sql, SqlParameterSource params, Consumer<Integer> action)
+    {
+        NamedParameterJdbcTemplate npjdbc = new NamedParameterJdbcTemplate(testDatabaseDataSource);
+
+        int affectedCount = npjdbc.update(sql, params);
+
+        action.accept(affectedCount);
+
+        npjdbc.getJdbcOperations().execute("rollback");
+    }
+
+    static void assertTestDatabaseAvailable()
+    {
+        try( Connection conn = getTestDatabaseConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery("select 1") )
+        {
+            if ( !rs.next() ) throw new SQLException("Could not connect execute query in test database.");
+        }
+        catch(SQLException e)
+        {
+            throw new RuntimeException("Could not connect to test database, has it been started?");
+        }
+    }
 
     protected <T> T readJson(String s, Class<T> c)
     {
@@ -107,5 +160,28 @@ public class TestsBase
 
     interface ResultsProcessor {
         void process(ResultSet rs) throws SQLException;
+    }
+
+    public static class Params extends MapSqlParameterSource
+    {
+        public static Params params(Object... nameValuePairs)
+        {
+            if ( nameValuePairs.length % 2 != 0 )
+                throw new IllegalArgumentException("Even number of arguments expected for parameter names and values.");
+
+            Params params = new Params();
+
+            final int numPairs = nameValuePairs.length / 2;
+            for ( int pairIx = 0; pairIx < numPairs; ++pairIx )
+            {
+                Object paramName = nameValuePairs[2 * pairIx];
+                if ( !(paramName instanceof String) )
+                    throw new IllegalArgumentException("Expected string parameter name for pair " + (pairIx + 1) + ".");
+
+                params.addValue((String) paramName, nameValuePairs[2 * pairIx + 1]);
+            }
+
+            return params;
+        }
     }
 }

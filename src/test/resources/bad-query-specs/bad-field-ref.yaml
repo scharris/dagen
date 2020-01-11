@@ -1,0 +1,14 @@
+defaultSchema: drugs
+generateUnqualifiedNamesForSchemas: ["drugs"]
+querySpecs:
+  - queryName: drug with bad field name query
+    resultsRepresentations: [JSON_OBJECT_ROWS]
+    generateResultTypes: true
+    tableOutputSpec:
+      tableName: drug
+      nativeFields:
+        - databaseFieldName: id
+        # bad field reference
+        - databaseFieldName: xname
+        - databaseFieldName: mesh_id
+      otherCondition: '$d : $d.id = 2'
