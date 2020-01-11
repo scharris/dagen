@@ -42,7 +42,8 @@ class ModStatementGeneratorTests extends TestsBase
         SqlParameterSource params =
             params(
                 DrugInsert.idParam, 99L,
-                DrugInsert.meshIdParam, "MESH99",
+                DrugInsert.nameParam, "test drug",
+                DrugInsert.compoundIdParam, 1,
                 DrugInsert.registeredByParam, 1
             );
 
@@ -57,7 +58,12 @@ class ModStatementGeneratorTests extends TestsBase
     {
         String sql = getGeneratedModStatementSql(DrugInsertWithLiteralFieldValueExpression.sqlResource);
 
-        SqlParameterSource params = params(DrugInsertWithLiteralFieldValueExpression.idParam, 99L);
+        SqlParameterSource params =
+            params(
+                DrugInsertWithLiteralFieldValueExpression.idParam, 99L,
+                DrugInsertWithLiteralFieldValueExpression.nameParam, "test drug",
+                DrugInsertWithLiteralFieldValueExpression.registeredByParam, 1
+            );
 
         doUpdateWithNamedParams(sql, params, count -> {
             assertEquals(count, 1);
@@ -74,10 +80,10 @@ class ModStatementGeneratorTests extends TestsBase
             params(
                 DrugInsertWithMultiParamFieldValueExpression.idParam, 99L,
                 DrugInsertWithMultiParamFieldValueExpression.namePrefixParam, "left",
-                DrugInsertWithMultiParamFieldValueExpression.nameSuffixParam, "right"
+                DrugInsertWithMultiParamFieldValueExpression.nameSuffixParam, "right",
+                DrugInsertWithMultiParamFieldValueExpression.compoundIdParam, 1,
+                DrugInsertWithMultiParamFieldValueExpression.registeredByParam, 1
             );
-
-        System.out.println(params);
 
         doUpdateWithNamedParams(sql, params, count -> {
             assertEquals(count, 1);

@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.sql.*;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.function.Consumer;
@@ -22,6 +24,7 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 
+import org.springframework.jdbc.datasource.SingleConnectionDataSource;
 import org.sqljson.dbmd.DatabaseMetadata;
 import org.sqljson.specs.queries.QueryGroupSpec;
 
@@ -30,7 +33,6 @@ public class TestsBase
 {
     protected final ObjectMapper yamlMapper;
     protected final ObjectMapper jsonMapper;
-    protected final DataSource testDatabaseDataSource;
 
     TestsBase()
     {
@@ -40,8 +42,6 @@ public class TestsBase
         jsonMapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, true);
         jsonMapper.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);
         jsonMapper.registerModule(new Jdk8Module());
-
-        testDatabaseDataSource = makeTestDatabaseDataSource();
     }
 
     DatabaseMetadata getDatabaseMetadata(String resource) throws IOException
@@ -94,16 +94,22 @@ public class TestsBase
 
     static DataSource makeTestDatabaseDataSource()
     {
-        String url = "jdbc:postgresql://localhost/drugs";
-        Properties props = new Properties();
-        props.setProperty("user", "drugs");
-        props.setProperty("password","drugs");
-        return new DriverManagerDataSource(url, props);
+        try
+        {
+            String url = "jdbc:postgresql://localhost/drugs";
+            DataSource ds = new SingleConnectionDataSource(url, "drugs", "drugs", false);
+            ds.getConnection().setAutoCommit(false);
+            return ds;
+        }
+        catch(SQLException e)
+        {
+            throw new RuntimeException(e);
+        }
     }
 
     void doQuery(String sql, ResultsProcessor resultsProcessor) throws SQLException
     {
-        try( Connection conn = testDatabaseDataSource.getConnection();
+        try( Connection conn = getTestDatabaseConnection();
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql) )
         {
@@ -113,7 +119,7 @@ public class TestsBase
 
     void doUpdateWithNamedParams(String sql, SqlParameterSource params, Consumer<Integer> action)
     {
-        NamedParameterJdbcTemplate npjdbc = new NamedParameterJdbcTemplate(testDatabaseDataSource);
+        NamedParameterJdbcTemplate npjdbc = new NamedParameterJdbcTemplate(makeTestDatabaseDataSource());
 
         int affectedCount = npjdbc.update(sql, params);
 

@@ -9,7 +9,8 @@ modificationStatementSpecs:
     parametersType: NAMED # <- default, or NUMBERED
     inputFields:
       - fieldName: id
-      - fieldName: mesh_id
+      - fieldName: name
+      - fieldName: compound_id
       - fieldName: registered_by
 
   ##################################################################
@@ -19,8 +20,10 @@ modificationStatementSpecs:
     parametersType: NAMED # <- default, or NUMBERED
     inputFields:
       - fieldName: id
+      - fieldName: name
       - fieldName: compound_id
         value: (2 - 1) # expression, must be enclosed in parens
+      - fieldName: registered_by
 
   ##################################################################
   - statementName: drug insert with multi param field value expression
@@ -32,4 +35,5 @@ modificationStatementSpecs:
       - fieldName: name
         value: "(:namePrefix || ':' || :nameSuffix)"
         expressionValueParamNames: [namePrefix, nameSuffix]
-
+      - fieldName: compound_id
+      - fieldName: registered_by
