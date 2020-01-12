@@ -10,7 +10,9 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.sqljson.TestsBase.Params.params;
 
+import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.sqljson.dbmd.DatabaseMetadata;
 import org.sqljson.specs.queries.QueryGroupSpec;
 
@@ -36,12 +38,13 @@ class QueryGeneratorTests extends TestsBase
 
     @Test
     @DisplayName("Query for single drug table row in multi-column-rows result mode yields expected column values.")
-    void readDrugNativeColumns() throws Exception
+    void readDrugNativeFields() throws Exception
     {
-        String sql = getGeneratedQuerySql("drug fields query(multi column rows).sql");
+        String sql = getGeneratedQuerySql("drug fields query with param(multi column rows).sql");
 
-        doQuery(sql, rs -> {
-            rs.next();
+        SqlParameterSource params = params(DrugFieldsQueryWithParam.drugIdParam, 2L);
+
+        doQuery(sql, params, rs -> {
             assertEquals(rs.getLong(1), 2);
             assertEquals(rs.getString(2), "Test Drug 2");
             assertEquals(rs.getString(3), "MESH2");
@@ -49,14 +52,31 @@ class QueryGeneratorTests extends TestsBase
     }
 
     @Test
-    @DisplayName("Query for one drug selecting a subset of native fields, deserialize result row to generated type.")
-    void readDrugNativeColumnsAsGeneratedType() throws Exception
+    @DisplayName("Query for single drug table row in multi-column-rows result mode using 'otherCondition' to find the row.")
+    void readDrugNativeFieldsViaOtherCondition() throws Exception
     {
-        String sql = getGeneratedQuerySql("drug fields query(json object rows).sql");
+        String sql = getGeneratedQuerySql("drug fields query with other cond(multi column rows).sql");
 
-        doQuery(sql, rs -> {
-            rs.next();
-            DrugFieldsQuery.Drug res = readJson(rs.getString(1), DrugFieldsQuery.Drug.class);
+        SqlParameterSource params = params("idMinusOne", 1L);
+
+        doQuery(sql, params, rs -> {
+            assertEquals(rs.getLong(1), 2);
+            assertEquals(rs.getString(2), "Test Drug 2");
+            assertEquals(rs.getString(3), "MESH2");
+        });
+    }
+
+
+    @Test
+    @DisplayName("Query for one drug selecting a subset of native fields, deserialize result row to generated type.")
+    void readDrugNativeFieldsAsGeneratedType() throws Exception
+    {
+        String sql = getGeneratedQuerySql("drug fields query with param(json object rows).sql");
+
+        SqlParameterSource params = params(DrugFieldsQueryWithParam.drugIdParam, 2L);
+
+        doQuery(sql, params, rs -> {
+            DrugFieldsQueryWithParam.Drug res = readJson(rs.getString(1), DrugFieldsQueryWithParam.Drug.class);
             assertEquals(res.id, 2);
             assertEquals(res.name, "Test Drug 2");
             assertEquals(res.meshId, opt("MESH2"));
@@ -65,12 +85,13 @@ class QueryGeneratorTests extends TestsBase
 
     @Test
     @DisplayName("Query for a drug selecting some native fields, with a field type customized, deserialize to generated type.")
-    void readDrugNativeColumnsOneCustomizedAsGeneratedType() throws Exception
+    void readDrugNativeFieldsWithOneCustomizedAsGeneratedType() throws Exception
     {
         String sql = getGeneratedQuerySql("drug fields customized type query(json object rows).sql");
 
-        doQuery(sql, rs -> {
-            rs.next();
+        SqlParameterSource params = params(DrugFieldsCustomizedTypeQuery.drugIdParam, 2L);
+
+        doQuery(sql, params, rs -> {
             DrugFieldsCustomizedTypeQuery.Drug res = readJson(rs.getString(1), DrugFieldsCustomizedTypeQuery.Drug.class);
             assertEquals(res.id, 2);
             assertTrue((res.cid.get() instanceof Integer));
@@ -83,8 +104,9 @@ class QueryGeneratorTests extends TestsBase
     {
         String sql = getGeneratedQuerySql("drug with field expression query(json object rows).sql");
 
-        doQuery(sql, rs -> {
-            rs.next();
+        SqlParameterSource params = params(DrugWithFieldExpressionQuery.drugIdParam, 2L);
+
+        doQuery(sql, params, rs -> {
             DrugWithFieldExpressionQuery.Drug res = readJson(rs.getString(1), DrugWithFieldExpressionQuery.Drug.class);
             assertEquals(res.id, 2);
             assertEquals(res.cidPlus1000, opt(198 + 1000));
@@ -97,8 +119,9 @@ class QueryGeneratorTests extends TestsBase
     {
         String sql = getGeneratedQuerySql("drug with brands query(json object rows).sql");
 
-        doQuery(sql, rs -> {
-            rs.next();
+        SqlParameterSource params = params(DrugWithBrandsQuery.drugIdParam, 2L);
+
+        doQuery(sql, params, rs -> {
             DrugWithBrandsQuery.Drug res = readJson(rs.getString(1), DrugWithBrandsQuery.Drug.class);
             assertEquals(res.id, 2);
             List<DrugWithBrandsQuery.Brand> brands = res.brands;
@@ -114,8 +137,9 @@ class QueryGeneratorTests extends TestsBase
     {
         String sql = getGeneratedQuerySql("drug with brands and advisories query(json object rows).sql");
 
-        doQuery(sql, rs -> {
-            rs.next();
+        SqlParameterSource params = params(DrugWithBrandsAndAdvisoriesQuery.drugIdParam, 2L);
+
+        doQuery(sql, params, rs -> {
             DrugWithBrandsAndAdvisoriesQuery.Drug res = readJson(rs.getString(1), DrugWithBrandsAndAdvisoriesQuery.Drug.class);
             assertEquals(res.id, 2);
 
@@ -141,8 +165,9 @@ class QueryGeneratorTests extends TestsBase
     {
         String sql = getGeneratedQuerySql("advisory with inline advisory type query(json object rows).sql");
 
-        doQuery(sql, rs -> {
-            rs.next();
+        SqlParameterSource params = params(AdvisoryWithInlineAdvisoryTypeQuery.advisoryIdParam, 201L);
+
+        doQuery(sql, params, rs -> {
             AdvisoryWithInlineAdvisoryTypeQuery.Advisory res = readJson(rs.getString(1), AdvisoryWithInlineAdvisoryTypeQuery.Advisory.class);
             assertEquals(res.id, 201);
             assertEquals(res.drugId, 2);
@@ -156,8 +181,9 @@ class QueryGeneratorTests extends TestsBase
     {
         String sql = getGeneratedQuerySql("drug with wrapped analyst query(json object rows).sql");
 
-        doQuery(sql, rs -> {
-            rs.next();
+        SqlParameterSource params = params(DrugWithWrappedAnalystQuery.drugIdParam, 2L);
+
+        doQuery(sql, params, rs -> {
             DrugWithWrappedAnalystQuery.Drug res = readJson(rs.getString(1), DrugWithWrappedAnalystQuery.Drug.class);
             assertEquals(res.id, 2);
             assertEquals(res.registeredByAnalyst.id, 1);
@@ -171,8 +197,9 @@ class QueryGeneratorTests extends TestsBase
     {
         String sql = getGeneratedQuerySql("drug with explicit compound reference query(json object rows).sql");
 
-        doQuery(sql, rs -> {
-            rs.next();
+        SqlParameterSource params = params(DrugWithExplicitCompoundReferenceQuery.drugIdParam, 2L);
+
+        doQuery(sql, params, rs -> {
             DrugWithExplicitCompoundReferenceQuery.Drug res = readJson(rs.getString(1), DrugWithExplicitCompoundReferenceQuery.Drug.class);
             assertEquals(res.id, 2);
             assertEquals(res.compound.displayName, opt("Test Compound 2"));

@@ -1,9 +1,5 @@
 Tests
 -----
-TODO:
-  Need to add non-null values as necessary for drug inserts.
-  Come up with a way of reliably rolling back any data changes made by each test.
-
 
 
 Add to docs that test database needs to be started prior to testing:

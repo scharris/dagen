@@ -15,6 +15,10 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import org.apache.commons.io.IOUtils;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.PreparedStatementSetter;
+import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
@@ -102,13 +106,27 @@ public class TestsBase
         }
     }
 
-    void doQuery(String sql, ResultsProcessor resultsProcessor) throws SQLException
+    void doQuery(String sql, SqlParameterSource params, RowCallbackHandler rowCallbackHandler)
     {
-        try( Connection conn = getTestDatabaseConnection();
-             Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(sql) )
+        NamedParameterJdbcTemplate npjdbc = new NamedParameterJdbcTemplate(makeTestDatabaseDataSource());
+
+        npjdbc.query(sql, params, rowCallbackHandler);
+    }
+
+    void doUpdate(String sql, PreparedStatementSetter pstmtSetter, AfterUpdateCallback action)
+    {
+        JdbcTemplate jdbc = new JdbcTemplate(makeTestDatabaseDataSource());
+
+        int affectedCount = jdbc.update(sql, pstmtSetter);
+
+        try
         {
-            resultsProcessor.process(rs);
+            action.onStatementFinished(affectedCount, jdbc);
+        }
+        finally
+        {
+            if ( affectedCount > 0 )
+                jdbc.execute("rollback");
         }
     }
 
@@ -120,7 +138,7 @@ public class TestsBase
 
         try
         {
-            action.onStatementFinished(affectedCount, npjdbc);
+            action.onStatementFinished(affectedCount, npjdbc.getJdbcTemplate());
         }
         finally
         {
@@ -160,10 +178,7 @@ public class TestsBase
         return Optional.of(t);
     }
 
-    protected <T> Optional<T> optn(T t)
-    {
-        return Optional.ofNullable(t);
-    }
+
 
     interface ResultsProcessor {
         void process(ResultSet rs) throws SQLException;
@@ -194,6 +209,6 @@ public class TestsBase
 
     public interface AfterUpdateCallback
     {
-        void onStatementFinished(int affectedRowCount, NamedParameterJdbcTemplate npjdbc);
+        void onStatementFinished(int affectedRowCount, JdbcTemplate npjdbc);
     }
 }
