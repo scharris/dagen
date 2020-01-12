@@ -1,6 +1,7 @@
 package org.sqljson;
 
 import java.io.IOException;
+import java.util.Map;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
@@ -47,8 +48,13 @@ class ModStatementGeneratorTests extends TestsBase
                 DrugInsert.registeredByParam, 1
             );
 
-        doUpdateWithNamedParams(sql, params, count -> {
+        doUpdateWithNamedParams(sql, params, (count, npjdbc) -> {
             assertEquals(count, 1);
+            Map<String,Object> row = npjdbc.queryForMap("select id, name, compound_id, registered_by from drug where id = 99", params());
+            assertEquals(row.get("id"), 99);
+            assertEquals(row.get("name"), "test drug");
+            assertEquals(row.get("compound_id"), 1);
+            assertEquals(row.get("registered_by"), 1);
         });
     }
 
@@ -65,8 +71,13 @@ class ModStatementGeneratorTests extends TestsBase
                 DrugInsertWithLiteralFieldValueExpression.registeredByParam, 1
             );
 
-        doUpdateWithNamedParams(sql, params, count -> {
+        doUpdateWithNamedParams(sql, params, (count, npjdbc) -> {
             assertEquals(count, 1);
+            Map<String,Object> row = npjdbc.queryForMap("select id, name, compound_id, registered_by from drug where id = 99", params());
+            assertEquals(row.get("id"), 99);
+            assertEquals(row.get("name"), "test drug");
+            assertEquals(row.get("compound_id"), 3);
+            assertEquals(row.get("registered_by"), 1);
         });
     }
 
@@ -85,8 +96,13 @@ class ModStatementGeneratorTests extends TestsBase
                 DrugInsertWithMultiParamFieldValueExpression.registeredByParam, 1
             );
 
-        doUpdateWithNamedParams(sql, params, count -> {
+        doUpdateWithNamedParams(sql, params, (count, npjdbc) -> {
             assertEquals(count, 1);
+            Map<String,Object> row = npjdbc.queryForMap("select id, name, compound_id, registered_by from drug where id = 99", params());
+            assertEquals(row.get("id"), 99);
+            assertEquals(row.get("name"), "left:right");
+            assertEquals(row.get("compound_id"), 1);
+            assertEquals(row.get("registered_by"), 1);
         });
     }
 }

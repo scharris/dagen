@@ -22,7 +22,7 @@ modificationStatementSpecs:
       - fieldName: id
       - fieldName: name
       - fieldName: compound_id
-        value: (2 - 1) # expression, must be enclosed in parens
+        value: (2 + 1) # expression, must be enclosed in parens
       - fieldName: registered_by
 
   ##################################################################

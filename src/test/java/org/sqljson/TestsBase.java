@@ -4,11 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.sql.*;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Optional;
-import java.util.Properties;
-import java.util.function.Consumer;
 import javax.sql.DataSource;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
@@ -22,7 +18,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
-import org.springframework.jdbc.datasource.DriverManagerDataSource;
 
 import org.springframework.jdbc.datasource.SingleConnectionDataSource;
 import org.sqljson.dbmd.DatabaseMetadata;
@@ -92,12 +87,12 @@ public class TestsBase
         return makeTestDatabaseDataSource().getConnection();
     }
 
-    static DataSource makeTestDatabaseDataSource()
+    static SingleConnectionDataSource makeTestDatabaseDataSource()
     {
         try
         {
             String url = "jdbc:postgresql://localhost/drugs";
-            DataSource ds = new SingleConnectionDataSource(url, "drugs", "drugs", false);
+            SingleConnectionDataSource ds = new SingleConnectionDataSource(url, "drugs", "drugs", false);
             ds.getConnection().setAutoCommit(false);
             return ds;
         }
@@ -117,15 +112,21 @@ public class TestsBase
         }
     }
 
-    void doUpdateWithNamedParams(String sql, SqlParameterSource params, Consumer<Integer> action)
+    void doUpdateWithNamedParams(String sql, SqlParameterSource params, AfterUpdateCallback action)
     {
         NamedParameterJdbcTemplate npjdbc = new NamedParameterJdbcTemplate(makeTestDatabaseDataSource());
 
         int affectedCount = npjdbc.update(sql, params);
 
-        action.accept(affectedCount);
-
-        npjdbc.getJdbcOperations().execute("rollback");
+        try
+        {
+            action.onStatementFinished(affectedCount, npjdbc);
+        }
+        finally
+        {
+            if ( affectedCount > 0 )
+                npjdbc.getJdbcOperations().execute("rollback");
+        }
     }
 
     static void assertTestDatabaseAvailable()
@@ -189,5 +190,10 @@ public class TestsBase
 
             return params;
         }
+    }
+
+    public interface AfterUpdateCallback
+    {
+        void onStatementFinished(int affectedRowCount, NamedParameterJdbcTemplate npjdbc);
     }
 }
