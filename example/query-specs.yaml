@@ -53,6 +53,11 @@ querySpecs:
                   nativeFields:
                     - databaseFieldName: name
                       outputName: advisoryType
+                    - fieldExpression: "$a : (select 1 + 1)"
+                      outputName: exprYieldingTwo
+                      fieldTypeOverrides:
+                        - language: Java
+                          typeDeclaration: long
                   inlineParents:
                     - inlineParentTableOutputSpec:
                         tableName: authority

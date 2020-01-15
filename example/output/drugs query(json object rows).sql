@@ -76,6 +76,7 @@ from (
         coalesce(jsonb_agg(jsonb_build_object(
           'advisoryText', q."advisoryText",
           'advisoryType', q."advisoryType",
+          'exprYieldingTwo', q."exprYieldingTwo",
           'authorityName', q."authorityName",
           'authorityUrl', q."authorityUrl",
           'authorityDescription', q."authorityDescription"
@@ -84,6 +85,7 @@ from (
         select
           a.text "advisoryText",
           q."advisoryType" "advisoryType",
+          q."exprYieldingTwo" "exprYieldingTwo",
           q."authorityName" "authorityName",
           q."authorityUrl" "authorityUrl",
           q."authorityDescription" "authorityDescription"
@@ -93,6 +95,7 @@ from (
             select
               at.id "_id",
               at.name "advisoryType",
+              (select 1 + 1) "exprYieldingTwo",
               q."authorityName" "authorityName",
               q."authorityUrl" "authorityUrl",
               q."authorityDescription" "authorityDescription"

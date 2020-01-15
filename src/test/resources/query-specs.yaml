@@ -112,11 +112,16 @@ querySpecs:
         - databaseFieldName: drug_id
         - databaseFieldName: text
       inlineParents:
-          - inlineParentTableOutputSpec:
-              tableName: advisory_type
-              nativeFields:
-                - databaseFieldName: name
-                  outputName: advisoryType
+        - inlineParentTableOutputSpec:
+            tableName: advisory_type
+            nativeFields:
+              - databaseFieldName: name
+                outputName: advisoryType
+              - fieldExpression: "$a : (select 1 + 1)"
+                outputName: exprYieldingTwo
+                fieldTypeOverrides:
+                  - language: Java
+                    typeDeclaration: long
       fieldParamConditions:
         - fieldName: id
 

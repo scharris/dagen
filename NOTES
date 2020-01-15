@@ -1,5 +1,9 @@
-Tests
------
+Make a result_types field for expression values as was done for all other type of fields.
+
+
+Renames
+  "otherCondition" -> "condition"
+
 
 
 Add to docs that test database needs to be started prior to testing:

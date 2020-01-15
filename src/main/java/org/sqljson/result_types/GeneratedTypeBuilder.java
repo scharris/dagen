@@ -5,13 +5,12 @@ import java.util.List;
 
 import org.sqljson.dbmd.Field;
 import org.sqljson.specs.queries.FieldTypeOverride;
-import org.sqljson.specs.queries.TableOutputField;
 
 
 public class GeneratedTypeBuilder
 {
    private final List<DatabaseField> databaseFields;
-   private final List<TableOutputField> expressionFields;
+   private final List<ExpressionField> expressionFields;
    private final List<ChildCollectionField> childCollectionFields;
    private final List<ParentReferenceField> parentReferenceFields;
 
@@ -30,10 +29,12 @@ public class GeneratedTypeBuilder
 
    public void addDatabaseFields(List<DatabaseField> tfs) { databaseFields.addAll(tfs); }
 
-   public void addExpressionField(TableOutputField tof)
+   public void addExpressionField(ExpressionField tof)
    {
       expressionFields.add(tof);
    }
+
+   public void addExpressionFields(List<ExpressionField> tofs) { expressionFields.addAll(tofs); }
 
    public void addChildCollectionField(String fieldName, GeneratedType childType, boolean nullable)
    {
@@ -56,12 +57,17 @@ public class GeneratedTypeBuilder
       if ( !forceNullable )
       {
          addDatabaseFields(generatedType.getDatabaseFields());
+         addExpressionFields(generatedType.getExpressionFields());
          addChildCollectionFields(generatedType.getChildCollectionFields());
          addParentReferenceFields(generatedType.getParentReferenceFields());
       }
       else
       {
+         // Add nullable form of each field, as considered prior to any field
+         // type overrides which are applied elsewhere (writing stage).
+         // Expression fields are already nullable so need no transformation.
          addDatabaseFields(generatedType.getDatabaseFieldsNullable());
+         addExpressionFields(generatedType.getExpressionFields());
          addChildCollectionFields(generatedType.getChildCollectionFieldsNullable());
          addParentReferenceFields(generatedType.getParentReferenceFieldsNullable());
       }

@@ -5,12 +5,13 @@ import java.util.function.Function;
 import static java.util.Optional.empty;
 import static java.util.stream.Collectors.*;
 import static java.util.function.Function.identity;
+import static org.sqljson.util.Optionals.opt;
 
 import org.sqljson.dbmd.*;
+import org.sqljson.result_types.ExpressionField;
 import org.sqljson.result_types.GeneratedType;
 import org.sqljson.result_types.GeneratedTypeBuilder;
 import org.sqljson.specs.queries.*;
-import org.sqljson.util.Optionals;
 import org.sqljson.util.StringFuns;
 
 
@@ -55,7 +56,9 @@ class QueryTypesGenerator
             typeBuilder.addDatabaseField(getOutputFieldName(tof, dbField, outputFieldNameDefaultFn), dbField, tof.getFieldTypeOverrides());
          }
          else
-            typeBuilder.addExpressionField(tof);
+            typeBuilder.addExpressionField(
+                new ExpressionField(opt(tof.getFieldExpression()), tof.getOutputName(), tof.getFieldTypeOverrides())
+            );
       }
 
       // Add fields from inline parents, but do not add their top-level types to the generated types results.
@@ -164,7 +167,7 @@ class QueryTypesGenerator
              entry.getKey().charAt(baseName.length()) == '_'); // underscore used as suffix separator for making unique names
 
          if ( baseNamesMatch && typeToFind.equalsIgnoringName(entry.getValue()) )
-            return Optionals.opt(entry.getValue());
+            return opt(entry.getValue());
       }
 
       return empty();

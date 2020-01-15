@@ -68,6 +68,7 @@ public class DrugsQuery
       public String authorityName;
       public Optional<String> authorityUrl;
       public Optional<String> authorityDescription;
+      public long exprYieldingTwo;
    }
 
    public static class DrugFunctionalCategory

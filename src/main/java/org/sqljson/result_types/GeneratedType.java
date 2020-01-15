@@ -4,14 +4,12 @@ import java.util.*;
 import static java.util.Collections.unmodifiableList;
 import static java.util.stream.Collectors.toList;
 
-import org.sqljson.specs.queries.TableOutputField;
-
 
 public class GeneratedType
 {
    private final String typeName; // always unqualified by module/package
    private final List<DatabaseField> databaseFields;
-   private final List<TableOutputField> expressionFields;
+   private final List<ExpressionField> expressionFields;
    private final List<ChildCollectionField> childCollectionFields;
    private final List<ParentReferenceField> parentReferenceFields;
 
@@ -19,7 +17,7 @@ public class GeneratedType
    (
       String typeName,
       List<DatabaseField> databaseFields,
-      List<TableOutputField> expressionFields,
+      List<ExpressionField> expressionFields,
       List<ChildCollectionField> childCollectionFields,
       List<ParentReferenceField> parentReferenceFields
    )
@@ -41,7 +39,7 @@ public class GeneratedType
       return databaseFields.stream().map(DatabaseField::toNullable).collect(toList());
    }
 
-   public List<TableOutputField> getExpressionFields() { return expressionFields; }
+   public List<ExpressionField> getExpressionFields() { return expressionFields; }
 
    public List<ChildCollectionField> getChildCollectionFields() { return childCollectionFields; }
 

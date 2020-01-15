@@ -14,10 +14,8 @@ import org.sqljson.GeneratedModStatement;
 import org.sqljson.result_types.*;
 import org.sqljson.specs.queries.FieldTypeOverride;
 import org.sqljson.specs.queries.ResultsRepr;
-import org.sqljson.specs.queries.TableOutputField;
 import org.sqljson.GeneratedQuery;
 import org.sqljson.WrittenQueryReprPath;
-
 import static org.sqljson.util.Files.newFileOrStdoutWriter;
 import static org.sqljson.util.Optionals.opt;
 import static org.sqljson.util.StringFuns.*;
@@ -233,13 +231,13 @@ public class JavaWriter implements SourceCodeWriter
          sb.append(";\n");
       }
 
-      for ( TableOutputField tof : generatedType.getExpressionFields() )
+      for ( ExpressionField f : generatedType.getExpressionFields() )
       {
-         String fieldName = tof.getOutputName().orElseThrow(() ->
-            new RuntimeException("Output name is required for expression field " + tof.getFieldExpression())
+         String fieldName = f.getOutputName().orElseThrow(() ->
+            new RuntimeException("Output name is required for expression field " + f.getFieldExpression())
          );
-         FieldTypeOverride typeOverride = tof.getTypeOverride("Java").orElseThrow(() ->
-            new RuntimeException("Field type override is required for expression field " + tof.getFieldExpression())
+         FieldTypeOverride typeOverride = f.getTypeOverride("Java").orElseThrow(() ->
+            new RuntimeException("Field type override is required for expression field " + f.getFieldExpression())
          );
          sb.append("   public ");
          sb.append(typeOverride.getTypeDeclaration());
