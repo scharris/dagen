@@ -167,12 +167,12 @@ class QueryGeneratorTests extends TestsBase
 
         SqlParameterSource params = params(AdvisoryWithInlineAdvisoryTypeQuery.advisoryIdParam, 201L);
 
-        // TODO: Test for field expression "exprYieldingTwo".
         doQuery(sql, params, rs -> {
             AdvisoryWithInlineAdvisoryTypeQuery.Advisory res = readJson(rs.getString(1), AdvisoryWithInlineAdvisoryTypeQuery.Advisory.class);
             assertEquals(res.id, 201);
             assertEquals(res.drugId, 2);
             assertEquals(res.advisoryType, "Boxed Warning");
+            assertEquals(res.exprYieldingTwo, 2L);
         });
     }
 
