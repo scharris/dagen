@@ -1,8 +1,19 @@
-Make a result_types field for expression values as was done for all other type of fields.
-
 
 Renames
-  "otherCondition" -> "condition"
+  tableOutputSpec -> tableOutput
+  tableName -> table
+  nativeFields -> fieldsAndExpressions
+  databaseFieldName -> field
+  fieldExpression -> expression
+# outputName -> outputName
+  otherCondition -> condition
+  fieldTypeOverrides -> generateTypes
+  childTableOutputSpec -> childTableOutput
+  childCollectionName -> collectionName
+  parentTableOutputSpec -> parentTableOutput
+  inlineParentTableOutputSpec -> parentTableOutput
+  referencedParentTableOutput -> parentTableOutput
+
 
 
 
