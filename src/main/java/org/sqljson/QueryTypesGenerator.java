@@ -32,7 +32,7 @@ class QueryTypesGenerator
 
    List<GeneratedType> generateTypes
    (
-      TableOutputSpec tos,
+      TableJsonSpec tjs,
       Map<String,GeneratedType> previouslyGeneratedTypesByName,
       Function<String,String> outputFieldNameDefaultFn
    )
@@ -42,35 +42,40 @@ class QueryTypesGenerator
 
       GeneratedTypeBuilder typeBuilder = new GeneratedTypeBuilder();
 
-      RelId relId = dbmd.identifyTable(tos.getTableName(), defaultSchema);
+      RelId relId = dbmd.identifyTable(tjs.getTable(), defaultSchema);
       Map<String, Field> dbFieldsByName = getTableFieldsByName(relId);
 
       // Add this table's own directly contained database fields to the generated type.
-      for ( TableOutputField tof : tos.getNativeFields() )
+      for ( TableFieldExpr tfe : tjs.getFieldExpressions() )
       {
-         if ( tof.isSimpleField() )
+         if ( tfe.isSimpleField() )
          {
-            Field dbField = dbFieldsByName.get(dbmd.normalizeName(tof.getDatabaseFieldName()));
+            Field dbField = dbFieldsByName.get(dbmd.normalizeName(tfe.getField()));
             if ( dbField == null )
-               throw new RuntimeException("no metadata for field " + tos.getTableName() + "." + tof.getDatabaseFieldName());
-            typeBuilder.addDatabaseField(getOutputFieldName(tof, dbField, outputFieldNameDefaultFn), dbField, tof.getFieldTypeOverrides());
+               throw new RuntimeException("no metadata for field " + tjs.getTable() + "." + tfe.getField());
+            typeBuilder.addDatabaseField(getOutputFieldName(tfe, dbField, outputFieldNameDefaultFn), dbField, tfe.getGenerateTypes());
          }
          else
-            typeBuilder.addExpressionField(
-                new ExpressionField(opt(tof.getFieldExpression()), tof.getOutputName(), tof.getFieldTypeOverrides())
+         {
+            String jsonProperty = tfe.getJsonProperty().orElseThrow(() ->
+                new RuntimeException("Expression field " + tjs.getTable() + "." + tfe + " requires a json property.")
             );
+            typeBuilder.addExpressionField(
+                new ExpressionField(jsonProperty, opt(tfe.getExpression()), tfe.getGenerateTypes())
+            );
+         }
       }
 
       // Add fields from inline parents, but do not add their top-level types to the generated types results.
-      for ( InlineParentSpec inlineParentTableSpec :  tos.getInlineParents() )
+      for ( InlineParentSpec inlineParentTableSpec :  tjs.getInlineParentTables() )
       {
          // Generate types by traversing the parent table and its parents and children.
          List<GeneratedType> parentGenTypes =
-            generateTypes(inlineParentTableSpec.getParentTableOutputSpec(), typesInScope, outputFieldNameDefaultFn);
+            generateTypes(inlineParentTableSpec.getParentTableJsonSpec(), typesInScope, outputFieldNameDefaultFn);
          GeneratedType parentType = parentGenTypes.get(0); // will not be generated
 
          // If the parent record might be absent, then all inline fields must be nullable.
-         boolean forceNullable = inlineParentTableSpec.getParentTableOutputSpec().hasCondition() || // parent has condition
+         boolean forceNullable = inlineParentTableSpec.getParentTableJsonSpec().hasCondition() || // parent has condition
                                  noFkFieldKnownNotNullable(relId, inlineParentTableSpec);           // fk nullable
 
          typeBuilder.addAllFieldsFrom(parentType, forceNullable);
@@ -81,31 +86,31 @@ class QueryTypesGenerator
       }
 
       // Add reference fields for referenced parents, and add their generated types to the generated types results.
-      for ( ReferencedParentSpec parentTableSpec : tos.getReferencedParents() )
+      for ( ReferencedParentSpec parentTableSpec : tjs.getReferencedParentTables() )
       {
          // Generate types by traversing the parent table and its parents and children.
          List<GeneratedType> parentGenTypes =
-            generateTypes(parentTableSpec.getParentTableOutputSpec(), typesInScope, outputFieldNameDefaultFn);
+            generateTypes(parentTableSpec.getParentTableJsonSpec(), typesInScope, outputFieldNameDefaultFn);
          GeneratedType parentType = parentGenTypes.get(0);
 
-         boolean nullable = parentTableSpec.getParentTableOutputSpec().hasCondition() || // parent has condition
+         boolean nullable = parentTableSpec.getParentTableJsonSpec().hasCondition() || // parent has condition
                             noFkFieldKnownNotNullable(relId, parentTableSpec);           // fk nullable
 
-         typeBuilder.addParentReferenceField(parentTableSpec.getReferenceFieldName(), parentType, nullable);
+         typeBuilder.addParentReferenceField(parentTableSpec.getReferenceName(), parentType, nullable);
 
          generatedTypes.addAll(parentGenTypes);
          parentGenTypes.forEach(t -> typesInScope.put(t.getTypeName(), t));
       }
 
       // Add each child table's types to the overall list of generated types, and their collection fields to this type.
-      for ( ChildCollectionSpec childCollectionSpec : tos.getChildCollections() )
+      for ( ChildCollectionSpec childCollectionSpec : tjs.getChildTableCollections() )
       {
          // Generate types by traversing the child table and its parents and children.
          List<GeneratedType> childGenTypes =
-            generateTypes(childCollectionSpec.getChildTableOutputSpec(), typesInScope, outputFieldNameDefaultFn);
+            generateTypes(childCollectionSpec.getTableJson(), typesInScope, outputFieldNameDefaultFn);
          GeneratedType childType = childGenTypes.get(0);
 
-         typeBuilder.addChildCollectionField(childCollectionSpec.getChildCollectionName(), childType, false);
+         typeBuilder.addChildCollectionField(childCollectionSpec.getCollectionName(), childType, false);
 
          generatedTypes.addAll(childGenTypes);
          childGenTypes.forEach(t -> typesInScope.put(t.getTypeName(), t));
@@ -113,7 +118,7 @@ class QueryTypesGenerator
 
       // Finally the top table's type must be added at leading position in the returned list. But if the type is
       // essentially identical to one already in scope, then add the previously generated instance instead.
-      String baseTypeName = StringFuns.upperCamelCase(tos.getTableName()); // Base type name is the desired name, without any trailing digits.
+      String baseTypeName = StringFuns.upperCamelCase(tjs.getTable()); // Base type name is the desired name, without any trailing digits.
       if ( !typesInScope.containsKey(baseTypeName) ) // No previously generated type of same base name.
          generatedTypes.add(0, typeBuilder.build(baseTypeName));
       else
@@ -134,12 +139,12 @@ class QueryTypesGenerator
 
    private String getOutputFieldName
    (
-      TableOutputField tof,
+      TableFieldExpr tableFieldExpr,
       Field dbField,
       Function<String,String> outputFieldNameDefaultFn
    )
    {
-      return tof.getOutputName().orElseGet(() -> outputFieldNameDefaultFn.apply(dbField.getName()));
+      return tableFieldExpr.getJsonProperty().orElseGet(() -> outputFieldNameDefaultFn.apply(dbField.getName()));
    }
 
    private Map<String,Field> getTableFieldsByName(RelId relId)
@@ -176,7 +181,7 @@ class QueryTypesGenerator
 
    private boolean noFkFieldKnownNotNullable(RelId childRelId, ParentSpec parentSpec)
    {
-      RelId parentRelId = dbmd.identifyTable(parentSpec.getParentTableOutputSpec().getTableName(), defaultSchema);
+      RelId parentRelId = dbmd.identifyTable(parentSpec.getParentTableJsonSpec().getTable(), defaultSchema);
       Optional<Set<String>> specFkFields = parentSpec.getChildForeignKeyFieldsSet();
       ForeignKey fk = dbmd.getForeignKeyFromTo(childRelId, parentRelId, specFkFields, ForeignKeyScope.REGISTERED_TABLES_ONLY).orElseThrow(
          () -> new RuntimeException("foreign key to parent not found")

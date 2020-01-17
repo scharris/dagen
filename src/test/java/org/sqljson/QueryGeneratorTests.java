@@ -52,7 +52,7 @@ class QueryGeneratorTests extends TestsBase
     }
 
     @Test
-    @DisplayName("Query for single drug table row in multi-column-rows result mode using 'otherCondition' to find the row.")
+    @DisplayName("Query for single drug table row in multi-column-rows result mode using 'condition' to find the row.")
     void readDrugNativeFieldsViaOtherCondition() throws Exception
     {
         String sql = getGeneratedQuerySql("drug fields query with other cond(multi column rows).sql");

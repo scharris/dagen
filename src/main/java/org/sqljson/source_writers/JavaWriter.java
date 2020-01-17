@@ -233,16 +233,13 @@ public class JavaWriter implements SourceCodeWriter
 
       for ( ExpressionField f : generatedType.getExpressionFields() )
       {
-         String fieldName = f.getOutputName().orElseThrow(() ->
-            new RuntimeException("Output name is required for expression field " + f.getFieldExpression())
-         );
          FieldTypeOverride typeOverride = f.getTypeOverride("Java").orElseThrow(() ->
             new RuntimeException("Field type override is required for expression field " + f.getFieldExpression())
          );
          sb.append("   public ");
          sb.append(typeOverride.getTypeDeclaration());
          sb.append(" ");
-         sb.append(fieldName);
+         sb.append(f.getName());
          sb.append(";\n");
       }
 

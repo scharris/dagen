@@ -7,28 +7,28 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 
 public final class InlineParentSpec implements ParentSpec
 {
-   private TableOutputSpec inlineParentTableOutputSpec;
-   private Optional<List<String>> childForeignKeyFields = Optional.empty();
+   private TableJsonSpec tableJson;
+   private Optional<List<String>> viaForeignKeyFields = Optional.empty();
 
    private InlineParentSpec() {}
 
    public InlineParentSpec
    (
-      TableOutputSpec inlineParentTableOutputSpec,
-      Optional<List<String>> childForeignKeyFields
+      TableJsonSpec tableJson,
+      Optional<List<String>> viaForeignKeyFields
    )
    {
-      this.inlineParentTableOutputSpec = inlineParentTableOutputSpec;
-      this.childForeignKeyFields = childForeignKeyFields.map(Collections::unmodifiableList);
+      this.tableJson = tableJson;
+      this.viaForeignKeyFields = viaForeignKeyFields.map(Collections::unmodifiableList);
    }
 
-   public TableOutputSpec getInlineParentTableOutputSpec() { return inlineParentTableOutputSpec; }
+   public TableJsonSpec getTableJson() { return getParentTableJsonSpec(); }
 
-   public Optional<List<String>> getChildForeignKeyFields() { return childForeignKeyFields; }
-
-   @JsonIgnore
-   public TableOutputSpec getParentTableOutputSpec() { return inlineParentTableOutputSpec; }
+   public Optional<List<String>> getViaForeignKeyFields() { return viaForeignKeyFields; }
 
    @JsonIgnore
-   public Optional<Set<String>> getChildForeignKeyFieldsSet() { return childForeignKeyFields.map(HashSet::new); }
+   public TableJsonSpec getParentTableJsonSpec() { return tableJson; }
+
+   @JsonIgnore
+   public Optional<Set<String>> getChildForeignKeyFieldsSet() { return viaForeignKeyFields.map(HashSet::new); }
 }

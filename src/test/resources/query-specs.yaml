@@ -6,162 +6,161 @@ querySpecs:
   - queryName: drug fields query with param
     resultsRepresentations: [JSON_OBJECT_ROWS, MULTI_COLUMN_ROWS]
     generateResultTypes: true
-    tableOutputSpec:
-      tableName: drug
-      nativeFields:
-        - databaseFieldName: id
-        - databaseFieldName: name
-        - databaseFieldName: mesh_id
+    tableJson:
+      table: drug
+      fieldExpressions:
+        - field: id
+        - field: name
+        - field: mesh_id
       fieldParamConditions:
-        - fieldName: id
+        - field: id
 
   - queryName: drug fields query with other cond
     resultsRepresentations: [JSON_OBJECT_ROWS, MULTI_COLUMN_ROWS]
     generateResultTypes: true
-    tableOutputSpec:
-      tableName: drug
-      nativeFields:
-        - databaseFieldName: id
-        - databaseFieldName: name
-        - databaseFieldName: mesh_id
-      otherCondition: '$a : $a.id = :idMinusOne + 1'
+    tableJson:
+      table: drug
+      fieldExpressions:
+        - field: id
+        - field: name
+        - field: mesh_id
+      condition: '$a : $a.id = :idMinusOne + 1'
 
   # Like the above but with an additional field with a customized type provided here.
   - queryName: drug fields customized type query
     resultsRepresentations: [JSON_OBJECT_ROWS]
     generateResultTypes: true
-    tableOutputSpec:
-      tableName: drug
-      nativeFields:
-        - databaseFieldName: id
-        - databaseFieldName: cid
-          fieldTypeOverrides:
+    tableJson:
+      table: drug
+      fieldExpressions:
+        - field: id
+        - field: cid
+          generateTypes:
             - language: Java
               typeDeclaration: Optional<Integer>
       fieldParamConditions:
-        - fieldName: id
-
+        - field: id
 
   - queryName: drug with field expression query
     resultsRepresentations: [JSON_OBJECT_ROWS]
     generateResultTypes: true
-    tableOutputSpec:
-      tableName: drug
-      nativeFields:
-        - databaseFieldName: id
-        - fieldExpression: "$a : $a.cid + 1000"
-          outputName: cidPlus1000
-          fieldTypeOverrides:
+    tableJson:
+      table: drug
+      fieldExpressions:
+        - field: id
+        - expression: "$a : $a.cid + 1000"
+          jsonProperty: cidPlus1000
+          generateTypes:
             - language: Java
               typeDeclaration: Optional<Integer>
       fieldParamConditions:
-        - fieldName: id
+        - field: id
 
   # Drug with brands child collection.
   - queryName: drug with brands query
     resultsRepresentations: [JSON_OBJECT_ROWS]
     generateResultTypes: true
-    tableOutputSpec:
-      tableName: drug
-      nativeFields:
-        - databaseFieldName: id
-        - databaseFieldName: name
-      childCollections:
-        - childCollectionName: brands
-          childTableOutputSpec:
-            tableName: brand
-            nativeFields:
-              - databaseFieldName: brand_name
-              - databaseFieldName: manufacturer_id
+    tableJson:
+      table: drug
+      fieldExpressions:
+        - field: id
+        - field: name
+      childTableCollections:
+        - collectionName: brands
+          tableJson:
+            table: brand
+            fieldExpressions:
+              - field: brand_name
+              - field: manufacturer_id
       fieldParamConditions:
-        - fieldName: id
+        - field: id
 
   # drug with brands and advisories
   - queryName: drug with brands and advisories query
     resultsRepresentations: [JSON_OBJECT_ROWS]
     generateResultTypes: true
-    tableOutputSpec:
-      tableName: drug
-      nativeFields:
-        - databaseFieldName: id
-        - databaseFieldName: name
-      childCollections:
-        - childCollectionName: brands
-          childTableOutputSpec:
-            tableName: brand
-            nativeFields:
-              - databaseFieldName: brand_name
-              - databaseFieldName: manufacturer_id
-        - childCollectionName: advisories
-          childTableOutputSpec:
-            tableName: advisory
-            nativeFields:
-              - databaseFieldName: text
-                outputName: advisoryText
+    tableJson:
+      table: drug
+      fieldExpressions:
+        - field: id
+        - field: name
+      childTableCollections:
+        - collectionName: brands
+          tableJson:
+            table: brand
+            fieldExpressions:
+              - field: brand_name
+              - field: manufacturer_id
+        - collectionName: advisories
+          tableJson:
+            table: advisory
+            fieldExpressions:
+              - field: text
+                jsonProperty: advisoryText
       fieldParamConditions:
-        - fieldName: id
+        - field: id
 
   # Inline parent query, where parent's fields are included inline in the child table.
   - queryName: advisory with inline advisory type query
     resultsRepresentations: [JSON_OBJECT_ROWS]
     generateResultTypes: true
-    tableOutputSpec:
-      tableName: advisory
-      nativeFields:
-        - databaseFieldName: id
-        - databaseFieldName: drug_id
-        - databaseFieldName: text
-      inlineParents:
-        - inlineParentTableOutputSpec:
-            tableName: advisory_type
-            nativeFields:
-              - databaseFieldName: name
-                outputName: advisoryType
-              - fieldExpression: "$a : (select 1 + 1)"
-                outputName: exprYieldingTwo
-                fieldTypeOverrides:
+    tableJson:
+      table: advisory
+      fieldExpressions:
+        - field: id
+        - field: drug_id
+        - field: text
+      inlineParentTables:
+        - tableJson:
+            table: advisory_type
+            fieldExpressions:
+              - field: name
+                jsonProperty: advisoryType
+              - expression: "$a : (select 1 + 1)"
+                jsonProperty: exprYieldingTwo
+                generateTypes:
                   - language: Java
                     typeDeclaration: long
       fieldParamConditions:
-        - fieldName: id
+        - field: id
 
   # Referenced (wrapped) parent query, where parent is available through an object reference.
   - queryName: drug with wrapped analyst query
     resultsRepresentations: [JSON_OBJECT_ROWS]
     generateResultTypes: true
-    tableOutputSpec:
-      tableName: drug
-      nativeFields:
-        - databaseFieldName: id
-        - databaseFieldName: name
-        - databaseFieldName: mesh_id
-      referencedParents:
-        - referenceFieldName: registeredByAnalyst
-          referencedParentTableOutputSpec:
-            tableName: analyst
-            nativeFields:
-              - databaseFieldName: id
-              - databaseFieldName: short_name
+    tableJson:
+      table: drug
+      fieldExpressions:
+        - field: id
+        - field: name
+        - field: mesh_id
+      referencedParentTables:
+        - referenceName: registeredByAnalyst
+          tableJson:
+            table: analyst
+            fieldExpressions:
+              - field: id
+              - field: short_name
       fieldParamConditions:
-        - fieldName: id
+        - field: id
 
   - queryName: drug with explicit compound reference query
     resultsRepresentations: [JSON_OBJECT_ROWS]
     generateResultTypes: true
-    tableOutputSpec:
-      tableName: drug
-      nativeFields:
-        - databaseFieldName: id
-        - databaseFieldName: name
-        - databaseFieldName: mesh_id
-      referencedParents:
-        - referenceFieldName: compound
-          childForeignKeyFields:
+    tableJson:
+      table: drug
+      fieldExpressions:
+        - field: id
+        - field: name
+        - field: mesh_id
+      referencedParentTables:
+        - referenceName: compound
+          viaForeignKeyFields:
             - compound_id
-          referencedParentTableOutputSpec:
-            tableName: compound
-            nativeFields:
-              - databaseFieldName: display_name
-              - databaseFieldName: nctr_isis_id
+          tableJson:
+            table: compound
+            fieldExpressions:
+              - field: display_name
+              - field: nctr_isis_id
       fieldParamConditions:
-        - fieldName: id
+        - field: id

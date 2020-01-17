@@ -5,104 +5,104 @@ modificationStatementSpecs:
   ##################################################################
   - statementName: drug insert named params
     command: INSERT
-    tableName: drug
+    table: drug
     parametersType: NAMED
     inputFields:
-      - fieldName: id
-      - fieldName: name
-      - fieldName: compound_id
-      - fieldName: registered_by
+      - field: id
+      - field: name
+      - field: compound_id
+      - field: registered_by
 
   ##################################################################
   - statementName: drug insert numbered params
     command: INSERT
-    tableName: drug
+    table: drug
     parametersType: NUMBERED
     inputFields:
-      - fieldName: id
-      - fieldName: name
-      - fieldName: compound_id
-      - fieldName: registered_by
+      - field: id
+      - field: name
+      - field: compound_id
+      - field: registered_by
 
   ##################################################################
   - statementName: drug insert with literal field value expr
     command: INSERT
-    tableName: drug
+    table: drug
     parametersType: NAMED
     inputFields:
-      - fieldName: id
-      - fieldName: name
-      - fieldName: compound_id
+      - field: id
+      - field: name
+      - field: compound_id
         value: (2 + 1)
-      - fieldName: registered_by
+      - field: registered_by
 
   ##################################################################
   - statementName: drug insert with multi param field value expr
     command: INSERT
-    tableName: drug
+    table: drug
     parametersType: NAMED
     inputFields:
-      - fieldName: id
-      - fieldName: name
+      - field: id
+      - field: name
         value: "(:namePrefix || ':' || :nameSuffix)"
         expressionValueParamNames: [namePrefix, nameSuffix]
-      - fieldName: compound_id
-      - fieldName: registered_by
+      - field: compound_id
+      - field: registered_by
 
 
   ##################################################################
   - statementName: drug update with named params
     command: UPDATE
-    tableName: drug
+    table: drug
     tableAlias: d
     parametersType: NAMED
     inputFields:
-      - fieldName: name
-      - fieldName: mesh_id
+      - field: name
+      - field: mesh_id
     fieldParamConditions:
-      - fieldName: id
+      - field: id
 
   ##################################################################
   - statementName: drug update with numbered params
     command: UPDATE
-    tableName: drug
+    table: drug
     tableAlias: d
     parametersType: NUMBERED
     inputFields:
-      - fieldName: name
-      - fieldName: mesh_id
+      - field: name
+      - field: mesh_id
     fieldParamConditions:
-      - fieldName: id
+      - field: id
 
   ##################################################################
   - statementName: drug update with multi param expr
     command: UPDATE
-    tableName: drug
+    table: drug
     tableAlias: d
     parametersType: NAMED
     inputFields:
-      - fieldName: name
+      - field: name
         value: "(:namePartOne || '-' || :namePartTwo)"
         expressionValueParamNames: [namePartOne, namePartTwo]
     fieldParamConditions:
-      - fieldName: id
+      - field: id
 
   ##################################################################
   - statementName: drug delete named params
     command: DELETE
-    tableName: drug
+    table: drug
     tableAlias: d
     parametersType: NAMED
     fieldParamConditions:
-      - fieldName: id
+      - field: id
 
   ##################################################################
   - statementName: drug delete numbered params
     command: DELETE
-    tableName: drug
+    table: drug
     tableAlias: d
     parametersType: NUMBERED
     fieldParamConditions:
-      - fieldName: id
+      - field: id
 
 

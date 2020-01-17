@@ -5,90 +5,90 @@ modificationStatementSpecs:
   ##################################################################
   - statementName: drug insert with named params
     command: INSERT
-    tableName: drug
+    table: drug
     parametersType: NAMED # <- default, or NUMBERED
     inputFields:
-      - fieldName: id
-      - fieldName: name
+      - field: id
+      - field: name
         value: "(:namePrefix || ':' || :nameSuffix)"
         expressionValueParamNames: [namePrefix, nameSuffix]
-      - fieldName: compound_id
+      - field: compound_id
         value: (2 - 1) # expression, must be enclosed in parens
-      - fieldName: mesh_id
+      - field: mesh_id
       # value ":meshId" due to chosen param name default
-      - fieldName: registered_by
+      - field: registered_by
 
   ##################################################################
   - statementName: drug insert with numbered params
     command: INSERT
-    tableName: drug
+    table: drug
     parametersType: NUMBERED
     inputFields:
-      - fieldName: id
-      - fieldName: name
+      - field: id
+      - field: name
         value: "(? || ':' || ?)"
         expressionValueParamNames: [namePrefix, nameSuffix]
-      - fieldName: compound_id
+      - field: compound_id
         value: (2 - 1) # expression, must be enclosed in parens
         expressionValueParamNames: []
-      - fieldName: mesh_id
-      - fieldName: registered_by
+      - field: mesh_id
+      - field: registered_by
 
   ##################################################################
   - statementName: drug update with named params
     command: UPDATE
-    tableName: drug
+    table: drug
     tableAlias: d
     parametersType: NAMED
     inputFields:
-      - fieldName: name
+      - field: name
         value: "(:namePartOne || '-' || :namePartTwo)"
         expressionValueParamNames: [namePartOne, namePartTwo]
-      - fieldName: compound_id
-      - fieldName: mesh_id
+      - field: compound_id
+      - field: mesh_id
     fieldParamConditions:
-      - fieldName: cid
-      - fieldName: mesh_id
+      - field: cid
+      - field: mesh_id
         paramName: oldMeshId
-    otherCondition: d.compound_id < 0
+    condition: d.compound_id < 0
 
   ##################################################################
   - statementName: drug update with numbered params
     command: UPDATE
-    tableName: drug
+    table: drug
     tableAlias: d
     parametersType: NUMBERED
     inputFields:
-      - fieldName: name
+      - field: name
         value: "(? || '-' || ?)"
         expressionValueParamNames: [namePartOne, namePartTwo]
-      - fieldName: compound_id
-      - fieldName: mesh_id
+      - field: compound_id
+      - field: mesh_id
     fieldParamConditions:
-      - fieldName: cid
-      - fieldName: mesh_id
+      - field: cid
+      - field: mesh_id
         paramName: oldMeshId
-    otherCondition: d.compound_id < 0
+    condition: d.compound_id < 0
 
   ##################################################################
   - statementName: drug delete
     command: DELETE
-    tableName: drug
+    table: drug
     fieldParamConditions:
-      - fieldName: cid
+      - field: cid
 
   ##################################################################
   - statementName: lesser drugs delete
     command: DELETE
-    tableName: drug
+    table: drug
     fieldParamConditions:
-      - fieldName: cid
+      - field: cid
         op: LT
 
   ##################################################################
   - statementName: drugs list delete
     command: DELETE
-    tableName: drug
+    table: drug
     fieldParamConditions:
-      - fieldName: cid
+      - field: cid
         op: IN

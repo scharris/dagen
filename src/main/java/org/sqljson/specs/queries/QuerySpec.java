@@ -16,7 +16,7 @@ public final class QuerySpec
    private boolean generateResultTypes;
    private boolean generateSource = true; // Contains at least the resource name for generated SQL, if not result types.
    private Optional<OutputFieldNameDefault> outputFieldNameDefault = empty(); // inherited from query group spec if empty
-   private TableOutputSpec tableOutputSpec;
+   private TableJsonSpec tableJson;
 
    private QuerySpec() {}
 
@@ -27,7 +27,7 @@ public final class QuerySpec
       boolean generateResultTypes,
       boolean generateSource,
       Optional<OutputFieldNameDefault> outputFieldNameDefault,
-      TableOutputSpec tableOutputSpec
+      TableJsonSpec tableJson
    )
    {
       this.queryName = queryName;
@@ -35,7 +35,7 @@ public final class QuerySpec
       this.generateResultTypes = generateResultTypes;
       this.generateSource = generateSource;
       this.outputFieldNameDefault = outputFieldNameDefault;
-      this.tableOutputSpec = tableOutputSpec;
+      this.tableJson = tableJson;
       if ( generateResultTypes && !generateSource )
          throw new RuntimeException(
             "In query \"" + queryName + "\", cannot generate result types without generateSource option enabled."
@@ -53,5 +53,5 @@ public final class QuerySpec
 
    public Optional<OutputFieldNameDefault> getOutputFieldNameDefault() { return outputFieldNameDefault; }
 
-   public TableOutputSpec getTableOutputSpec() { return tableOutputSpec; }
+   public TableJsonSpec getTableJson() { return tableJson; }
 }

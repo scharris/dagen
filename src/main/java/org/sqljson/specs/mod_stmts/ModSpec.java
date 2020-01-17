@@ -13,13 +13,13 @@ public class ModSpec
 {
    private String statementName;
    private ModType command;
-   private String tableName; // possibly qualified
+   private String table; // possibly qualified
    private Optional<String> tableAlias = empty();
    private ParametersType parametersType = NAMED;
    private boolean generateSourceCode = true; // sql resource name and param info
    private List<TableInputField> inputFields = emptyList();
    private List<FieldParamCondition> fieldParamConditions = emptyList();
-   private Optional<String> otherCondition = empty(); // augments field param equalities
+   private Optional<String> condition = empty(); // augments field param equalities
 
    private ModSpec() {}
 
@@ -27,31 +27,31 @@ public class ModSpec
    (
       String statementName,
       ModType command,
-      String tableName,
+      String table,
       Optional<String> tableAlias,
       ParametersType parametersType,
       boolean generateSourceCode,
       List<TableInputField> inputFields,
       List<FieldParamCondition> fieldParamConditions,
-      Optional<String> otherCondition
+      Optional<String> condition
    )
    {
       this.statementName = statementName;
       this.command = command;
-      this.tableName = tableName;
+      this.table = table;
       this.tableAlias = tableAlias;
       this.parametersType = parametersType;
       this.generateSourceCode = generateSourceCode;
       this.inputFields = inputFields;
       this.fieldParamConditions = fieldParamConditions;
-      this.otherCondition = otherCondition;
+      this.condition = condition;
    }
 
    public String getStatementName() { return statementName; }
 
    public ModType getCommand() { return command; }
 
-   public String getTableName() { return tableName; }
+   public String getTable() { return table; }
 
    public Optional<String> getTableAlias() { return tableAlias; }
 
@@ -63,5 +63,5 @@ public class ModSpec
 
    public List<FieldParamCondition> getFieldParamConditions() { return fieldParamConditions; }
 
-   public Optional<String> getOtherCondition() { return otherCondition; }
+   public Optional<String> getCondition() { return condition; }
 }

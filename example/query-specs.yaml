@@ -4,115 +4,114 @@ querySpecs:
   - queryName: drugs query
     resultsRepresentations: [JSON_OBJECT_ROWS] # (<- the default, other options: JSON_ARRAY_ROW, MULTI_COLUMN_ROWS)
     generateResultTypes: true
-    tableOutputSpec:
-      tableName: drug
-      nativeFields:
-        - databaseFieldName: name
-        - databaseFieldName: mesh_id
-        - databaseFieldName: cid
-          fieldTypeOverrides:
+    tableJson:
+      table: drug
+      fieldExpressions:
+        - field: name
+        - field: mesh_id
+        - field: cid
+          generateTypes:
             - language: Java
               typeDeclaration: Optional<Integer>
-        - databaseFieldName: registered
-        - databaseFieldName: market_entry_date
-        - databaseFieldName: therapeutic_indications
-        - fieldExpression: "$a : $a.cid + 1000"
-          outputName: cidPlus1000
-          fieldTypeOverrides:
+        - field: registered
+        - field: market_entry_date
+        - field: therapeutic_indications
+        - expression: "$a : $a.cid + 1000"
+          jsonProperty: cidPlus1000
+          generateTypes:
             - language: Java
               typeDeclaration: Optional<Integer>
-      childCollections:
-        - childCollectionName: references
-          childTableOutputSpec:
-            tableName: drug_reference
-            inlineParents:
-              - inlineParentTableOutputSpec:
-                  tableName: reference
-                  nativeFields:
-                    - databaseFieldName: publication
-        - childCollectionName: brands
-          childTableOutputSpec:
-            tableName: brand
-            nativeFields:
-              - databaseFieldName: brand_name
-            inlineParents:
-              - inlineParentTableOutputSpec:
-                  tableName: manufacturer
-                  nativeFields:
-                    - databaseFieldName: name
-                      outputName: manufacturer
-        - childCollectionName: advisories
-          childTableOutputSpec:
-            tableName: advisory
-            nativeFields:
-              - databaseFieldName: text
-                outputName: advisoryText
-            inlineParents:
-              - inlineParentTableOutputSpec:
-                  tableName: advisory_type
-                  nativeFields:
-                    - databaseFieldName: name
-                      outputName: advisoryType
-                    - fieldExpression: "$a : (select 1 + 1)"
-                      outputName: exprYieldingTwo
-                      fieldTypeOverrides:
+      childTableCollections:
+        - collectionName: references
+          tableJson:
+            table: drug_reference
+            inlineParentTables:
+              - tableJson:
+                  table: reference
+                  fieldExpressions:
+                    - field: publication
+        - collectionName: brands
+          tableJson:
+            table: brand
+            fieldExpressions:
+              - field: brand_name
+            inlineParentTables:
+              - tableJson:
+                  table: manufacturer
+                  fieldExpressions:
+                    - field: name
+                      jsonProperty: manufacturer
+        - collectionName: advisories
+          tableJson:
+            table: advisory
+            fieldExpressions:
+              - field: text
+                jsonProperty: advisoryText
+            inlineParentTables:
+              - tableJson:
+                  table: advisory_type
+                  fieldExpressions:
+                    - field: name
+                      jsonProperty: advisoryType
+                    - expression: "$a : (select 1 + 1)"
+                      jsonProperty: exprYieldingTwo
+                      generateTypes:
                         - language: Java
                           typeDeclaration: long
-                  inlineParents:
-                    - inlineParentTableOutputSpec:
-                        tableName: authority
-                        nativeFields:
-                          - databaseFieldName: name
-                            outputName: authorityName
-                          - databaseFieldName: url
-                            outputName: authorityUrl
-                          - databaseFieldName: description
-                            outputName: authorityDescription
-        - childCollectionName: functionalCategories
-          childTableOutputSpec:
-            tableName: drug_functional_category
-            inlineParents:
-              - inlineParentTableOutputSpec:
-                  tableName: functional_category
-                  nativeFields:
-                    - databaseFieldName: name
-                      outputName: categoryName
-                    - databaseFieldName: description
-              - inlineParentTableOutputSpec:
-                  tableName: authority
-                  nativeFields:
-                    - databaseFieldName: name
-                      outputName: authorityName
-                    - databaseFieldName: url
-                      outputName: authorityUrl
-                    - databaseFieldName: description
-                      outputName: authorityDescription
+                  inlineParentTables:
+                    - tableJson:
+                        table: authority
+                        fieldExpressions:
+                          - field: name
+                            jsonProperty: authorityName
+                          - field: url
+                            jsonProperty: authorityUrl
+                          - field: description
+                            jsonProperty: authorityDescription
+        - collectionName: functionalCategories
+          tableJson:
+            table: drug_functional_category
+            inlineParentTables:
+              - tableJson:
+                  table: functional_category
+                  fieldExpressions:
+                    - field: name
+                      jsonProperty: categoryName
+                    - field: description
+              - tableJson:
+                  table: authority
+                  fieldExpressions:
+                    - field: name
+                      jsonProperty: authorityName
+                    - field: url
+                      jsonProperty: authorityUrl
+                    - field: description
+                      jsonProperty: authorityDescription
       referencedParents:
-        - referenceFieldName: registeredByAnalyst
-          referencedParentTableOutputSpec:
-            tableName: analyst
-            nativeFields:
-              - databaseFieldName: id
-              - databaseFieldName: short_name
-        - referenceFieldName: compound
-          childForeignKeyFields:
+        - referenceName: registeredByAnalyst
+          tableJson:
+            table: analyst
+            fieldExpressions:
+              - field: id
+              - field: short_name
+        - referenceName: compound
+          viaForeignKeyFields:
             - compound_id
-          referencedParentTableOutputSpec:
-            tableName: compound
-            nativeFields:
-              - databaseFieldName: display_name
-              - databaseFieldName: nctr_isis_id
-              - databaseFieldName: cas
-              - databaseFieldName: entered
+          tableJson:
+            table: compound
+            fieldExpressions:
+              - field: display_name
+              - field: nctr_isis_id
+              - field: cas
+              - field: entered
             referencedParents:
-              - referenceFieldName: enteredByAnalyst
-                referencedParentTableOutputSpec:
-                  tableName: analyst
-                  nativeFields:
-                    - databaseFieldName: id
-                    - databaseFieldName: short_name
+              - referenceName: enteredByAnalyst
+                tableJson:
+                  table: analyst
+                  fieldExpressions:
+                    - field: id
+                    - field: short_name
       fieldParamConditions:
-        - fieldName: mesh_id
+        - field: mesh_id
           op: IN
-      otherCondition: '$d : not $d.id = 2' # "<alias-var> : <expr using alias-var>", both sides trimmed
-
+      condition: '$d : not $d.id = 2' # "<alias-var> : <expr using alias-var>", both sides trimmed

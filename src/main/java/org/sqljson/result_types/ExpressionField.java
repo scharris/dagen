@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import static java.util.Collections.emptyList;
 import static java.util.Collections.unmodifiableList;
 
 import org.sqljson.specs.queries.FieldTypeOverride;
@@ -12,20 +11,20 @@ import org.sqljson.specs.queries.FieldTypeOverride;
 
 public class ExpressionField
 {
-    private Optional<String> fieldExpression = Optional.empty();
-    private Optional<String> outputName = Optional.empty();
-    private List<FieldTypeOverride> fieldTypeOverrides = emptyList();
+    private String name;
+    private Optional<String> fieldExpression;
+    private List<FieldTypeOverride> fieldTypeOverrides;
 
-    public ExpressionField(Optional<String> fieldExpression, Optional<String> outputName, List<FieldTypeOverride> typeOverrides)
+    public ExpressionField(String name, Optional<String> fieldExpression, List<FieldTypeOverride> typeOverrides)
     {
+        this.name = name;
         this.fieldExpression = fieldExpression;
-        this.outputName = outputName;
         this.fieldTypeOverrides = unmodifiableList(new ArrayList<>(typeOverrides));
     }
 
-    public Optional<String> getFieldExpression() { return fieldExpression; }
+    public String getName() { return name; }
 
-    public Optional<String> getOutputName() { return outputName; }
+    public Optional<String> getFieldExpression() { return fieldExpression; }
 
     public List<FieldTypeOverride> getFieldTypeOverrides() { return fieldTypeOverrides; }
 
@@ -42,14 +41,14 @@ public class ExpressionField
         if (o == null || getClass() != o.getClass()) return false;
         ExpressionField that = (ExpressionField) o;
         return Objects.equals(fieldExpression, that.fieldExpression) &&
-            Objects.equals(outputName, that.outputName) &&
+            Objects.equals(name, that.name) &&
             Objects.equals(fieldTypeOverrides, that.fieldTypeOverrides);
     }
 
     @Override
     public int hashCode()
     {
-        return Objects.hash(fieldExpression, outputName, fieldTypeOverrides);
+        return Objects.hash(fieldExpression, name, fieldTypeOverrides);
     }
 
     @Override
@@ -57,7 +56,7 @@ public class ExpressionField
     {
         return "ExpressionField{" +
             "fieldExpression=" + fieldExpression +
-            ", outputName=" + outputName +
+            ", name=" + name +
             ", fieldTypeOverrides=" + fieldTypeOverrides +
             '}';
     }

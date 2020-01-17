@@ -6,7 +6,7 @@ import java.util.Set;
 
 public interface ParentSpec
 {
-   TableOutputSpec getParentTableOutputSpec();
+   TableJsonSpec getParentTableJsonSpec();
 
    Optional<Set<String>> getChildForeignKeyFieldsSet();
 }

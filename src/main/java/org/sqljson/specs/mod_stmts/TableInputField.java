@@ -10,7 +10,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 
 public class TableInputField
 {
-   private String fieldName;
+   private String field;
    private Optional<String> value = empty();
    // Should be non-empty iff generating source and the value is an expression (not simple name).
    private List<String> expressionValueParamNames = emptyList();
@@ -19,17 +19,17 @@ public class TableInputField
 
    public TableInputField
    (
-      String fieldName,
+      String field,
       Optional<String> value,
       List<String> expressionValueParamNames
    )
    {
-      this.fieldName = fieldName;
+      this.field = field;
       this.value = value;
       this.expressionValueParamNames = expressionValueParamNames;
    }
 
-   public String getFieldName() { return fieldName; }
+   public String getField() { return field; }
 
    public Optional<String> getValue() { return value; }
 

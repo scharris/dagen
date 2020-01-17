@@ -21,20 +21,20 @@ public class FieldParamCondition
       }
    }
 
-   private String fieldName;
+   private String field;
    private Operator op = Operator.EQ;
    private Optional<String> paramName = empty();
 
    private FieldParamCondition() {}
 
-   public FieldParamCondition(String fieldName, Operator op, Optional<String> paramName)
+   public FieldParamCondition(String field, Operator op, Optional<String> paramName)
    {
-      this.fieldName = fieldName;
+      this.field = field;
       this.op = op;
       this.paramName = paramName;
    }
 
-   public String getFieldName() { return fieldName; }
+   public String getField() { return field; }
 
    public Operator getOp() { return op; }
 
@@ -42,7 +42,7 @@ public class FieldParamCondition
 
    public String getFinalParamName(Function<String,String> defaultParamNameFn) // default param name as function of field name
    {
-      return paramName.orElse(defaultParamNameFn.apply(fieldName));
+      return paramName.orElse(defaultParamNameFn.apply(field));
    }
 
    public String toSql
@@ -52,7 +52,7 @@ public class FieldParamCondition
       Function<String,String> defaultParamNameFn // default param name as function of field name
    )
    {
-      String mqFieldName = maybeQualify(tableAlias, fieldName);
+      String mqFieldName = maybeQualify(tableAlias, field);
       String paramValExpr = paramsType == NUMBERED ? "?" : ":"+getFinalParamName(defaultParamNameFn);
 
       switch ( getOp() )

@@ -4,10 +4,10 @@ querySpecs:
   - queryName: drug with bad table name query
     resultsRepresentations: [JSON_OBJECT_ROWS]
     generateResultTypes: true
-    tableOutputSpec:
-      tableName: xdrug
-      nativeFields:
-        - databaseFieldName: id
-        - databaseFieldName: name
-        - databaseFieldName: mesh_id
-      otherCondition: '$d : $d.id = 2'
+    tableJson:
+      table: xdrug
+      fieldExpressions:
+        - field: id
+        - field: name
+        - field: mesh_id
+      condition: '$d : $d.id = 2'

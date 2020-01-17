@@ -7,33 +7,33 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 
 public final class ReferencedParentSpec implements ParentSpec
 {
-   private String referenceFieldName;
-   private TableOutputSpec referencedParentTableOutputSpec;
-   private Optional<List<String>> childForeignKeyFields = Optional.empty();
+   private String referenceName;
+   private TableJsonSpec tableJson;
+   private Optional<List<String>> viaForeignKeyFields = Optional.empty();
 
    private ReferencedParentSpec() {}
 
    public ReferencedParentSpec
    (
-      String fieldName,
-      TableOutputSpec referencedParentTableOutputSpec,
-      Optional<List<String>> childForeignKeyFields
+      String referenceName,
+      TableJsonSpec tableJson,
+      Optional<List<String>> viaForeignKeyFields
    )
    {
-      this.referenceFieldName = fieldName;
-      this.referencedParentTableOutputSpec = referencedParentTableOutputSpec;
-      this.childForeignKeyFields = childForeignKeyFields.map(Collections::unmodifiableList);
+      this.referenceName = referenceName;
+      this.tableJson = tableJson;
+      this.viaForeignKeyFields = viaForeignKeyFields.map(Collections::unmodifiableList);
    }
 
-   public String getReferenceFieldName() { return referenceFieldName; }
+   public String getReferenceName() { return referenceName; }
 
-   public TableOutputSpec getReferencedParentTableOutputSpec() { return referencedParentTableOutputSpec; }
+   public TableJsonSpec getTableJson() { return getParentTableJsonSpec(); }
 
-   public Optional<List<String>> getChildForeignKeyFields() { return childForeignKeyFields; }
-
-   @JsonIgnore
-   public TableOutputSpec getParentTableOutputSpec() { return referencedParentTableOutputSpec; }
+   public Optional<List<String>> getViaForeignKeyFields() { return viaForeignKeyFields; }
 
    @JsonIgnore
-   public Optional<Set<String>> getChildForeignKeyFieldsSet() { return childForeignKeyFields.map(HashSet::new); }
+   public TableJsonSpec getParentTableJsonSpec() { return tableJson; }
+
+   @JsonIgnore
+   public Optional<Set<String>> getChildForeignKeyFieldsSet() { return viaForeignKeyFields.map(HashSet::new); }
 }
