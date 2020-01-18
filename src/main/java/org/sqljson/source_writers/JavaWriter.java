@@ -94,7 +94,8 @@ public class JavaWriter implements SourceCodeWriter
             if ( includeTimestamp )
                bw.write("//   " + Instant.now().toString().replace('T',' ') + "\n");
             bw.write("// --------------------------------------------------------------------------\n");
-            bw.write("package " + targetPackage + ";\n\n");
+            if ( !targetPackage.isEmpty() )
+               bw.write("package " + targetPackage + ";\n\n");
             bw.write("import java.util.*;\n");
             bw.write("import java.math.*;\n");
             bw.write("import java.time.*;\n");
