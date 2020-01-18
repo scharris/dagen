@@ -143,6 +143,15 @@ public class TypescriptWriter implements SourceCodeWriter
          sb.append(";\n");
       }
 
+      for ( ExpressionField f : generatedType.getExpressionFields() )
+      {
+         sb.append("   ");
+         sb.append(f.getName());
+         sb.append(": ");
+         sb.append(getTSTypeNameForExpressionField(f));
+         sb.append(";\n");
+      }
+
       for ( ChildCollectionField childCollField : generatedType.getChildCollectionFields() )
       {
          sb.append("   ");
@@ -207,6 +216,15 @@ public class TypescriptWriter implements SourceCodeWriter
       }
    }
 
+   private String getTSTypeNameForExpressionField(ExpressionField f)
+   {
+      FieldTypeOverride typeOverride = f.getTypeOverride("Typescript").orElseThrow(() ->
+          new RuntimeException("Field type override is required for expression field " + f.getFieldExpression())
+      );
+      return typeOverride.getTypeDeclaration();
+   }
+
+
    private String getParentRefDeclaredType(ParentReferenceField parentRefField)
    {
       return
@@ -217,7 +235,26 @@ public class TypescriptWriter implements SourceCodeWriter
 
    private String getChildCollectionDeclaredType(ChildCollectionField childCollField)
    {
-      String bareChildCollType = childCollField.getGeneratedType().getTypeName() + "[]";
+      GeneratedType genType = childCollField.getGeneratedType();
+      String elType = !genType.isUnwrapped() ? genType.getTypeName() : getSoleFieldDeclaredType(genType);
+      String bareChildCollType = elType + "[]";
       return !childCollField.isNullable() ? bareChildCollType : bareChildCollType + "?";
+   }
+
+   private String getSoleFieldDeclaredType(GeneratedType genType)
+   {
+      if ( genType.getFieldsCount() != 1 )
+         throw new RuntimeException("Expected single field when unwrapping " + genType.getTypeName() + ".");
+
+      if ( genType.getDatabaseFields().size() == 1 )
+         return getTSTypeNameForDatabaseField(genType.getDatabaseFields().get(0));
+      else if ( genType.getExpressionFields().size() == 1 )
+         return getTSTypeNameForExpressionField(genType.getExpressionFields().get(0));
+      else if ( genType.getChildCollectionFields().size() == 1 )
+         return getChildCollectionDeclaredType(genType.getChildCollectionFields().get(0));
+      else if ( genType.getParentReferenceFields().size() == 1 )
+         return getParentRefDeclaredType(genType.getParentReferenceFields().get(0));
+      throw
+          new RuntimeException("Unhandled field category when unwrapping " + genType.getTypeName() + ".");
    }
 }
