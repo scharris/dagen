@@ -25,7 +25,7 @@ public class PostgresDialect implements SqlDialect
    {
       String objectFieldDecls =
          columnMetadatas.stream()
-         .map(col -> "'" + StringFuns.unDoubleQuote(col.getOutputName()) + "', " + fromAlias + "." + col.getOutputName())
+         .map(col -> "'" + StringFuns.unDoubleQuote(col.getName()) + "', " + fromAlias + "." + col.getName())
          .collect(joining(",\n"));
 
          return
@@ -45,6 +45,16 @@ public class PostgresDialect implements SqlDialect
          "coalesce(jsonb_agg(" +
             getRowObjectExpression(columnMetadatas, fromAlias) +
          "),'[]'::jsonb)";
+   }
+
+   @Override
+   public String getAggregatedColumnValuesExpression
+   (
+       ColumnMetadata columnMetadata,
+       String fromAlias
+   )
+   {
+      return "coalesce(jsonb_agg(" + fromAlias + "." + columnMetadata.getName() + "))";
    }
 
    @Override

@@ -10,28 +10,28 @@ import org.sqljson.specs.queries.FieldTypeOverride;
 
 public class ColumnMetadata
 {
-   private final String outputName;
+   private final String name;
    private final SelectClauseEntry.Source source;
    private final List<FieldTypeOverride> fieldTypeOverrides;
 
-   public ColumnMetadata(String outputName, SelectClauseEntry.Source source)
+   public ColumnMetadata(String name, SelectClauseEntry.Source source)
    {
-      this(outputName, source, emptyList());
+      this(name, source, emptyList());
    }
 
    public ColumnMetadata
    (
-      String outputName,
+      String name,
       SelectClauseEntry.Source source,
       List<FieldTypeOverride> fieldTypeOverrides
    )
    {
-      this.outputName = outputName;
+      this.name = name;
       this.source = source;
       this.fieldTypeOverrides = unmodifiableList(new ArrayList<>(fieldTypeOverrides));
    }
 
-   public String getOutputName() { return outputName; }
+   public String getName() { return name; }
 
    public SelectClauseEntry.Source getSource() { return source; }
 

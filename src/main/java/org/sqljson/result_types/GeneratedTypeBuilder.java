@@ -13,6 +13,7 @@ public class GeneratedTypeBuilder
    private final List<ExpressionField> expressionFields;
    private final List<ChildCollectionField> childCollectionFields;
    private final List<ParentReferenceField> parentReferenceFields;
+   // NOTE: Fields from inline parents are included in the above.
 
    public GeneratedTypeBuilder()
    {

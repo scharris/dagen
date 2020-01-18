@@ -100,6 +100,25 @@ querySpecs:
       fieldParamConditions:
         - field: id
 
+  # drug with unwrapped advisory ids
+  - queryName: drug with unwrapped advisory ids query
+    resultsRepresentations: [JSON_OBJECT_ROWS]
+    generateResultTypes: true
+    tableJson:
+      table: drug
+      fieldExpressions:
+        - field: id
+        - field: name
+      childTableCollections:
+        - collectionName: advisories
+          unwrap: true
+          tableJson:
+            table: advisory
+            fieldExpressions:
+              - field: id
+      fieldParamConditions:
+        - field: id
+
   # Inline parent query, where parent's fields are included inline in the child table.
   - queryName: advisory with inline advisory type query
     resultsRepresentations: [JSON_OBJECT_ROWS]

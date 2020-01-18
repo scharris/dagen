@@ -11,6 +11,7 @@ public final class ChildCollectionSpec
    private TableJsonSpec tableJson;
    private Optional<List<String>> foreignKeyFields = Optional.empty();
    private Optional<String> filter = Optional.empty();
+   private boolean unwrap = false;
 
    private ChildCollectionSpec() {}
 
@@ -19,13 +20,15 @@ public final class ChildCollectionSpec
       String collectionName,
       TableJsonSpec tableJson,
       Optional<List<String>> fkFields,
-      Optional<String> filter
+      Optional<String> filter,
+      boolean unwrap
    )
    {
       this.collectionName = collectionName;
       this.tableJson = tableJson;
       this.foreignKeyFields = fkFields.map(Collections::unmodifiableList);
       this.filter = filter;
+      this.unwrap = unwrap;
    }
 
    public String getCollectionName() { return collectionName; }
@@ -38,4 +41,6 @@ public final class ChildCollectionSpec
    public Optional<Set<String>> getForeignKeyFieldsSet() { return foreignKeyFields.map(HashSet::new); }
 
    public Optional<String> getFilter() { return filter; }
+
+   public boolean getUnwrap() { return unwrap; }
 }

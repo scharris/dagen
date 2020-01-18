@@ -39,7 +39,7 @@ public class SelectClauseEntry
 
    public String getValueExpression() { return valueExpression; }
 
-   public String getOutputName() { return outputName; }
+   public String getName() { return outputName; }
 
    public Source getSource() { return source; }
 

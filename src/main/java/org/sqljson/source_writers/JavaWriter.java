@@ -129,7 +129,8 @@ public class JavaWriter implements SourceCodeWriter
 
                for ( GeneratedType generatedType: q.getGeneratedResultTypes() )
                {
-                  if ( !writtenTypeNames.contains(generatedType.getTypeName()) )
+                  if ( !writtenTypeNames.contains(generatedType.getTypeName()) &&
+                       !generatedType.isUnwrapped() )
                   {
                      String srcCode = makeGeneratedTypeSource(generatedType);
 
@@ -233,11 +234,8 @@ public class JavaWriter implements SourceCodeWriter
 
       for ( ExpressionField f : generatedType.getExpressionFields() )
       {
-         FieldTypeOverride typeOverride = f.getTypeOverride("Java").orElseThrow(() ->
-            new RuntimeException("Field type override is required for expression field " + f.getFieldExpression())
-         );
          sb.append("   public ");
-         sb.append(typeOverride.getTypeDeclaration());
+         sb.append(getJavaTypeNameForExpressionField(f));
          sb.append(" ");
          sb.append(f.getName());
          sb.append(";\n");
@@ -301,7 +299,24 @@ public class JavaWriter implements SourceCodeWriter
       }
    }
 
+   private String getJavaTypeNameForExpressionField(ExpressionField f)
+   {
+      FieldTypeOverride typeOverride = f.getTypeOverride("Java").orElseThrow(() ->
+          new RuntimeException("Field type override is required for expression field " + f.getFieldExpression())
+      );
+      return typeOverride.getTypeDeclaration();
+   }
+
    private String getJavaTypeNameForDatabaseField(DatabaseField f)
+   {
+      return getJavaTypeNameForDatabaseField(f, false);
+   }
+
+   private String getJavaTypeNameForDatabaseField
+   (
+       DatabaseField f,
+       boolean box
+   )
    {
       boolean notNull = !(f.getNullable().orElse(true));
 
@@ -313,12 +328,12 @@ public class JavaWriter implements SourceCodeWriter
       {
          case Types.TINYINT:
          case Types.SMALLINT:
-            return notNull ? "int" : nullableType("Integer");
+            return notNull ? (box ? "Integer" : "int") : nullableType("Integer");
          case Types.INTEGER:
          case Types.BIGINT:
          {
             boolean needsLong = !f.getPrecision().isPresent() || f.getPrecision().get() > 9;
-            if ( notNull ) return needsLong ? "long": "int";
+            if ( notNull ) return needsLong ? (box ? "Long" : "long") : (box ? "Integer" : "int");
             else return needsLong ? nullableType("Long"): nullableType("Integer");
          }
          case Types.DECIMAL:
@@ -326,7 +341,7 @@ public class JavaWriter implements SourceCodeWriter
             if ( f.getFractionalDigits().equals(opt(0) ) )
             {
                boolean needsLong = !f.getPrecision().isPresent() || f.getPrecision().get() > 9;
-               if ( notNull ) return needsLong ? "long": "int";
+               if ( notNull ) return needsLong ? (box ? "Long" : "long") : (box ? "Integer" : "int");
                else return needsLong ? nullableType("Long"): nullableType("Integer");
             }
             else
@@ -334,7 +349,7 @@ public class JavaWriter implements SourceCodeWriter
          case Types.FLOAT:
          case Types.REAL:
          case Types.DOUBLE:
-            return notNull ? "double" : nullableType("Double");
+            return notNull ? (box ? "Double": "double") : nullableType("Double");
          case Types.CHAR:
          case Types.VARCHAR:
          case Types.LONGVARCHAR:
@@ -342,7 +357,7 @@ public class JavaWriter implements SourceCodeWriter
             return notNull ? "String" : nullableType("String");
          case Types.BIT:
          case Types.BOOLEAN:
-            return notNull ? "boolean" : nullableType("Boolean");
+            return notNull ? (box ? "Boolean" : "boolean") : nullableType("Boolean");
          case Types.DATE:
             return notNull ? "LocalDate" : nullableType("LocalDate");
          case Types.TIME:
@@ -369,8 +384,27 @@ public class JavaWriter implements SourceCodeWriter
 
    private String getChildCollectionDeclaredType(ChildCollectionField childCollField)
    {
-      String bareChildCollType = "List<" + childCollField.getGeneratedType().getTypeName() + ">";
+      GeneratedType genType = childCollField.getGeneratedType();
+      String elType = !genType.isUnwrapped() ? genType.getTypeName() : getSoleFieldDeclaredBoxedType(genType);
+      String bareChildCollType = "List<" + elType + ">";
       return !childCollField.isNullable() ? bareChildCollType : nullableType(bareChildCollType);
+   }
+
+   private String getSoleFieldDeclaredBoxedType(GeneratedType genType)
+   {
+      if ( genType.getFieldsCount() != 1 )
+         throw new RuntimeException("Expected single field when unwrapping " + genType.getTypeName() + ".");
+
+      if ( genType.getDatabaseFields().size() == 1 )
+         return getJavaTypeNameForDatabaseField(genType.getDatabaseFields().get(0), true);
+      else if ( genType.getExpressionFields().size() == 1 )
+         return getJavaTypeNameForExpressionField(genType.getExpressionFields().get(0));
+      else if ( genType.getChildCollectionFields().size() == 1 )
+         return getChildCollectionDeclaredType(genType.getChildCollectionFields().get(0));
+      else if ( genType.getParentReferenceFields().size() == 1 )
+         return getParentRefDeclaredType(genType.getParentReferenceFields().get(0));
+      throw
+          new RuntimeException("Unhandled field category when unwrapping " + genType.getTypeName() + ".");
    }
 
    private String nullableType(String baseType)

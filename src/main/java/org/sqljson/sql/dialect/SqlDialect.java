@@ -16,6 +16,8 @@ public interface SqlDialect
    /// which builds an array of json objects from a source relation having the given column names and table alias.
    String getAggregatedRowObjectsExpression(List<ColumnMetadata> columnMetadatas, String fromAlias);
 
+   String getAggregatedColumnValuesExpression(ColumnMetadata columnMetadata, String fromAlias);
+
    /// This method is intended to allow correcting the final value of an aggregate query by allowing it to be
    /// wrapped in another query. For example this method is used to correct Oracle (<19) returning an empty clob
    /// when using json_arrayagg() over a source returning no rows, in which case Oracle unhelpfully returns an

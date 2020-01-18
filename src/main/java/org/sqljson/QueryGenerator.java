@@ -114,7 +114,7 @@ public class QueryGenerator
          case JSON_OBJECT_ROWS:
             return makeJsonObjectRowsSql(tjs, empty(), outputFieldNameDefaultFn);
          case JSON_ARRAY_ROW:
-            return makeAggregatedJsonResultSql(tjs, empty(), outputFieldNameDefaultFn);
+            return makeAggregatedJsonResultSql(tjs, empty(), outputFieldNameDefaultFn, false);
          default:
             throw new RuntimeException("unrecognized results representation: " + resultsRepr);
       }
@@ -205,7 +205,7 @@ public class QueryGenerator
       List<ColumnMetadata> columnMetadatas =
          q.getSelectClauseEntries().stream()
          .filter(e -> e.getSource() != SelectClauseEntry.Source.HIDDEN_PK)
-         .map(e -> new ColumnMetadata(e.getOutputName(), e.getSource()))
+         .map(e -> new ColumnMetadata(e.getName(), e.getSource()))
          .collect(toList());
 
       return new BaseQuery(sql, columnMetadatas);
@@ -223,12 +223,18 @@ public class QueryGenerator
       (
          TableJsonSpec tableJsonSpec,
          Optional<ParentChildCondition> parentChildLinkCond,
-         Function<String,String> outputFieldNameDefaultFn
+         Function<String,String> outputFieldNameDefaultFn,
+         boolean unwrapSingleColumnValues
       )
    {
       BaseQuery baseQuery = makeBaseQuery(tableJsonSpec, parentChildLinkCond, false, outputFieldNameDefaultFn);
 
-      String aggExpr = sqlDialect.getAggregatedRowObjectsExpression(baseQuery.getResultColumnMetadatas(), "q");
+      if ( unwrapSingleColumnValues && baseQuery.getResultColumnMetadatas().size() != 1 )
+         throw new RuntimeException("Unwrapped child collection attempted on child with multiple columns.");
+
+      String aggExpr = unwrapSingleColumnValues ?
+          sqlDialect.getAggregatedColumnValuesExpression(baseQuery.getResultColumnMetadatas().get(0), "q")
+          : sqlDialect.getAggregatedRowObjectsExpression(baseQuery.getResultColumnMetadatas(), "q");
 
       String simpleAggregateQuery =
          "select\n" +
@@ -284,7 +290,11 @@ public class QueryGenerator
 
       ChildFkCondition childFkCond = new ChildFkCondition(parentAlias, fk.getForeignKeyComponents());
 
-      return makeAggregatedJsonResultSql(tjs, opt(childFkCond), outputFieldNameDefaultFn);
+      boolean unwrapChildValues = childCollectionSpec.getUnwrap();
+      if ( unwrapChildValues && childCollectionSpec.getTableJson().getJsonPropertiesCount() > 1 )
+         throw new RuntimeException("Option 'unwrap' specified for child table " + tjs.getTable() + " having more than one column.");
+
+      return makeAggregatedJsonResultSql(tjs, opt(childFkCond), outputFieldNameDefaultFn, unwrapChildValues);
    }
 
    private SqlQueryParts getInlineParentBaseQueryParts
@@ -310,8 +320,8 @@ public class QueryGenerator
 
       for ( ColumnMetadata parentCol : fromClauseQuery.getResultColumnMetadatas() )
          q.addSelectClauseEntry(
-            fromClauseQueryAlias + "." + parentCol.getOutputName(),
-             parentCol.getOutputName(),
+            fromClauseQueryAlias + "." + parentCol.getName(),
+             parentCol.getName(),
             SelectClauseEntry.Source.INLINE_PARENT,
             parentCol.getFieldTypeOverrides()
          );
@@ -372,7 +382,7 @@ public class QueryGenerator
    {
       String selectEntriesStr =
          q.getSelectClauseEntries().stream()
-         .map(p -> p.getValueExpression() + (p.getOutputName().startsWith("\"") ? " " : " as ") + p.getOutputName())
+         .map(p -> p.getValueExpression() + (p.getName().startsWith("\"") ? " " : " as ") + p.getName())
          .collect(joining(",\n"));
 
       String fromEntriesStr = String.join("\n", q.getFromClauseEntries());

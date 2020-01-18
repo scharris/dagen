@@ -74,4 +74,14 @@ public final class TableJsonSpec
 
    @JsonIgnore
    public boolean hasCondition() { return !fieldParamConditions.isEmpty() || condition.isPresent(); }
+
+   @JsonIgnore
+   public int getJsonPropertiesCount()
+   {
+       return
+          fieldExpressions.size() +
+          childTableCollections.size() +
+          referencedParentTables.size() +
+          inlineParentTables.stream().mapToInt(ip -> ip.getParentTableJsonSpec().getJsonPropertiesCount()).sum();
+   }
 }

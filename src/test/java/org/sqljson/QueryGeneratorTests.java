@@ -1,6 +1,7 @@
 package org.sqljson;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -155,6 +156,21 @@ class QueryGeneratorTests extends TestsBase
             expectedAdvisories.add("Caution concerning drug 2");
             expectedAdvisories.add("Heard this might be bad -anon2");
             assertEquals(advisories.stream().map(a -> a.advisoryText).collect(toSet()), expectedAdvisories);
+        });
+    }
+
+    @Test
+    @DisplayName("Query for a drug with unwrapped advisory ids, deserialize to generated type.")
+    void readDrugWithUnwrappedAdvisoryIds() throws Exception
+    {
+        String sql = getGeneratedQuerySql("drug with unwrapped advisory ids query(json object rows).sql");
+
+        SqlParameterSource params = params(DrugWithUnwrappedAdvisoryIdsQuery.drugIdParam, 2L);
+
+        doQuery(sql, params, rs -> {
+            DrugWithUnwrappedAdvisoryIdsQuery.Drug res = readJson(rs.getString(1), DrugWithUnwrappedAdvisoryIdsQuery.Drug.class);
+            assertEquals(res.id, 2);
+            assertEquals(new HashSet<>(res.advisories), new HashSet<>(Arrays.asList(201L, 202L, 246L)));
         });
     }
 

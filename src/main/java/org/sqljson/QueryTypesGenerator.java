@@ -103,14 +103,21 @@ class QueryTypesGenerator
       }
 
       // Add each child table's types to the overall list of generated types, and their collection fields to this type.
-      for ( ChildCollectionSpec childCollectionSpec : tjs.getChildTableCollections() )
+      for ( ChildCollectionSpec childCollSpec : tjs.getChildTableCollections() )
       {
          // Generate types by traversing the child table and its parents and children.
          List<GeneratedType> childGenTypes =
-            generateTypes(childCollectionSpec.getTableJson(), typesInScope, outputFieldNameDefaultFn);
-         GeneratedType childType = childGenTypes.get(0);
+             generateTypes(
+                 childCollSpec.getTableJson(),
+                 typesInScope,
+                 outputFieldNameDefaultFn
+             );
 
-         typeBuilder.addChildCollectionField(childCollectionSpec.getCollectionName(), childType, false);
+         // Mark the top-level child type as unwrapped if specified.
+         GeneratedType childType = childGenTypes.get(0).withUnwrapped(childCollSpec.getUnwrap());
+         childGenTypes.set(0, childType);
+
+         typeBuilder.addChildCollectionField(childCollSpec.getCollectionName(), childType, false);
 
          generatedTypes.addAll(childGenTypes);
          childGenTypes.forEach(t -> typesInScope.put(t.getTypeName(), t));

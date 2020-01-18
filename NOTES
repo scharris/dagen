@@ -1,21 +1,8 @@
-Rename various items for clarity.
-x tableOutputSpec -> tableOutput -> tableJson
-x tableName -> table
-x childCollections -> childTableCollections
-x inlineParents -> inlineParentTables
-x nativeFields -> fieldsAndExpressions -> fieldExpressions
-x databaseFieldName -> field
-x fieldExpression -> expression
-x outputName -> jsonProperty
-x otherCondition -> condition
-x fieldTypeOverrides -> generateTypes
-x childTableOutputSpec -> childTableOutput -> tableJson
-x childCollectionName -> collectionName
-x parentTableOutputSpec -> parentTableOutput -> tableJson
-x inlineParentTableOutputSpec -> parentTableOutput -> tableJson
-x referencedParentTableOutput -> parentTableOutput -> tableJson
-x referenceFieldName -> referenceName
-x childForeignKeyFields -> viaForeignKeyFields
+Shorten long methods in:
+  QueryGenerator
+  QueryTypesGenerator
+  JavaWriter
+
 
 
 Add to docs that test database needs to be started prior to testing:

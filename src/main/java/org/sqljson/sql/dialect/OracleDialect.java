@@ -4,6 +4,7 @@ import java.util.List;
 import static java.util.stream.Collectors.joining;
 
 import org.sqljson.sql.ColumnMetadata;
+
 import static org.sqljson.sql.SelectClauseEntry.Source.CHILD_COLLECTION;
 import static org.sqljson.util.StringFuns.indentLines;
 import static org.sqljson.util.StringFuns.unDoubleQuote;
@@ -27,10 +28,10 @@ public class OracleDialect implements SqlDialect
    {
       String objectFieldDecls =
          columnMetadatas.stream()
-         .map(col -> "'" + unDoubleQuote(col.getOutputName()) + "' value " +
+         .map(col -> "'" + unDoubleQuote(col.getName()) + "' value " +
             (col.getSource() == CHILD_COLLECTION ?
-               "treat(" + fromAlias + "." + col.getOutputName() + " as json)"
-               :  fromAlias + "." + col.getOutputName())
+               "treat(" + fromAlias + "." + col.getName() + " as json)"
+               :  fromAlias + "." + col.getName())
          )
          .collect(joining(",\n"));
 
@@ -51,6 +52,17 @@ public class OracleDialect implements SqlDialect
          "json_arrayagg(" +
             getRowObjectExpression(columnMetadatas, fromAlias) +
          " returning clob)";
+   }
+
+   @Override
+   public String getAggregatedColumnValuesExpression
+       (
+           ColumnMetadata columnMetadata,
+           String fromAlias
+       )
+   {
+       // TODO
+       throw new RuntimeException("Unwrapped child collections are not yet supported for Oracle database.");
    }
 
    /// Replace empty clob returned by json_arrayagg() when aggregating over no
