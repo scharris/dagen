@@ -2,6 +2,7 @@ package org.sqljson.result_types;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import org.sqljson.dbmd.Field;
 import org.sqljson.specs.queries.FieldTypeOverride;
@@ -33,6 +34,10 @@ public class GeneratedTypeBuilder
    public void addExpressionField(ExpressionField tof)
    {
       expressionFields.add(tof);
+   }
+   public void addExpressionField(String name, Optional<String> fieldExpr, List<FieldTypeOverride> typeOverrides)
+   {
+      addExpressionField(new ExpressionField(name, fieldExpr, typeOverrides));
    }
 
    public void addExpressionFields(List<ExpressionField> tofs) { expressionFields.addAll(tofs); }
@@ -72,6 +77,14 @@ public class GeneratedTypeBuilder
          addChildCollectionFields(generatedType.getChildCollectionFieldsNullable());
          addParentReferenceFields(generatedType.getParentReferenceFieldsNullable());
       }
+   }
+
+   public void addAllFieldsFrom(GeneratedTypeBuilder generatedTypeBuilder)
+   {
+      addDatabaseFields(generatedTypeBuilder.databaseFields);
+      addExpressionFields(generatedTypeBuilder.expressionFields);
+      addChildCollectionFields(generatedTypeBuilder.childCollectionFields);
+      addParentReferenceFields(generatedTypeBuilder.parentReferenceFields);
    }
 
    public GeneratedType build(String name)

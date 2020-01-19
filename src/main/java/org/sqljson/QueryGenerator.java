@@ -55,11 +55,10 @@ public class QueryGenerator
    {
       this.dbmd = dbmd;
       this.defaultSchema = defaultSchema;
-      this.generateUnqualifiedNamesForSchemas =
-         generateUnqualifiedNamesForSchemas.stream().map(dbmd::normalizeName).collect(toSet());
+      this.generateUnqualifiedNamesForSchemas = generateUnqualifiedNamesForSchemas.stream().map(dbmd::normalizeName).collect(toSet());
       this.indentSpaces = 2;
       this.sqlDialect = SqlDialect.fromDatabaseMetadata(this.dbmd, this.indentSpaces);
-      this.queryTypesGenerator = new QueryTypesGenerator(dbmd, defaultSchema);
+      this.queryTypesGenerator = new QueryTypesGenerator(dbmd, defaultSchema, outputFieldNameDefaultFn);
       this.outputFieldNameDefaultFn = outputFieldNameDefaultFn;
    }
 
@@ -84,9 +83,8 @@ public class QueryGenerator
          querySpec.getResultsRepresentations().stream()
          .collect(toMap(identity(), repr -> makeSqlForResultsRepr(querySpec, repr, outputFieldNameDefaultFn)));
 
-      List<GeneratedType> generatedTypes =
-         querySpec.getGenerateResultTypes() ?
-            queryTypesGenerator.generateTypes(querySpec.getTableJson(), emptyMap(), outputFieldNameDefaultFn)
+      List<GeneratedType> generatedTypes = querySpec.getGenerateResultTypes() ?
+            queryTypesGenerator.generateTypes(querySpec.getTableJson(), emptyMap())
             : emptyList();
 
       return

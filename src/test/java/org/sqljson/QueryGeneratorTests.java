@@ -252,7 +252,7 @@ class QueryGeneratorTests extends TestsBase
             );
         Throwable t = assertThrows(RuntimeException.class, () -> queryGenerator.generateQueries(queryGroupSpec.getQuerySpecs()));
         String msg = t.getMessage().toLowerCase();
-        assertTrue(msg.contains("no metadata for field drug.xname"));
+        assertTrue(msg.contains("drug.xname"));
     }
 
     @Test
