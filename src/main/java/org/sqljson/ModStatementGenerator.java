@@ -13,7 +13,6 @@ import org.sqljson.dbmd.DatabaseMetadata;
 import org.sqljson.dbmd.RelId;
 import org.sqljson.dbmd.RelMetadata;
 import org.sqljson.specs.FieldParamCondition;
-import org.sqljson.specs.mod_stmts.ParametersType;
 import org.sqljson.util.AppUtils;
 import org.sqljson.specs.mod_stmts.ModSpec;
 import org.sqljson.specs.mod_stmts.TableInputField;
@@ -237,50 +236,56 @@ public class ModStatementGenerator
       for ( TableInputField inputField : modSpec.getInputFields() )
       {
          if ( inputField.hasSimpleParamValue() )
-         {
-            switch ( modSpec.getParametersType() )
-            {
-               case NAMED:
-               {
-                  String paramValueExpr = getInputFieldValue(inputField, modSpec);
-
-                  if ( !paramValueExpr.startsWith(":") )
-                     throw new RuntimeException(
-                        "Failed to determine parameter name for field \"" + inputField.getField() + "\" " +
-                        "in statement specification \"" + modSpec.getStatementName() + "\" (expected leading  ':')."
-                     );
-
-                  res.add(paramValueExpr.substring(1));
-                  break;
-               }
-               case NUMBERED:
-                  res.add(getDefaultInputFieldParamName(inputField.getField()));
-                  break;
-               default:
-                  throw new RuntimeException("Unrecognized parameters type " + modSpec.getParametersType());
-            }
-         }
+            res.add(getSimpleInputFieldParamName(inputField, modSpec));
          else // Input field spec has custom expression value (parenthesized), it must list any involved param names.
          {
-            String valueExpression = inputField.getValue().orElseThrow(() ->
-               new RuntimeException("Programming error: input value should be present when not a simple param value.")
-            );
-            // Check that the declared parameters actually occur in the value expression string.
-            if ( modSpec.getParametersType() == NAMED )
-            {
-               for ( String exprValParam : inputField.getExpressionValueParamNames() )
-                  if ( !valueExpression.contains(":" + exprValParam) )
-                     throw new RuntimeException(
-                        "Param \"" + exprValParam + "\" not detected in value expresion for input field " +
-                           "\"" + inputField.getField() + "\" of statement \"" + modSpec.getStatementName() + "\"."
-                     );
-            }
-
+            validateExpressionInputField(inputField, modSpec);
             res.addAll(inputField.getExpressionValueParamNames());
          }
       }
 
       return res;
+   }
+
+   private String getSimpleInputFieldParamName(TableInputField inputField, ModSpec modSpec)
+   {
+      switch ( modSpec.getParametersType() )
+      {
+         case NAMED:
+         {
+            String paramValueExpr = getInputFieldValue(inputField, modSpec);
+
+            if ( !paramValueExpr.startsWith(":") )
+               throw new RuntimeException(
+                  "Failed to determine parameter name for field \"" + inputField.getField() + "\" " +
+                  "in statement specification \"" + modSpec.getStatementName() + "\" (expected leading  ':')."
+               );
+
+            return paramValueExpr.substring(1);
+         }
+         case NUMBERED:
+            return getDefaultInputFieldParamName(inputField.getField());
+         default:
+            throw new RuntimeException("Unrecognized parameters type " + modSpec.getParametersType());
+      }
+   }
+
+   private void validateExpressionInputField(TableInputField inputField, ModSpec modSpec)
+   {
+      String valueExpression = inputField.getValue().orElseThrow(() ->
+          new RuntimeException("Programming error: input value should be present when not a simple param value.")
+      );
+
+      // Check that the declared parameters actually occur in the value expression string.
+      if ( modSpec.getParametersType() == NAMED )
+      {
+         for ( String exprValParam : inputField.getExpressionValueParamNames() )
+            if ( !valueExpression.contains(":" + exprValParam) )
+               throw new RuntimeException(
+                   "Param \"" + exprValParam + "\" not detected in value expresion for input field " +
+                       "\"" + inputField.getField() + "\" of statement \"" + modSpec.getStatementName() + "\"."
+               );
+      }
    }
 
    private String getDefaultCondParamName(String inputFieldName)
@@ -318,15 +323,6 @@ public class ModStatementGenerator
       return conds.isEmpty() ? empty() : opt(String.join("\nand\n", conds));
    }
 
-   public String getDefaultInputFieldValue(String inputFieldName, ParametersType parametersType)
-   {
-      switch ( parametersType )
-      {
-         case NAMED: return  ":" + getDefaultInputFieldParamName(inputFieldName);
-         case NUMBERED: return "?";
-         default: throw new RuntimeException("Unexpected parameter name default enumeration value.");
-      }
-   }
 
    /// Return a possibly qualified identifier for the given table, omitting the schema
    /// qualifier if it has a schema for which it's specified to use unqualified names.
@@ -358,8 +354,4 @@ public class ModStatementGenerator
       verifyTableFieldsExist(whereCondFieldNames, relMetadata, dbmd);
    }
 
-   private String commaJoinFieldNames(List<TableInputField> fields)
-   {
-      return fields.stream().map(TableInputField::getField).collect(joining(","));
-   }
 }
