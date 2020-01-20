@@ -110,12 +110,53 @@ querySpecs:
         - field: id
         - field: name
       childTableCollections:
-        - collectionName: advisories
+        - collectionName: advisoryIds
           unwrap: true
           tableJson:
             table: advisory
             fieldExpressions:
               - field: id
+      fieldParamConditions:
+        - field: id
+
+  # drug with unwrapped advisory texts
+  - queryName: drug with unwrapped advisory texts query
+    resultsRepresentations: [JSON_OBJECT_ROWS]
+    generateResultTypes: true
+    tableJson:
+      table: drug
+      fieldExpressions:
+        - field: id
+        - field: name
+      childTableCollections:
+        - collectionName: advisoryTexts
+          unwrap: true
+          tableJson:
+            table: advisory
+            fieldExpressions:
+              - field: text
+      fieldParamConditions:
+        - field: id
+
+  # drug with unwrapped advisory type names
+  - queryName: drug with unwrapped advisory type names query
+    resultsRepresentations: [JSON_OBJECT_ROWS]
+    generateResultTypes: true
+    tableJson:
+      table: drug
+      fieldExpressions:
+        - field: id
+        - field: name
+      childTableCollections:
+        - collectionName: advisoryTypeNames
+          unwrap: true
+          tableJson:
+            table: advisory
+            inlineParentTables:
+              - tableJson:
+                  table: advisory_type
+                  fieldExpressions:
+                    - field: name
       fieldParamConditions:
         - field: id
 

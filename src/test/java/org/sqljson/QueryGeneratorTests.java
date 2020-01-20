@@ -170,10 +170,45 @@ class QueryGeneratorTests extends TestsBase
         doQuery(sql, params, rs -> {
             DrugWithUnwrappedAdvisoryIdsQuery.Drug res = readJson(rs.getString(1), DrugWithUnwrappedAdvisoryIdsQuery.Drug.class);
             assertEquals(res.id, 2);
-            assertEquals(new HashSet<>(res.advisories), new HashSet<>(Arrays.asList(201L, 202L, 246L)));
+            assertEquals(new HashSet<>(res.advisoryIds), new HashSet<>(Arrays.asList(201L, 202L, 246L)));
         });
     }
 
+    @Test
+    @DisplayName("Query for a drug with unwrapped advisory texts, deserialize to generated type.")
+    void readDrugWithUnwrappedAdvisoryTexts() throws Exception
+    {
+        String sql = getGeneratedQuerySql("drug with unwrapped advisory texts query(json object rows).sql");
+
+        SqlParameterSource params = params(DrugWithUnwrappedAdvisoryTextsQuery.drugIdParam, 2L);
+
+        doQuery(sql, params, rs -> {
+            DrugWithUnwrappedAdvisoryTextsQuery.Drug res = readJson(rs.getString(1), DrugWithUnwrappedAdvisoryTextsQuery.Drug.class);
+            assertEquals(res.id, 2);
+            assertEquals(
+                new HashSet<>(res.advisoryTexts),
+                new HashSet<>(Arrays.asList("Advisory concerning drug 2", "Heard this might be bad -anon2", "Caution concerning drug 2"))
+            );
+        });
+    }
+
+    @Test
+    @DisplayName("Query for a drug with unwrapped advisory type names, deserialize to generated type.")
+    void readDrugWithUnwrappedAdvisoryTypeNames() throws Exception
+    {
+        String sql = getGeneratedQuerySql("drug with unwrapped advisory type names query(json object rows).sql");
+
+        SqlParameterSource params = params(DrugWithUnwrappedAdvisoryTypeNamesQuery.drugIdParam, 2L);
+
+        doQuery(sql, params, rs -> {
+            DrugWithUnwrappedAdvisoryTypeNamesQuery.Drug res = readJson(rs.getString(1), DrugWithUnwrappedAdvisoryTypeNamesQuery.Drug.class);
+            assertEquals(res.id, 2);
+            assertEquals(
+                new HashSet<>(res.advisoryTypeNames),
+                new HashSet<>(Arrays.asList("Caution", "Rumor", "Boxed Warning"))
+            );
+        });
+    }
 
     @Test
     @DisplayName("Query for an advisory with inline advisory type parent, deserialize to generated type.")
