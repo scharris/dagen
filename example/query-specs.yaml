@@ -87,7 +87,7 @@ querySpecs:
                       jsonProperty: authorityUrl
                     - field: description
                       jsonProperty: authorityDescription
-      referencedParents:
+      referencedParentTables:
         - referenceName: registeredByAnalyst
           tableJson:
             table: analyst
@@ -104,7 +104,7 @@ querySpecs:
               - field: nctr_isis_id
               - field: cas
               - field: entered
-            referencedParents:
+            referencedParentTables:
               - referenceName: enteredByAnalyst
                 tableJson:
                   table: analyst

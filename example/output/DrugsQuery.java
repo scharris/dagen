@@ -1,8 +1,6 @@
 // --------------------------------------------------------------------------
 // [ THIS SOURCE CODE WAS AUTO-GENERATED, ANY CHANGES MADE HERE MAY BE LOST. ]
 // --------------------------------------------------------------------------
-package ;
-
 import java.util.*;
 import java.math.*;
 import java.time.*;
