@@ -2,7 +2,7 @@
 
 cd $(dirname $0)
 
-JAR=../target/dml-gen-jar-with-dependencies.jar
+JAR=../target/dagen-jar-with-dependencies.jar
 
 echo Generating database metadata...
 java -cp "$JAR" \

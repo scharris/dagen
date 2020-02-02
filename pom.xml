@@ -3,11 +3,10 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.sqljson</groupId>
-  <artifactId>dml-gen</artifactId>
+  <artifactId>dagen</artifactId>
   <version>1.0-SNAPSHOT</version>
-  <name>SQL/Json Query and Types Generator</name>
-  <description>Generate hierarchical SQL/JSON queries and matching result types from specifications.</description>
-
+  <name>data access generator</name>
+  <description>Generate hierarchical SQL/JSON queries, SQL modification statements, and matching types.</description>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -68,7 +67,7 @@
   </dependencies>
 
   <build>
-    <finalName>dml-gen</finalName>
+    <finalName>dagen</finalName>
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
