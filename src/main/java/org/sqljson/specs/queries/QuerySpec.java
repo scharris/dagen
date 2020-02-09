@@ -2,9 +2,9 @@ package org.sqljson.specs.queries;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import static java.util.Collections.*;
-import static java.util.Optional.empty;
+
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 import static org.sqljson.specs.queries.ResultsRepr.JSON_OBJECT_ROWS;
 
@@ -15,10 +15,14 @@ public final class QuerySpec
    private List<ResultsRepr> resultsRepresentations = singletonList(JSON_OBJECT_ROWS);
    private boolean generateResultTypes;
    private boolean generateSource = true; // Contains at least the resource name for generated SQL, if not result types.
-   private Optional<OutputFieldNameDefault> outputFieldNameDefault = empty(); // inherited from query group spec if empty
+   private @Nullable OutputFieldNameDefault outputFieldNameDefault = null; // inherited from query group spec if empty
    private TableJsonSpec tableJson;
 
-   private QuerySpec() {}
+   private QuerySpec()
+   {
+      this.queryName = "";
+      this.tableJson = new TableJsonSpec();
+   }
 
    public QuerySpec
    (
@@ -26,7 +30,7 @@ public final class QuerySpec
       List<ResultsRepr> resultsRepresentations,
       boolean generateResultTypes,
       boolean generateSource,
-      Optional<OutputFieldNameDefault> outputFieldNameDefault,
+      @Nullable OutputFieldNameDefault outputFieldNameDefault,
       TableJsonSpec tableJson
    )
    {
@@ -51,7 +55,7 @@ public final class QuerySpec
 
    public boolean getGenerateSource() { return generateSource; }
 
-   public Optional<OutputFieldNameDefault> getOutputFieldNameDefault() { return outputFieldNameDefault; }
+   public @Nullable OutputFieldNameDefault getOutputFieldNameDefault() { return outputFieldNameDefault; }
 
    public TableJsonSpec getTableJson() { return tableJson; }
 }

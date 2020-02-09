@@ -2,12 +2,12 @@ package org.sqljson;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Pattern;
 import static java.util.Collections.emptyList;
-import static java.util.Optional.empty;
 import static java.util.stream.Collectors.*;
+
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 import org.sqljson.dbmd.DatabaseMetadata;
 import org.sqljson.dbmd.RelId;
@@ -18,14 +18,14 @@ import org.sqljson.specs.mod_stmts.ModSpec;
 import org.sqljson.specs.mod_stmts.TableInputField;
 import static org.sqljson.specs.mod_stmts.ParametersType.NAMED;
 import static org.sqljson.util.DatabaseUtils.verifyTableFieldsExist;
-import static org.sqljson.util.Optionals.opt;
+import static org.sqljson.util.Nullables.*;
 import static org.sqljson.util.StringFuns.*;
 
 
 public class ModStatementGenerator
 {
    private final DatabaseMetadata dbmd;
-   private final Optional<String> defaultSchema;
+   private final @Nullable String defaultSchema;
    private final Set<String> unqualifiedNamesSchemas;
    private final int indentSpaces;
    private static final Pattern simpleParamNameRegex = Pattern.compile(":[a-zA-Z0-9_]+");
@@ -33,7 +33,7 @@ public class ModStatementGenerator
    public ModStatementGenerator
    (
       DatabaseMetadata dbmd,
-      Optional<String> defaultSchema,
+      @Nullable String defaultSchema,
       Set<String> unqualifiedNamesSchemas
    )
    {
@@ -92,9 +92,9 @@ public class ModStatementGenerator
 
    private GeneratedModStatement generateInsertStatement(ModSpec modSpec)
    {
-      if ( modSpec.getTableAlias().isPresent() )
+      if ( modSpec.getTableAlias() != null )
          AppUtils.throwError("A table alias is not allowed in an INSERT command.");
-      if ( !modSpec.getFieldParamConditions().isEmpty() || modSpec.getCondition().isPresent() )
+      if ( !modSpec.getFieldParamConditions().isEmpty() || modSpec.getCondition() != null )
          AppUtils.throwError("Conditions are not allowed for INSERT commands.");
 
       String sql = makeInsertSql(modSpec);
@@ -156,18 +156,14 @@ public class ModStatementGenerator
       if ( modSpec.getInputFields().isEmpty() )
          throw new RuntimeException("At least one field is required in an update modification command.");
 
-      Optional<String> whereCond = getCondition(modSpec);
+      @Nullable String whereCond = getCondition(modSpec);
 
       return
          "update " + minimalRelIdentifier(relId) +
-            modSpec.getTableAlias().map(a -> " " + a).orElse("") + "\n" +
+            applyOr(modSpec.getTableAlias(), a -> " " + a, "") + "\n" +
             "set\n" +
             indentLines(fieldAssignments, indentSpaces) +
-            whereCond.map(cond ->
-               "\nwhere (\n" +
-                  indentLines(cond, indentSpaces) + "\n" +
-               ")"
-            ).orElse("");
+            applyOr(whereCond, cond -> "\nwhere (\n" + indentLines(cond, indentSpaces) + "\n" + ")", "");
    }
 
    private GeneratedModStatement generateDeleteStatement(ModSpec modSpec)
@@ -188,16 +184,11 @@ public class ModStatementGenerator
 
       verifyAllReferencedFieldsExist(modSpec, relId);
 
-      Optional<String> whereCond = getCondition(modSpec);
+      @Nullable String whereCond = getCondition(modSpec);
 
       return
-         "delete from " + minimalRelIdentifier(relId) +
-            modSpec.getTableAlias().map(a -> " " + a).orElse("") +
-         whereCond.map(cond ->
-            "\nwhere (\n"
-               + indentLines(cond, indentSpaces) + "\n" +
-            ")"
-         ).orElse("");
+         "delete from " + minimalRelIdentifier(relId) + applyOr(modSpec.getTableAlias(), a -> " " + a, "") +
+         applyOr(whereCond, cond -> "\nwhere (\n" + indentLines(cond, indentSpaces) + "\n" + ")", "");
    }
 
    private String getInputFieldValue
@@ -206,7 +197,7 @@ public class ModStatementGenerator
       ModSpec modSpec
    )
    {
-      return f.getValue().orElseGet(() ->
+      return valueOrGet(f.getValue(), () ->
          getDefaultParamValueExpression(f, modSpec)
       );
    }
@@ -272,7 +263,7 @@ public class ModStatementGenerator
 
    private void validateExpressionInputField(TableInputField inputField, ModSpec modSpec)
    {
-      String valueExpression = inputField.getValue().orElseThrow(() ->
+      String valueExpression = valueOrThrow(inputField.getValue(), () ->
           new RuntimeException("Programming error: input value should be present when not a simple param value.")
       );
 
@@ -298,11 +289,11 @@ public class ModStatementGenerator
    {
       return
         modSpec.getFieldParamConditions().stream()
-        .map(eq -> eq.getParamName().orElse(getDefaultCondParamName(eq.getField())))
+        .map(eq -> valueOr(eq.getParamName(), getDefaultCondParamName(eq.getField())))
         .collect(toList());
    }
 
-   private Optional<String> getCondition(ModSpec modSpec)
+   private @Nullable String getCondition(ModSpec modSpec)
    {
       List<String> conds = new ArrayList<>();
 
@@ -318,9 +309,11 @@ public class ModStatementGenerator
       }
 
       // Other condition goes last so it will not interfere with parameter numbering in case it introduces its own params.
-      modSpec.getCondition().ifPresent(otherCond -> conds.add("(" + otherCond + ")"));
+      ifPresent(modSpec.getCondition(), cond ->
+          conds.add("(" + cond + ")")
+      );
 
-      return conds.isEmpty() ? empty() : opt(String.join("\nand\n", conds));
+      return conds.isEmpty() ? null : String.join("\nand\n", conds);
    }
 
 
@@ -328,8 +321,8 @@ public class ModStatementGenerator
    /// qualifier if it has a schema for which it's specified to use unqualified names.
    private String minimalRelIdentifier(RelId relId)
    {
-      if ( !relId.getSchema().isPresent() ||
-         unqualifiedNamesSchemas.contains(dbmd.normalizeName(relId.getSchema().get())) )
+      @Nullable String schema = relId.getSchema();
+      if ( schema == null || unqualifiedNamesSchemas.contains(dbmd.normalizeName(schema)) )
          return relId.getName();
       else
          return relId.getIdString();
@@ -342,7 +335,7 @@ public class ModStatementGenerator
    )
       throws DatabaseObjectsNotFoundException
    {
-      RelMetadata relMetadata = dbmd.getRelationMetadata(relId).orElseThrow(() ->
+      RelMetadata relMetadata = valueOrThrow(dbmd.getRelationMetadata(relId), () ->
          new DatabaseObjectsNotFoundException("Table " + relId.toString() + " not found.")
       );
 

@@ -1,10 +1,8 @@
 package org.sqljson.dbmd;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+
 import static java.util.Collections.unmodifiableList;
 import static java.util.Objects.requireNonNull;
 
@@ -22,18 +20,23 @@ public class ForeignKey implements Serializable {
     public enum EquationStyle {SOURCE_ON_LEFTHAND_SIDE, TARGET_ON_LEFTHAND_SIDE}
 
     public ForeignKey
-        (
-            RelId sourceRelationId,
-            RelId targetRelationId,
-            List<Component> foreignKeyComponents
-        )
+    (
+        RelId sourceRelationId,
+        RelId targetRelationId,
+        List<Component> foreignKeyComponents
+    )
     {
         this.sourceRelationId = requireNonNull(sourceRelationId);
         this.targetRelationId = requireNonNull(targetRelationId);
         this.foreignKeyComponents = unmodifiableList(new ArrayList<>(requireNonNull(foreignKeyComponents)));
     }
 
-    protected ForeignKey() {}
+    ForeignKey()
+    {
+        sourceRelationId = RelId.DUMMY_INSTANCE;
+        targetRelationId = RelId.DUMMY_INSTANCE;
+        foreignKeyComponents = Collections.emptyList();
+    }
 
     public RelId getSourceRelationId() { return sourceRelationId; }
 
@@ -64,20 +67,20 @@ public class ForeignKey implements Serializable {
     }
 
     public String asEquation
-        (
-            String src_rel_alias,
-            String tgt_rel_alias
-        )
+    (
+        String src_rel_alias,
+        String tgt_rel_alias
+    )
     {
         return asEquation(src_rel_alias, tgt_rel_alias, EquationStyle.SOURCE_ON_LEFTHAND_SIDE);
     }
 
     public String asEquation
-        (
-            String srcRelAlias,
-            String tgtRelAlias,
-            EquationStyle style
-        )
+    (
+        String srcRelAlias,
+        String tgtRelAlias,
+        EquationStyle style
+    )
     {
         StringBuilder sb = new StringBuilder();
 
@@ -88,13 +91,13 @@ public class ForeignKey implements Serializable {
             if ( sb.length() > 0 )
                 sb.append(" and ");
 
-            String fstAlias = srcFirst ? srcRelAlias :                tgtRelAlias;
-            String fstFld =   srcFirst ? fkc.getForeignKeyFieldName() : fkc.getPrimaryKeyFieldName();
+            String fstAlias = srcFirst ? srcRelAlias : tgtRelAlias;
+            String fstFld = srcFirst ? fkc.getForeignKeyFieldName() : fkc.getPrimaryKeyFieldName();
 
-            String sndAlias = srcFirst ? tgtRelAlias :                srcRelAlias;
-             String sndFld =   srcFirst ? fkc.getPrimaryKeyFieldName() : fkc.getForeignKeyFieldName();
+            String sndAlias = srcFirst ? tgtRelAlias : srcRelAlias;
+            String sndFld = srcFirst ? fkc.getPrimaryKeyFieldName() : fkc.getForeignKeyFieldName();
 
-            if ( fstAlias != null && fstAlias.length() > 0 )
+            if ( fstAlias.length() > 0 )
             {
                 sb.append(fstAlias);
                 sb.append('.');
@@ -103,7 +106,7 @@ public class ForeignKey implements Serializable {
 
             sb.append(" = ");
 
-               if ( sndAlias != null && sndAlias.length() > 0 )
+            if ( sndAlias.length() > 0 )
             {
                 sb.append(sndAlias);
                 sb.append('.');
@@ -121,7 +124,7 @@ public class ForeignKey implements Serializable {
 
         Set<String> childFkFieldNames = new HashSet<>();
 
-        for(ForeignKey.Component fk_comp: getForeignKeyComponents())
+        for( ForeignKey.Component fk_comp: getForeignKeyComponents() )
             childFkFieldNames.add(fk_comp.getForeignKeyFieldName());
 
         return childFkFieldNames.equals(normdReqdFkFieldNames);
@@ -139,7 +142,11 @@ public class ForeignKey implements Serializable {
             primaryKeyFieldName = pkName;
         }
 
-        protected Component() {}
+        private Component()
+        {
+            this.foreignKeyFieldName = "";
+            this.primaryKeyFieldName = "";
+        }
 
         public String getForeignKeyFieldName() { return foreignKeyFieldName; }
 

@@ -2,17 +2,16 @@ package org.sqljson.specs.queries;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.unmodifiableList;
-import static java.util.Optional.empty;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 import static org.sqljson.specs.queries.OutputFieldNameDefault.CAMELCASE;
 
 
 public final class QueryGroupSpec
 {
-   private Optional<String> defaultSchema = empty();
+   private @Nullable String defaultSchema = null;
    private OutputFieldNameDefault outputFieldNameDefault = CAMELCASE;
    private List<String> generateUnqualifiedNamesForSchemas = emptyList();
    private List<QuerySpec> querySpecs = emptyList();
@@ -21,7 +20,7 @@ public final class QueryGroupSpec
 
    public QueryGroupSpec
    (
-      Optional<String> defaultSchema,
+      @Nullable String defaultSchema,
       OutputFieldNameDefault outputFieldNameDefault,
       List<String> generateUnqualifiedNamesForSchemas,
       List<QuerySpec> querySpecs
@@ -33,7 +32,7 @@ public final class QueryGroupSpec
       this.querySpecs = unmodifiableList(new ArrayList<>(querySpecs));
    }
 
-   public Optional<String> getDefaultSchema() { return defaultSchema; }
+   public @Nullable String getDefaultSchema() { return defaultSchema; }
 
    public OutputFieldNameDefault getOutputFieldNameDefault() { return outputFieldNameDefault; }
 

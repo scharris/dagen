@@ -1,27 +1,32 @@
 package org.sqljson.dbmd;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
 import java.util.Objects;
-import java.util.Optional;
 import static java.util.Objects.requireNonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 
 public final class RelId {
 
-    private Optional<String> schema;
+    static RelId DUMMY_INSTANCE = new RelId();
+
+    private @Nullable String schema;
 
     private String name;
 
-    public RelId(Optional<String> schema, String name)
+    public RelId(@Nullable String schema, String name)
     {
-        this.schema = requireNonNull(schema);
+        this.schema = schema;
         this.name = requireNonNull(name);
     }
 
-    protected RelId() {}
+    RelId()
+    {
+        this.name = "";
+    }
 
-    public Optional<String> getSchema() { return schema; }
+    public @Nullable String getSchema() { return schema; }
 
     public String getName() { return name; }
 
@@ -34,11 +39,11 @@ public final class RelId {
     @JsonIgnore
     public String getIdString()
     {
-        return schema.map(s -> s + ".").orElse("") + name;
+        return (schema != null ? schema + "." : "") + name;
     }
 
 
-    public boolean equals(Object other)
+    public boolean equals(@Nullable Object other)
     {
         if ( !(other instanceof RelId) )
             return false;
@@ -53,6 +58,6 @@ public final class RelId {
 
     public int hashCode()
     {
-        return (schema.hashCode()  + 7 * name.hashCode());
+        return (schema != null ? schema.hashCode() : 0)  + 7 * name.hashCode();
     }
 }

@@ -3,17 +3,20 @@ package org.sqljson.dbmd;
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
+
+import static java.util.Collections.emptyList;
 import static java.util.Collections.unmodifiableList;
 import static java.util.Objects.requireNonNull;
-import static java.util.Optional.empty;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
-import org.sqljson.util.Optionals;
+import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import static org.sqljson.dbmd.CaseSensitivity.INSENSITIVE_STORED_LOWER;
 import static org.sqljson.dbmd.CaseSensitivity.INSENSITIVE_STORED_UPPER;
+import static org.sqljson.util.Nullables.valueOr;
 
 
 @JsonPropertyOrder({
@@ -22,7 +25,7 @@ import static org.sqljson.dbmd.CaseSensitivity.INSENSITIVE_STORED_UPPER;
 })
 public class DatabaseMetadata
 {
-    private Optional<String> schemaName;
+    private @Nullable String schemaName;
 
     private List<RelMetadata> relationMetadatas;
 
@@ -43,15 +46,15 @@ public class DatabaseMetadata
 
     // derived data
     // Access these only via methods of the same name, which make sure these fields are initialized.
-    private Map<RelId, RelMetadata> relMDsByRelId;
+    private @MonotonicNonNull Map<RelId, RelMetadata> relMDsByRelId;
 
-    private Map<RelId, List<ForeignKey>> fksByParentRelId;
+    private @MonotonicNonNull Map<RelId, List<ForeignKey>> fksByParentRelId;
 
-    private Map<RelId, List<ForeignKey>> fksByChildRelId;
+    private @MonotonicNonNull Map<RelId, List<ForeignKey>> fksByChildRelId;
 
     public DatabaseMetadata
     (
-        Optional<String> schemaName,
+        @Nullable String schemaName,
         List<RelMetadata> relationMetadatas,
         List<ForeignKey> foreignKeys,
         CaseSensitivity caseSensitivity,
@@ -61,7 +64,7 @@ public class DatabaseMetadata
         int dbmsMinorVersion
     )
     {
-        this.schemaName = requireNonNull(schemaName);
+        this.schemaName = schemaName;
         this.relationMetadatas = sortedMds(requireNonNull(relationMetadatas));
         this.foreignKeys = sortedFks(requireNonNull(foreignKeys));
         this.caseSensitivity = requireNonNull(caseSensitivity);
@@ -71,9 +74,16 @@ public class DatabaseMetadata
         this.dbmsMinorVersion = dbmsMinorVersion;
     }
 
-    protected DatabaseMetadata() {}
+    DatabaseMetadata()
+    {
+        relationMetadatas = emptyList();
+        foreignKeys = emptyList();
+        caseSensitivity = INSENSITIVE_STORED_LOWER;
+        dbmsName = "";
+        dbmsVersion = "";
+    }
 
-    public Optional<String> getSchemaName() { return schemaName; }
+    public @Nullable String getSchemaName() { return schemaName; }
 
     public List<RelMetadata> getRelationMetadatas() { return relationMetadatas; }
 
@@ -90,14 +100,14 @@ public class DatabaseMetadata
     public int getDbmsMinorVersion() { return dbmsMinorVersion; }
 
 
-    public Optional<RelMetadata> getRelationMetadata(RelId relId)
+    public @Nullable RelMetadata getRelationMetadata(RelId relId)
     {
-        return Optionals.optn(relMDsByRelId().get(relId));
+        return relMDsByRelId().get(relId);
     }
 
-    public Optional<RelMetadata> getRelationMetadata
+    public @Nullable RelMetadata getRelationMetadata
     (
-        Optional<String> schema,
+        @Nullable String schema,
         String relName
     )
     {
@@ -107,12 +117,10 @@ public class DatabaseMetadata
     public List<String> getFieldNames
     (
         RelId relId,
-        Optional<String> alias
+        @Nullable String alias
     )
     {
-        RelMetadata relMd = getRelationMetadata(relId).orElseThrow(() ->
-            new IllegalArgumentException("Relation " + relId + " not found.")
-        );
+        RelMetadata relMd = requireNonNull(getRelationMetadata(relId));
 
         return
             relMd.getFields().stream()
@@ -122,12 +130,12 @@ public class DatabaseMetadata
 
     public List<String> getFieldNames(RelId relId)
     {
-        return getFieldNames(relId, Optional.empty());
+        return getFieldNames(relId, null);
     }
 
     public List<String> getFieldNames
     (
-        Optional<String> schema,
+        @Nullable String schema,
         String relName
     )
     {
@@ -136,9 +144,9 @@ public class DatabaseMetadata
 
     public List<String> getFieldNames
     (
-        Optional<String> schema,
+        @Nullable String schema,
         String relName,
-        Optional<String> alias
+        @Nullable String alias
     )
     {
         return getFieldNames(makeRelId(schema, relName), alias);
@@ -147,24 +155,22 @@ public class DatabaseMetadata
     public List<String> getPrimaryKeyFieldNames
     (
         RelId relId,
-        Optional<String> alias
+        @Nullable String alias
     )
     {
-        RelMetadata relMd = getRelationMetadata(relId).orElseThrow(() ->
-            new IllegalArgumentException("Relation " + relId + " not found.")
-        );
+        RelMetadata relMd = requireNonNull(getRelationMetadata(relId));
 
         return relMd.getPrimaryKeyFieldNames(alias);
     }
 
     public List<String> getPrimaryKeyFieldNames(RelId relId)
     {
-        return getPrimaryKeyFieldNames(relId, Optional.empty());
+        return getPrimaryKeyFieldNames(relId, null);
     }
 
     public List<String> getPrimaryKeyFieldNames
     (
-        Optional<String> schema,
+        @Nullable String schema,
         String relName
     )
     {
@@ -173,9 +179,9 @@ public class DatabaseMetadata
 
     public List<String> getPrimaryKeyFieldNames
     (
-        Optional<String> schema,
+        @Nullable String schema,
         String relName,
-        Optional<String> alias
+        @Nullable String alias
     )
     {
         return getPrimaryKeyFieldNames(makeRelId(schema, relName), alias);
@@ -183,30 +189,30 @@ public class DatabaseMetadata
 
     public List<ForeignKey> getForeignKeysToParentsFrom(RelId relId)
     {
-        return getForeignKeysFromTo(Optionals.opt(relId), Optional.empty());
+        return getForeignKeysFromTo(relId, null);
     }
 
     public List<ForeignKey> getForeignKeysToParentsFrom
     (
-        Optional<String> schema,
+        @Nullable String schema,
         String relName
     )
     {
-        return getForeignKeysFromTo(Optionals.opt(makeRelId(schema, relName)), Optional.empty());
+        return getForeignKeysFromTo(makeRelId(schema, relName), null);
     }
 
     public List<ForeignKey> getForeignKeysFromChildrenTo(RelId relId)
     {
-        return getForeignKeysFromTo(Optional.empty(), Optionals.opt(relId));
+        return getForeignKeysFromTo(null, relId);
     }
 
     public List<ForeignKey> getForeignKeysFromChildrenTo
     (
-        Optional<String> schema,
+        @Nullable String schema,
         String relName
     )
     {
-        return getForeignKeysFromTo(Optional.empty(), Optionals.opt(makeRelId(schema, relName)));
+        return getForeignKeysFromTo(null, makeRelId(schema, relName));
     }
 
     public List<ForeignKey> getForeignKeysFromTo
@@ -217,40 +223,38 @@ public class DatabaseMetadata
         String toRelName
     )
     {
-        RelId fromRelId = makeRelId(Optionals.opt(fromSchema), fromRelName);
-        RelId toRelId = makeRelId(Optionals.opt(toSchema), toRelName);
+        RelId fromRelId = makeRelId(fromSchema, fromRelName);
+        RelId toRelId = makeRelId(toSchema, toRelName);
 
-        return getForeignKeysFromTo(Optionals.opt(fromRelId), Optionals.opt(toRelId));
+        return getForeignKeysFromTo(fromRelId, toRelId);
     }
 
     public List<ForeignKey> getForeignKeysFromTo
     (
-        Optional<RelId> childRelId,
-        Optional<RelId> parentRelId,
+        @Nullable RelId childRelId,
+        @Nullable RelId parentRelId,
         ForeignKeyScope fkScope
     )
     {
         List<ForeignKey> res = new ArrayList<>();
 
-        if ( !childRelId.isPresent() && !parentRelId.isPresent() )
-        {
+        if ( childRelId == null && parentRelId == null )
             res.addAll(foreignKeys);
-        }
-        else if ( childRelId.isPresent()  && parentRelId.isPresent() )
+        else if ( childRelId != null && parentRelId != null )
         {
-            res.addAll(fksByChildRelId(childRelId.get()));
-            res.retainAll(fksByParentRelId(parentRelId.get()));
+            res.addAll(fksByChildRelId(childRelId));
+            res.retainAll(fksByParentRelId(parentRelId));
         }
         else
-            res.addAll(childRelId.map(this::fksByChildRelId).orElseGet(() -> fksByParentRelId(parentRelId.get())));
+            res.addAll(childRelId != null ? fksByChildRelId(childRelId) : fksByParentRelId(requireNonNull(parentRelId)));
 
         if ( fkScope == ForeignKeyScope.REGISTERED_TABLES_ONLY )
         {
             return
                 res.stream()
                 .filter(fk ->
-                    getRelationMetadata(fk.getSourceRelationId()).isPresent() &&
-                    getRelationMetadata(fk.getTargetRelationId()).isPresent()
+                    getRelationMetadata(fk.getSourceRelationId()) != null &&
+                    getRelationMetadata(fk.getTargetRelationId()) != null
                 )
                 .collect(toList());
         }
@@ -260,8 +264,8 @@ public class DatabaseMetadata
 
     public List<ForeignKey> getForeignKeysFromTo
     (
-        Optional<RelId> childRelId,
-        Optional<RelId> parentRelId
+        @Nullable RelId childRelId,
+        @Nullable RelId parentRelId
     )
     {
         return
@@ -273,34 +277,29 @@ public class DatabaseMetadata
     }
 
     /** Return a single foreign key between the passed tables, having the specified field names if specified,
-     *  or Optional.empty() if not found. IllegalArgumentException is thrown if multiple foreign keys satisfy
-     *  the requirements.
+     *  or null if not found. IllegalArgumentException is thrown if multiple foreign keys satisfy the requirements.
      */
-    public Optional<ForeignKey> getForeignKeyFromTo
+    public @Nullable ForeignKey getForeignKeyFromTo
     (
         RelId fromRelId,
         RelId toRelId,
-        Optional<Set<String>> fieldNames,
+        @Nullable Set<String> fieldNames,
         ForeignKeyScope fkScope
     )
     {
-        Optional<RelId> fromRel = Optionals.opt(fromRelId);
-        Optional<RelId> toRel = Optionals.opt(toRelId);
+        @Nullable ForeignKey soughtFk = null;
+        @Nullable Set<String> normdFkFieldNames = fieldNames != null ? normalizeNames(fieldNames) : null;
 
-        Optional<Set<String>> normdFkFieldNames = fieldNames.map(this::normalizeNames);
-
-        ForeignKey soughtFk = null;
-
-        for ( ForeignKey fk : getForeignKeysFromTo(fromRel, toRel, fkScope) )
+        for ( ForeignKey fk : getForeignKeysFromTo(fromRelId, toRelId, fkScope) )
         {
-            if ( !normdFkFieldNames.isPresent() ||
-                 fk.sourceFieldNamesSetEqualsNormalizedNamesSet(normdFkFieldNames.get()) )
+            if ( normdFkFieldNames == null || fk.sourceFieldNamesSetEqualsNormalizedNamesSet(normdFkFieldNames) )
             {
                 if ( soughtFk != null ) // already found an fk satisfying requirements?
                     throw new IllegalArgumentException(
                         "Child table " + fromRelId + " has multiple foreign keys to parent table " + toRelId +
-                        (fieldNames.isPresent() ? " with the same specified source fields."
-                           : " and no foreign key fields were specified to disambiguate.")
+                        (fieldNames != null ?
+                            " with the same specified source fields."
+                            : " and no foreign key fields were specified to disambiguate.")
                     );
 
                 soughtFk = fk;
@@ -308,14 +307,14 @@ public class DatabaseMetadata
             }
         }
 
-        return Optionals.optn(soughtFk);
+        return soughtFk;
     }
 
     /** Return the field names in the passed table involved in foreign keys (to parents). */
     public Set<String> getForeignKeyFieldNames
     (
         RelId relId,
-        Optional<String> alias
+        @Nullable String alias
     )
     {
         return
@@ -353,7 +352,7 @@ public class DatabaseMetadata
         return repeatedParents;
     }
 
-    public Optional<ForeignKey> getForeignKeyHavingFieldSetAmong
+    public @Nullable ForeignKey getForeignKeyHavingFieldSetAmong
     (
         Set<String> srcFieldNames,
         Collection<ForeignKey> fks
@@ -364,7 +363,7 @@ public class DatabaseMetadata
         return
             fks.stream()
             .filter(fk -> fk.sourceFieldNamesSetEqualsNormalizedNamesSet(normdFieldNames))
-            .findAny();
+            .findAny().orElse(null);
     }
 
     /////////////////////////////////////////////////////////
@@ -436,7 +435,7 @@ public class DatabaseMetadata
         if ( relMDsByRelId == null )
             initDerivedData();
 
-        return relMDsByRelId;
+        return requireNonNull(relMDsByRelId);
     }
 
     private List<ForeignKey> fksByParentRelId(RelId relId)
@@ -444,8 +443,7 @@ public class DatabaseMetadata
         if ( fksByParentRelId == null )
             initDerivedData();
 
-        List<ForeignKey> fks = fksByParentRelId.get(relId);
-        return fks != null ? fks : Collections.emptyList();
+        return valueOr(requireNonNull(fksByParentRelId).get(relId), emptyList());
     }
 
     private List<ForeignKey> fksByChildRelId(RelId relId)
@@ -453,8 +451,7 @@ public class DatabaseMetadata
         if ( fksByChildRelId == null )
             initDerivedData();
 
-        List<ForeignKey> fks = fksByChildRelId.get(relId);
-        return fks != null ? fks : Collections.emptyList();
+        return valueOr(requireNonNull(fksByChildRelId).get(relId), emptyList());
     }
 
     private void initDerivedData()
@@ -526,24 +523,24 @@ public class DatabaseMetadata
         return names.stream().map(this::normalizeName).collect(toSet());
     }
 
-    private static String dotQualify(Optional<String> alias, String name)
+    private static String dotQualify(@Nullable String alias, String name)
     {
-        return alias.map(a -> a + "." + name).orElse(name);
+        return alias != null ? alias + "." + name : name;
     }
 
 
     public RelId makeRelId
     (
-        Optional<String> schema,
+        @Nullable String schema,
         String relName
     )
     {
-        return new RelId(schema.map(this::normalizeName), normalizeName(relName));
+        return new RelId(schema != null ? normalizeName(schema) : null, normalizeName(relName));
     }
 
     public RelId makeRelId(String possiblySchemaQualifiedRelName)
     {
-        Optional<String> schema;
+        @Nullable String schema;
         String relName;
 
         int dotix = possiblySchemaQualifiedRelName.indexOf('.');
@@ -555,16 +552,16 @@ public class DatabaseMetadata
         }
         else
         {
-            schema = Optionals.opt(possiblySchemaQualifiedRelName.substring(0, dotix));
+            schema = possiblySchemaQualifiedRelName.substring(0, dotix);
             relName = possiblySchemaQualifiedRelName.substring(dotix + 1);
         }
 
-        return new RelId(schema.map(this::normalizeName), normalizeName(relName));
+        return new RelId(schema != null ? normalizeName(schema) : null, normalizeName(relName));
     }
 
     /// Make a relation id from a given qualified or unqualified table identifier
     /// and an optional default schema for interpreting unqualified table names.
-    public RelId identifyTable(String table, Optional<String> defaultSchema)
+    public RelId identifyTable(String table, @Nullable String defaultSchema)
     {
         if ( table.contains("\"") )
             throw new RuntimeException("quoted table names are not supported currently");
@@ -574,13 +571,11 @@ public class DatabaseMetadata
         if ( dotIx != -1 ) // already qualified, split it
             return
                new RelId(
-                  Optionals.opt(normalizeName(table.substring(dotIx+1))),
+                  normalizeName(table.substring(dotIx+1)),
                   normalizeName(table.substring(0, dotIx))
                );
         else // not qualified, qualify it if there is a default schema
-            return
-               defaultSchema.map(schema -> new RelId(Optionals.opt(normalizeName(schema)), normalizeName(table)))
-                  .orElse(new RelId(empty(), normalizeName(table)));
+            return new RelId(defaultSchema != null ? normalizeName(defaultSchema) : null, normalizeName(table));
     }
 
 

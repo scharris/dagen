@@ -1,7 +1,7 @@
 package org.sqljson.dbmd;
 
-import java.util.Optional;
 import static java.util.Objects.requireNonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 
 public class RelDescr {
@@ -10,21 +10,24 @@ public class RelDescr {
 
     private RelMetadata.RelType relType;
 
-    private Optional<String> relComment;
+    private @Nullable String relComment;
 
-    public RelDescr(RelId relId, RelMetadata.RelType relType, Optional<String> relComment)
+    public RelDescr(RelId relId, RelMetadata.RelType relType, @Nullable String relComment)
     {
         this.relId = requireNonNull(relId);
         this.relType = requireNonNull(relType);
-        this.relComment = requireNonNull(relComment);
+        this.relComment = relComment;
     }
 
-    protected RelDescr() {}
+    private RelDescr()
+    {
+        this.relId = RelId.DUMMY_INSTANCE;
+        this.relType = RelMetadata.RelType.Table;
+    }
 
     public RelId getRelationId() { return relId; }
 
     public RelMetadata.RelType getRelationType() { return relType; }
 
-    public Optional<String> getRelationComment() { return relComment; }
-
+    public @Nullable String getRelationComment() { return relComment; }
 }

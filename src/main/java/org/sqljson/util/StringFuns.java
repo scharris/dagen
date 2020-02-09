@@ -1,8 +1,8 @@
 package org.sqljson.util;
 
-import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Pattern;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 
 public final class StringFuns
@@ -99,9 +99,9 @@ public final class StringFuns
       return s;
    }
 
-   public static boolean matches(Optional<Pattern> pat, String s)
+   public static boolean matches(@Nullable Pattern pat, String s)
    {
-      return pat.map(p -> p.matcher(s).matches()).orElse(false);
+      return pat != null && pat.matcher(s).matches();
    }
 
    /**
@@ -123,9 +123,9 @@ public final class StringFuns
       return expr.replace(var, varValue);
    }
 
-   public static String maybeQualify(Optional<String> qualifier, String objectName)
+   public static String maybeQualify(@Nullable String qualifier, String objectName)
    {
-      return qualifier.map(q -> q + ".").orElse("") + objectName;
+      return (qualifier != null ? qualifier + "." : "") + objectName;
    }
 
    private StringFuns() {}

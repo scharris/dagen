@@ -1,9 +1,8 @@
 package org.sqljson.specs.mod_stmts;
 
 import java.util.List;
-import java.util.Optional;
-import static java.util.Optional.empty;
 import static java.util.Collections.emptyList;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 import org.sqljson.specs.FieldParamCondition;
 import static org.sqljson.specs.mod_stmts.ParametersType.NAMED;
@@ -14,26 +13,31 @@ public class ModSpec
    private String statementName;
    private ModType command;
    private String table; // possibly qualified
-   private Optional<String> tableAlias = empty();
+   private @Nullable String tableAlias = null;
    private ParametersType parametersType = NAMED;
    private boolean generateSourceCode = true; // sql resource name and param info
    private List<TableInputField> inputFields = emptyList();
    private List<FieldParamCondition> fieldParamConditions = emptyList();
-   private Optional<String> condition = empty(); // augments field param equalities
+   private @Nullable String condition = null; // augments field param equalities
 
-   private ModSpec() {}
+   private ModSpec()
+   {
+      this.statementName = "";
+      this.command = ModType.DELETE;
+      this.table = "";
+   }
 
    public ModSpec
    (
       String statementName,
       ModType command,
       String table,
-      Optional<String> tableAlias,
+      @Nullable String tableAlias,
       ParametersType parametersType,
       boolean generateSourceCode,
       List<TableInputField> inputFields,
       List<FieldParamCondition> fieldParamConditions,
-      Optional<String> condition
+      @Nullable String condition
    )
    {
       this.statementName = statementName;
@@ -53,7 +57,7 @@ public class ModSpec
 
    public String getTable() { return table; }
 
-   public Optional<String> getTableAlias() { return tableAlias; }
+   public @Nullable String getTableAlias() { return tableAlias; }
 
    public ParametersType getParametersType() { return parametersType; }
 
@@ -63,5 +67,5 @@ public class ModSpec
 
    public List<FieldParamCondition> getFieldParamConditions() { return fieldParamConditions; }
 
-   public Optional<String> getCondition() { return condition; }
+   public @Nullable String getCondition() { return condition; }
 }

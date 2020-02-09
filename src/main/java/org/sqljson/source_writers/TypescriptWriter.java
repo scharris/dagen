@@ -8,6 +8,7 @@ import java.nio.file.Path;
 import java.time.Instant;
 import java.sql.Types;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.sqljson.GeneratedModStatement;
 import org.sqljson.GeneratedQuery;
 import org.sqljson.result_types.*;
@@ -16,17 +17,19 @@ import org.sqljson.specs.queries.ResultsRepr;
 import org.sqljson.util.StringFuns;
 import org.sqljson.WrittenQueryReprPath;
 
+import static org.sqljson.util.Nullables.*;
+
 
 public class TypescriptWriter implements SourceCodeWriter
 {
-   private Optional<Path> srcOutputDir;
-   private Optional<String> filesHeader;
+   private @Nullable Path srcOutputDir;
+   private @Nullable String filesHeader;
    private String sqlResourceNamePrefix;
 
    public TypescriptWriter
    (
-      Optional<Path> srcOutputDir,
-      Optional<String> filesHeader,
+      @Nullable Path srcOutputDir,
+      @Nullable String filesHeader,
       String sqlResourceNamePrefix
    )
    {
@@ -44,13 +47,13 @@ public class TypescriptWriter implements SourceCodeWriter
    )
       throws IOException
    {
-      if ( srcOutputDir.isPresent() )
-         Files.createDirectories(srcOutputDir.get());
+      if ( srcOutputDir != null )
+         Files.createDirectories(srcOutputDir);
 
       for ( GeneratedQuery q : generatedQueries )
       {
          String moduleName = StringFuns.upperCamelCase(q.getQueryName());
-         Optional<Path> outputFilePath = srcOutputDir.map(d -> d.resolve(moduleName + ".ts"));
+         @Nullable Path outputFilePath = applyIfPresent(srcOutputDir, d -> d.resolve(moduleName + ".ts"));
 
          BufferedWriter bw = org.sqljson.util.Files.newFileOrStdoutWriter(outputFilePath);
 
@@ -65,8 +68,8 @@ public class TypescriptWriter implements SourceCodeWriter
                bw.write("//   " + Instant.now().toString().replace('T',' ') + "\n");
             bw.write("// --------------------------------------------------------------------------\n");
 
-            if ( filesHeader.isPresent() )
-               bw.write(filesHeader.get());
+            if ( filesHeader != null )
+               bw.write(filesHeader);
 
             bw.write("\n\n");
 
@@ -105,7 +108,7 @@ public class TypescriptWriter implements SourceCodeWriter
          }
          finally
          {
-            if ( outputFilePath.isPresent() ) bw.close();
+            if ( outputFilePath != null ) bw.close();
             else bw.flush();
          }
       }
@@ -177,11 +180,11 @@ public class TypescriptWriter implements SourceCodeWriter
 
    private String getTSTypeNameForDatabaseField(DatabaseField f)
    {
-      boolean notNull = !(f.getNullable().orElse(true));
+      boolean notNull = !valueOr(f.getNullable(), true);
 
-      Optional<FieldTypeOverride> typeOverride = f.getTypeOverride("Typescript");
-      if ( typeOverride.isPresent() )
-         return typeOverride.get().getTypeDeclaration();
+      @Nullable FieldTypeOverride typeOverride = f.getTypeOverride("Typescript");
+      if ( typeOverride != null )
+         return typeOverride.getTypeDeclaration();
 
       switch ( f.getJdbcTypeCode() )
       {
@@ -218,7 +221,7 @@ public class TypescriptWriter implements SourceCodeWriter
 
    private String getTSTypeNameForExpressionField(ExpressionField f)
    {
-      FieldTypeOverride typeOverride = f.getTypeOverride("Typescript").orElseThrow(() ->
+      FieldTypeOverride typeOverride = valueOrThrow(f.getTypeOverride("Typescript"), () ->
           new RuntimeException("Field type override is required for expression field " + f.getFieldExpression())
       );
       return typeOverride.getTypeDeclaration();

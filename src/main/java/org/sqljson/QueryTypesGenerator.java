@@ -2,30 +2,30 @@ package org.sqljson;
 
 import java.util.*;
 import java.util.function.Function;
-
 import static java.util.Objects.requireNonNull;
-import static java.util.Optional.empty;
 import static java.util.stream.Collectors.*;
 import static java.util.function.Function.identity;
+import static org.sqljson.util.Nullables.*;
+
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 import org.sqljson.dbmd.*;
 import org.sqljson.result_types.GeneratedType;
 import org.sqljson.result_types.GeneratedTypeBuilder;
 import org.sqljson.specs.queries.*;
 import org.sqljson.util.StringFuns;
-import static org.sqljson.util.Optionals.opt;
 
 
 class QueryTypesGenerator
 {
    private final DatabaseMetadata dbmd;
-   private final Optional<String> defaultSchema;
+   private final @Nullable String defaultSchema;
    private final Function<String,String> outputFieldNameDefaultFn;
 
    QueryTypesGenerator
    (
       DatabaseMetadata dbmd,
-      Optional<String> defaultSchema,
+      @Nullable String defaultSchema,
       Function<String,String> outputFieldNameDefaultFn
    )
    {
@@ -34,6 +34,7 @@ class QueryTypesGenerator
       this.outputFieldNameDefaultFn = outputFieldNameDefaultFn;
    }
 
+   @SuppressWarnings("keyfor")
    List<GeneratedType> generateTypes
    (
       TableJsonSpec tjs,
@@ -74,10 +75,10 @@ class QueryTypesGenerator
          generatedTypes.add(0, typeBuilder.build(baseTypeName));
       else
       {
-         Optional<GeneratedType> existingIdenticalType =
+         @Nullable GeneratedType existingIdenticalType =
             findTypeIgnoringNameExtensions(typeBuilder.build(baseTypeName), previouslyGeneratedTypesByName);
-         if ( existingIdenticalType.isPresent() ) // Identical previously generated type found, use it as top type.
-            generatedTypes.add(0, existingIdenticalType.get());
+         if ( existingIdenticalType != null ) // Identical previously generated type found, use it as top type.
+            generatedTypes.add(0, existingIdenticalType);
          else // This type does not match any previously generated, but needs a new name.
          {
             String uniqueName = StringFuns.makeNameNotInSet(baseTypeName, typesInScope.keySet(), "_");
@@ -107,10 +108,10 @@ class QueryTypesGenerator
          }
          else
          {
-            String jsonProperty = tfe.getJsonProperty().orElseThrow(() ->
+            String jsonProperty = valueOrThrow(tfe.getJsonProperty(), () ->
                 new RuntimeException("Expression field " + relId + "." + tfe + " requires a json property.")
             );
-            typeBuilder.addExpressionField(jsonProperty, opt(tfe.getExpression()), tfe.getGenerateTypes());
+            typeBuilder.addExpressionField(jsonProperty, tfe.getExpression(), tfe.getGenerateTypes());
          }
       }
 
@@ -215,19 +216,19 @@ class QueryTypesGenerator
       Field dbField
    )
    {
-      return tableFieldExpr.getJsonProperty().orElseGet(() -> outputFieldNameDefaultFn.apply(dbField.getName()));
+      return valueOrGet(tableFieldExpr.getJsonProperty(), () -> outputFieldNameDefaultFn.apply(dbField.getName()));
    }
 
    private Map<String,Field> getTableFieldsByName(RelId relId)
    {
-      RelMetadata relMd = dbmd.getRelationMetadata(relId).orElseThrow(() ->
+      RelMetadata relMd = valueOrThrow(dbmd.getRelationMetadata(relId), () ->
          new RuntimeException("Metadata for table " + relId + " not found.")
       );
 
       return relMd.getFields().stream().collect(toMap(Field::getName, identity()));
    }
 
-   private Optional<GeneratedType> findTypeIgnoringNameExtensions
+   private @Nullable GeneratedType findTypeIgnoringNameExtensions
    (
       GeneratedType typeToFind,
       Map<String,GeneratedType> inMap
@@ -243,29 +244,29 @@ class QueryTypesGenerator
              entry.getKey().charAt(baseName.length()) == '_'); // underscore used as suffix separator for making unique names
 
          if ( baseNamesMatch && typeToFind.equalsIgnoringName(entry.getValue()) )
-            return opt(entry.getValue());
+            return entry.getValue();
       }
 
-      return empty();
+      return null;
    }
 
    private boolean noFkFieldKnownNotNullable(RelId childRelId, ParentSpec parentSpec)
    {
       RelId parentRelId = dbmd.identifyTable(parentSpec.getParentTableJsonSpec().getTable(), defaultSchema);
-      Optional<Set<String>> specFkFields = parentSpec.getChildForeignKeyFieldsSet();
-      ForeignKey fk = dbmd.getForeignKeyFromTo(childRelId, parentRelId, specFkFields, ForeignKeyScope.REGISTERED_TABLES_ONLY).orElseThrow(
-         () -> new RuntimeException("foreign key to parent not found")
+      @Nullable Set<String> specFkFields = parentSpec.getChildForeignKeyFieldsSet();
+      ForeignKey fk = valueOrThrow(dbmd.getForeignKeyFromTo(childRelId, parentRelId, specFkFields, ForeignKeyScope.REGISTERED_TABLES_ONLY), () ->
+          new RuntimeException("foreign key to parent not found")
       );
 
       Map<String,Field> childFieldsByName = getTableFieldsByName(childRelId);
 
       for ( String fkFieldName : fk.getSourceFieldNames() )
       {
-         Field fkField = childFieldsByName.get(fkFieldName);
-         if ( fkField == null )
-            throw new RuntimeException("foreign key not found");
+         Field fkField = valueOrThrow(childFieldsByName.get(fkFieldName), () ->
+            new RuntimeException("foreign key not found")
+         );
 
-         if ( !(fkField.getNullable().orElse(true)) )
+         if ( !valueOr(fkField.getNullable(), true) )
             return false;
       }
 

@@ -1,10 +1,12 @@
 package org.sqljson.dbmd;
 
 import java.util.*;
+
+import static java.util.Collections.emptyList;
 import static java.util.Collections.unmodifiableList;
 import static java.util.Objects.requireNonNull;
-import static java.util.Optional.empty;
 import static java.util.stream.Collectors.toList;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
@@ -17,7 +19,7 @@ public class RelMetadata
 
     private RelType relationType;
 
-    private Optional<String> relationComment;
+    private @Nullable String relationComment;
 
     private List<Field> fields;
 
@@ -28,23 +30,28 @@ public class RelMetadata
         (
             RelId relationId,
             RelType relationType,
-            Optional<String> relationComment,
+            @Nullable String relationComment,
             List<Field> fields
         )
     {
         this.relationId = requireNonNull(relationId);
         this.relationType = requireNonNull(relationType);
-        this.relationComment = requireNonNull(relationComment);
+        this.relationComment = relationComment;
         this.fields = unmodifiableList(new ArrayList<>(requireNonNull(fields)));
     }
 
-    protected RelMetadata() {}
+    RelMetadata()
+    {
+        this.relationId = RelId.DUMMY_INSTANCE;
+        this.relationType = RelType.Table;
+        this.fields = emptyList();
+    }
 
     public RelId getRelationId() { return relationId; }
 
     public RelType getRelationType() { return relationType; }
 
-    public Optional<String> getRelationComment() { return relationComment; }
+    public @Nullable String getRelationComment() { return relationComment; }
 
     public List<Field> getFields() { return fields; }
 
@@ -55,10 +62,14 @@ public class RelMetadata
 
         for ( Field f: fields )
         {
-            f.getPrimaryKeyPartNumber().ifPresent(n -> pks.add(f));
+            if ( f.getPrimaryKeyPartNumber() != null )
+                pks.add(f);
         }
 
-        pks.sort(Comparator.comparingInt(f -> f.getPrimaryKeyPartNumber().orElse(0)));
+        pks.sort(Comparator.comparingInt(f -> {
+            @Nullable Integer pn = f.getPrimaryKeyPartNumber();
+            return pn != null ? pn : 0;
+        }));
 
         return pks;
     }
@@ -66,14 +77,14 @@ public class RelMetadata
     @JsonIgnore()
     public List<String> getPrimaryKeyFieldNames()
     {
-        return getPrimaryKeyFieldNames(empty());
+        return getPrimaryKeyFieldNames(null);
     }
 
-    public List<String> getPrimaryKeyFieldNames(Optional<String> alias)
+    public List<String> getPrimaryKeyFieldNames(@Nullable String alias)
     {
         return
             getPrimaryKeyFields().stream()
-            .map(f -> alias.map(a -> a + "." + f.getName()).orElse(f.getName()))
+            .map(f -> alias != null ? alias + "." + f.getName() : f.getName())
             .collect(toList());
     }
 }

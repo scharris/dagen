@@ -5,8 +5,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
-import static java.util.Optional.empty;
+import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
+
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
@@ -14,17 +16,18 @@ import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 
 import org.sqljson.specs.queries.QueryGroupSpec;
 import org.sqljson.specs.queries.ResultsRepr;
-import org.sqljson.util.Optionals;
-import org.sqljson.util.Pair;
 import org.sqljson.util.AppUtils.SplitArgs;
-import static org.sqljson.util.AppUtils.splitOptionsAndRequiredArgs;
-import static org.sqljson.util.AppUtils.throwError;
-import static org.sqljson.util.Files.newFileOrStdoutWriter;
-import static org.sqljson.util.Serialization.writeJsonSchema;
 import org.sqljson.dbmd.DatabaseMetadata;
 import org.sqljson.source_writers.SourceCodeWriter;
 import org.sqljson.source_writers.JavaWriter;
 import org.sqljson.source_writers.TypescriptWriter;
+import static org.sqljson.util.AppUtils.splitOptionsAndRequiredArgs;
+import static org.sqljson.util.AppUtils.throwError;
+import static org.sqljson.util.Files.newFileOrStdoutWriter;
+import static org.sqljson.util.Files.readString;
+import static org.sqljson.util.Nullables.ifPresent;
+import static org.sqljson.util.Nullables.applyIfPresent;
+import static org.sqljson.util.Serialization.writeJsonSchema;
 
 
 public class QueryGeneratorMain
@@ -49,8 +52,8 @@ public class QueryGeneratorMain
       ps.println("   " + javaNullabilityOptPrefix + "<nullable-fields-option>  How nullable fields should be" +
                  "represented in Java.");
       ps.println("       Valid options are:");
+      ps.println("         annotated  : annotate nullable fields with with @Nullable.");
       ps.println("         optwrapped : wrap the type with Optional<>");
-      ps.println("         annotated  : annotate with JSR 305 @Nullable and @Nonnull.");
       ps.println("         baretype   : leave as bare type (Object variant for native types)");
       ps.println("   " + generatedTypesHeaderFileOptPrefix + "<file>  Contents of this file will be included at the " +
          "top of each generated type's source file (e.g. additional imports for overridden field types).");
@@ -84,9 +87,10 @@ public class QueryGeneratorMain
       if ( !Files.isRegularFile(queriesSpecFilePath) )
          throwError("Queries specification file not found.");
 
-      Optional<Pair<Path,Path>> outputDirs = args.required.size() > 2 ?
-         Optionals.opt(Pair.make(Paths.get(args.required.get(2)), Paths.get(args.required.get(3))))
-         : empty();
+
+      List<Path> outputDirs = args.required.size() > 2 ?
+          Arrays.asList(Paths.get(args.required.get(2)), Paths.get(args.required.get(3)))
+          : emptyList();
 
       try ( InputStream dbmdIS = Files.newInputStream(dbmdPath);
             InputStream queriesSpecIS = Files.newInputStream(queriesSpecFilePath) )
@@ -97,13 +101,13 @@ public class QueryGeneratorMain
          DatabaseMetadata dbmd = yamlMapper.readValue(dbmdIS, DatabaseMetadata.class);
          QueryGroupSpec queryGroupSpec = yamlMapper.readValue(queriesSpecIS, QueryGroupSpec.class);
 
-         Optional<Path> srcOutputBaseDirPath = outputDirs.map(Pair::fst);
-         srcOutputBaseDirPath.ifPresent(path ->  {
+         @Nullable Path srcOutputBaseDirPath = outputDirs.size() > 0 ? outputDirs.get(0) : null;
+         ifPresent(srcOutputBaseDirPath, path ->  {
             if ( !Files.isDirectory(path) ) throwError("Source output base directory not found.");
          });
 
-         Optional<Path> queriesOutputDirPath = outputDirs.map(Pair::snd);
-         queriesOutputDirPath.ifPresent(path ->  {
+         @Nullable Path queriesOutputDirPath = outputDirs.size() > 1 ? outputDirs.get(1) : null;
+         ifPresent(queriesOutputDirPath, path ->  {
             if ( !Files.isDirectory(path) ) throwError("Queries output directory not found.");
          });
 
@@ -142,14 +146,14 @@ public class QueryGeneratorMain
    private static SourceCodeWriter getSourceCodeWriter
    (
       SplitArgs args,
-      Optional<Path> srcOutputBaseDir
+      @Nullable Path srcOutputBaseDir
    )
    {
       String language = "";
       String targetPackage = "";
       String sqlResourceNamePrefix = "";
       JavaWriter.NullableFieldRepr nullableFieldRepr = JavaWriter.NullableFieldRepr.ANNOTATED;
-      Optional<String> typeFilesHeader = empty();
+      @Nullable String typeFilesHeader = null;
       for ( String opt : args.optional )
       {
          if ( opt.startsWith(sqlResourcePathInGeneratedSourceOptPrefix) )
@@ -159,11 +163,9 @@ public class QueryGeneratorMain
          else if ( opt.startsWith(pkgOptPrefix) )
             targetPackage = opt.substring(pkgOptPrefix.length());
          else if ( opt.startsWith(javaNullabilityOptPrefix) )
-            nullableFieldRepr =
-               JavaWriter.NullableFieldRepr.valueOf(opt.substring(javaNullabilityOptPrefix.length()).toUpperCase());
+            nullableFieldRepr = JavaWriter.NullableFieldRepr.valueOf(opt.substring(javaNullabilityOptPrefix.length()).toUpperCase());
          else if ( opt.startsWith(generatedTypesHeaderFileOptPrefix) )
-            typeFilesHeader =
-               Optionals.opt(org.sqljson.util.Files.readString(Paths.get(opt.substring(generatedTypesHeaderFileOptPrefix.length()))));
+            typeFilesHeader = readString(Paths.get(opt.substring(generatedTypesHeaderFileOptPrefix.length())));
          else
             throw new RuntimeException("Unrecognized option \"" + opt + "\".");
       }
@@ -190,21 +192,21 @@ public class QueryGeneratorMain
    private static List<WrittenQueryReprPath> writeQueries
    (
       List<GeneratedQuery> generatedQueries,
-      Optional<Path> outputDir
+      @Nullable Path outputDir
    )
       throws IOException
    {
       List<WrittenQueryReprPath> res = new ArrayList<>();
 
-      if ( outputDir.isPresent() )
-         Files.createDirectories(outputDir.get());
+      if ( outputDir != null )
+         Files.createDirectories(outputDir);
 
       for ( GeneratedQuery q : generatedQueries )
       {
          for ( ResultsRepr repr: q.getResultRepresentations() )
          {
             String fileName = q.getQueryName() + "(" + repr.toString().toLowerCase().replace('_',' ') + ").sql";
-            Optional<Path> outputFilePath = outputDir.map(d -> d.resolve(fileName));
+            @Nullable Path outputFilePath = applyIfPresent(outputDir, d -> d.resolve(fileName));
 
             BufferedWriter bw = newFileOrStdoutWriter(outputFilePath);
 
@@ -220,7 +222,7 @@ public class QueryGeneratorMain
             }
             finally
             {
-               if ( outputFilePath.isPresent() ) bw.close();
+               if ( outputFilePath != null ) bw.close();
                else bw.flush();
             }
          }

@@ -20,6 +20,7 @@ import org.sqljson.specs.queries.QueryGroupSpec;
 import generated.query.*;
 
 
+@SuppressWarnings("nullness")
 class QueryGeneratorTests extends TestsBase
 {
     final DatabaseMetadata dbmd;
@@ -80,7 +81,7 @@ class QueryGeneratorTests extends TestsBase
             DrugFieldsQueryWithParam.Drug res = readJson(rs.getString(1), DrugFieldsQueryWithParam.Drug.class);
             assertEquals(res.id, 2);
             assertEquals(res.name, "Test Drug 2");
-            assertEquals(res.meshId, opt("MESH2"));
+            assertEquals(res.meshId, "MESH2");
         });
     }
 
@@ -95,7 +96,7 @@ class QueryGeneratorTests extends TestsBase
         doQuery(sql, params, rs -> {
             DrugFieldsCustomizedTypeQuery.Drug res = readJson(rs.getString(1), DrugFieldsCustomizedTypeQuery.Drug.class);
             assertEquals(res.id, 2);
-            assertTrue((res.cid.get() instanceof Integer));
+            assertTrue((res.cid instanceof Integer));
         });
     }
 
@@ -110,7 +111,7 @@ class QueryGeneratorTests extends TestsBase
         doQuery(sql, params, rs -> {
             DrugWithFieldExpressionQuery.Drug res = readJson(rs.getString(1), DrugWithFieldExpressionQuery.Drug.class);
             assertEquals(res.id, 2);
-            assertEquals(res.cidPlus1000, opt(198 + 1000));
+            assertEquals(res.cidPlus1000, 198 + 1000);
         });
     }
 
@@ -128,7 +129,7 @@ class QueryGeneratorTests extends TestsBase
             List<DrugWithBrandsQuery.Brand> brands = res.brands;
             assertEquals(brands.size(), 1);
             assertEquals(brands.get(0).brandName, "Brand2(TM)");
-            assertEquals(brands.get(0).manufacturerId, opt(3L));
+            assertEquals(brands.get(0).manufacturerId, 3L);
         });
     }
 
@@ -147,7 +148,7 @@ class QueryGeneratorTests extends TestsBase
             List<DrugWithBrandsAndAdvisoriesQuery.Brand> brands = res.brands;
             assertEquals(brands.size(), 1);
             assertEquals(brands.get(0).brandName, "Brand2(TM)");
-            assertEquals(brands.get(0).manufacturerId, opt(3L));
+            assertEquals(brands.get(0).manufacturerId, 3L);
 
             List<DrugWithBrandsAndAdvisoriesQuery.Advisory> advisories = res.advisories;
             assertEquals(advisories.size(), 3);
@@ -254,7 +255,7 @@ class QueryGeneratorTests extends TestsBase
         doQuery(sql, params, rs -> {
             DrugWithExplicitCompoundReferenceQuery.Drug res = readJson(rs.getString(1), DrugWithExplicitCompoundReferenceQuery.Drug.class);
             assertEquals(res.id, 2);
-            assertEquals(res.compound.displayName, opt("Test Compound 2"));
+            assertEquals(res.compound.displayName, "Test Compound 2");
         });
     }
 

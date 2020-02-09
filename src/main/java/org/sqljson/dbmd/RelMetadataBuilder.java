@@ -2,8 +2,8 @@ package org.sqljson.dbmd;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import static java.util.Objects.requireNonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 
 class RelMetadataBuilder
@@ -12,20 +12,20 @@ class RelMetadataBuilder
 
     private final RelMetadata.RelType relType;
 
-    private final Optional<String> relComment;
+    private final @Nullable String relComment;
 
     private final List<Field> fields;
 
     public RelMetadataBuilder
-        (
-            RelId relId,
-            RelMetadata.RelType relType,
-            Optional<String> relComment
-        )
+    (
+        RelId relId,
+        RelMetadata.RelType relType,
+        @Nullable String relComment
+    )
     {
         this.relId = requireNonNull(relId);
         this.relType = requireNonNull(relType);
-        this.relComment = requireNonNull(relComment);
+        this.relComment = relComment;
         this.fields = new ArrayList<>();
     }
 

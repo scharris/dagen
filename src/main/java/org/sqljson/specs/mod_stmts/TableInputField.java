@@ -1,9 +1,8 @@
 package org.sqljson.specs.mod_stmts;
 
 import java.util.List;
-import java.util.Optional;
 import static java.util.Collections.emptyList;
-import static java.util.Optional.empty;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -11,16 +10,19 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 public class TableInputField
 {
    private String field;
-   private Optional<String> value = empty();
+   private @Nullable String value = null;
    // Should be non-empty iff generating source and the value is an expression (not simple name).
    private List<String> expressionValueParamNames = emptyList();
 
-   private TableInputField() {}
+   private TableInputField()
+   {
+      this.field = "";
+   }
 
    public TableInputField
    (
       String field,
-      Optional<String> value,
+      @Nullable String value,
       List<String> expressionValueParamNames
    )
    {
@@ -31,10 +33,10 @@ public class TableInputField
 
    public String getField() { return field; }
 
-   public Optional<String> getValue() { return value; }
+   public @Nullable String getValue() { return value; }
 
    public List<String> getExpressionValueParamNames() { return expressionValueParamNames; }
 
    @JsonIgnore
-   public boolean hasSimpleParamValue() { return !value.isPresent() || !value.get().endsWith(")"); }
+   public boolean hasSimpleParamValue() { return value == null || !value.endsWith(")"); }
 }

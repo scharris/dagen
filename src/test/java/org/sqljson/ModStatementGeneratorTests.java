@@ -18,6 +18,7 @@ import static org.sqljson.TestsBase.Params.params;
 import generated.mod_stmt.*;
 
 
+@SuppressWarnings("nullness")
 class ModStatementGeneratorTests extends TestsBase
 {
     final DatabaseMetadata dbmd;

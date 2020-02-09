@@ -1,6 +1,9 @@
 package org.sqljson.result_types;
 
 import java.util.*;
+
+import org.checkerframework.checker.nullness.qual.Nullable;
+
 import static java.util.Collections.unmodifiableList;
 import static java.util.stream.Collectors.toList;
 
@@ -99,7 +102,7 @@ public class GeneratedType
    }
 
    @Override
-   public boolean equals(Object o)
+   public boolean equals(@Nullable Object o)
    {
       if (this == o) return true;
       if (o == null || getClass() != o.getClass()) return false;

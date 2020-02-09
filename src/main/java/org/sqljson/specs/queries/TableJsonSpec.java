@@ -5,6 +5,8 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.unmodifiableList;
 import static java.util.Objects.requireNonNull;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import org.sqljson.specs.FieldParamCondition;
@@ -24,9 +26,12 @@ public final class TableJsonSpec
 
    private List<FieldParamCondition> fieldParamConditions = emptyList();
 
-   private Optional<String> condition = Optional.empty();
+   private @Nullable String condition = null;
 
-   private TableJsonSpec() {}
+   TableJsonSpec()
+   {
+      this.table = "";
+   }
 
    public TableJsonSpec
    (
@@ -36,7 +41,7 @@ public final class TableJsonSpec
       List<ReferencedParentSpec> referencedParentTables,
       List<ChildCollectionSpec> childTableCollections,
       List<FieldParamCondition> fieldParamConditions,
-      Optional<String> condition
+      @Nullable String condition
    )
    {
       requireNonNull(table);
@@ -45,10 +50,9 @@ public final class TableJsonSpec
       requireNonNull(referencedParentTables);
       requireNonNull(childTableCollections);
       requireNonNull(fieldParamConditions);
-      requireNonNull(condition);
 
       this.table = table;
-      this.fieldExpressions = unmodifiableList(new ArrayList<>(fieldExpressions));
+      this.fieldExpressions = unmodifiableList(fieldExpressions);
       this.inlineParentTables = unmodifiableList(new ArrayList<>(inlineParentTables));
       this.referencedParentTables = unmodifiableList(new ArrayList<>(referencedParentTables));
       this.childTableCollections = unmodifiableList(new ArrayList<>(childTableCollections));
@@ -70,10 +74,10 @@ public final class TableJsonSpec
 
    public List<FieldParamCondition> getFieldParamConditions() { return fieldParamConditions; }
 
-   public Optional<String> getCondition() { return condition; }
+   public @Nullable String getCondition() { return condition; }
 
    @JsonIgnore
-   public boolean hasCondition() { return !fieldParamConditions.isEmpty() || condition.isPresent(); }
+   public boolean hasCondition() { return !fieldParamConditions.isEmpty() || condition != null; }
 
    @JsonIgnore
    public int getJsonPropertiesCount()

@@ -2,16 +2,16 @@ package org.sqljson.specs.mod_stmts;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
+import org.checkerframework.checker.nullness.qual.Nullable;
+
 import static java.util.Collections.emptyList;
 import static java.util.Collections.unmodifiableList;
-import static java.util.Optional.empty;
 
 
 /// Represents a group of SQL insert, update, and delete statements.
 public final class ModGroupSpec
 {
-   private Optional<String> defaultSchema = empty();
+   private @Nullable String defaultSchema = null;
    private List<String> generateUnqualifiedNamesForSchemas = emptyList();
    private List<ModSpec> modificationStatementSpecs = emptyList();
 
@@ -19,7 +19,7 @@ public final class ModGroupSpec
 
    public ModGroupSpec
    (
-      Optional<String> defaultSchema,
+      @Nullable String defaultSchema,
       List<String> generateUnqualifiedNamesForSchemas,
       List<ModSpec> modificationStatementSpecs
    )
@@ -29,7 +29,7 @@ public final class ModGroupSpec
       this.modificationStatementSpecs = unmodifiableList(new ArrayList<>(modificationStatementSpecs));
    }
 
-   public Optional<String> getDefaultSchema() { return defaultSchema; }
+   public @Nullable String getDefaultSchema() { return defaultSchema; }
 
    public List<String> getGenerateUnqualifiedNamesForSchemas() { return generateUnqualifiedNamesForSchemas; }
 

@@ -1,8 +1,10 @@
 package org.sqljson.specs.queries;
 
 import java.util.List;
-import java.util.Optional;
 import static java.util.Collections.emptyList;
+import static java.util.Objects.requireNonNull;
+
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -11,18 +13,18 @@ import org.sqljson.util.StringFuns;
 
 public final class TableFieldExpr
 {
-   private Optional<String> field = Optional.empty();
-   private Optional<String> expression = Optional.empty();
-   private Optional<String> jsonProperty = Optional.empty();
+   private @Nullable String field;
+   private @Nullable String expression;
+   private @Nullable String jsonProperty;
    private List<FieldTypeOverride> generateTypes = emptyList();
 
    private TableFieldExpr() {}
 
    public TableFieldExpr
    (
-      Optional<String> field,
-      Optional<String> expression,
-      Optional<String> jsonProperty,
+      @Nullable String field,
+      @Nullable String expression,
+      @Nullable String jsonProperty,
       List<FieldTypeOverride> fieldTypeOverrides
    )
    {
@@ -31,37 +33,37 @@ public final class TableFieldExpr
       this.jsonProperty = jsonProperty;
       this.generateTypes = fieldTypeOverrides;
 
-      if ( field.isPresent() == expression.isPresent() )
+      if ( (field != null) == (expression != null) )
          throw new RuntimeException("Exactly one of database field name and value expression should be specified.");
    }
 
-   public String getField() { return field.get(); }
+   public String getField() { return requireNonNull(field); }
 
-   public String getExpression() { return expression.get(); }
+   public String getExpression() { return requireNonNull(expression); }
 
-   public Optional<String> getJsonProperty() { return jsonProperty; }
+   public @Nullable String getJsonProperty() { return jsonProperty; }
 
    public List<FieldTypeOverride> getGenerateTypes() { return generateTypes; }
 
-   public Optional<FieldTypeOverride> getTypeOverride(String language)
+   public @Nullable FieldTypeOverride getTypeOverride(String language)
    {
-      return generateTypes.stream().filter(to -> to.getLanguage().equals(language)).findAny();
+      return generateTypes.stream().filter(to -> to.getLanguage().equals(language)).findAny().orElse(null);
    }
 
    @JsonIgnore
    public boolean isSimpleField()
    {
-      if ( field.isPresent() == expression.isPresent() )
+      if ( (field != null) == (expression != null) )
          throw new RuntimeException("Exactly one of database field name and value expression should be specified.");
 
-      return field.isPresent();
+      return field != null;
    }
 
    public String getValueExpressionForAlias(String tableAlias)
    {
       if ( isSimpleField() )
-         return tableAlias + "." + field.get();
+         return tableAlias + "." + field;
       else
-         return StringFuns.substituteVarValue(expression.get(), tableAlias);
+         return StringFuns.substituteVarValue(requireNonNull(expression), tableAlias);
    }
 }

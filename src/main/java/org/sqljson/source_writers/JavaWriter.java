@@ -7,8 +7,10 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.sql.Types;
-import static java.util.Optional.empty;
+import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toList;
+
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 import org.sqljson.GeneratedModStatement;
 import org.sqljson.result_types.*;
@@ -16,17 +18,18 @@ import org.sqljson.specs.queries.FieldTypeOverride;
 import org.sqljson.specs.queries.ResultsRepr;
 import org.sqljson.GeneratedQuery;
 import org.sqljson.WrittenQueryReprPath;
+import static org.sqljson.WrittenQueryReprPath.writtenPathsForQuery;
 import static org.sqljson.util.Files.newFileOrStdoutWriter;
-import static org.sqljson.util.Optionals.opt;
+import static org.sqljson.util.Nullables.*;
 import static org.sqljson.util.StringFuns.*;
 
 
 public class JavaWriter implements SourceCodeWriter
 {
    private String targetPackage;
-   private Optional<Path> srcOutputBaseDir;
+   private @Nullable Path srcOutputBaseDir;
    private NullableFieldRepr nullableFieldRepr;
-   private Optional<String> filesHeader;
+   private @Nullable String filesHeader;
    private String sqlResourceNamePrefix;
 
    public enum NullableFieldRepr { OPTWRAPPED, ANNOTATED, BARETYPE }
@@ -34,23 +37,23 @@ public class JavaWriter implements SourceCodeWriter
    public JavaWriter
    (
       String targetPackage,
-      Optional<Path> srcOutputBaseDir,
+      @Nullable Path srcOutputBaseDir,
       String sqlResourceNamePrefix
    )
    {
       this.targetPackage = targetPackage;
       this.srcOutputBaseDir = srcOutputBaseDir;
       this.nullableFieldRepr = NullableFieldRepr.OPTWRAPPED;
-      this.filesHeader = empty();
+      this.filesHeader = null;
       this.sqlResourceNamePrefix = sqlResourceNamePrefix;
    }
 
    public JavaWriter
    (
       String targetPackage,
-      Optional<Path> srcOutputBaseDir,
+      @Nullable Path srcOutputBaseDir,
       NullableFieldRepr nullableFieldRepr,
-      Optional<String> filesHeader,
+      @Nullable String filesHeader,
       String sqlResourceNamePrefix
    )
    {
@@ -62,6 +65,7 @@ public class JavaWriter implements SourceCodeWriter
    }
 
    @Override
+   @SuppressWarnings("keyfor")
    public void writeQueries
    (
       List<GeneratedQuery> generatedQueries,
@@ -70,22 +74,21 @@ public class JavaWriter implements SourceCodeWriter
    )
       throws IOException
    {
-      Optional<Path> outputDir = !targetPackage.isEmpty() ?
-         srcOutputBaseDir.map(d -> d.resolve(targetPackage.replace('.','/')))
+      @Nullable Path outputDir = !targetPackage.isEmpty() ?
+         applyIfPresent(srcOutputBaseDir, d -> d.resolve(targetPackage.replace('.','/')))
          : srcOutputBaseDir;
 
-      if ( outputDir.isPresent() )
-         Files.createDirectories(outputDir.get());
+      if ( outputDir != null )
+         Files.createDirectories(outputDir);
 
       for ( GeneratedQuery q : generatedQueries )
       {
          String queryClassName = upperCamelCase(q.getQueryName());
-         Optional<Path> outputFilePath = outputDir.map(d -> d.resolve(queryClassName + ".java"));
+         @Nullable Path outputFilePath = applyIfPresent(outputDir, d -> d.resolve(queryClassName + ".java"));
 
          BufferedWriter bw = newFileOrStdoutWriter(outputFilePath);
 
-         Map<ResultsRepr,Path> writtenQueryPathsByRepr =
-            WrittenQueryReprPath.writtenPathsForQuery(q.getQueryName(), writtenQueryPaths);
+         Map<ResultsRepr,Path> writtenQueryPathsByRepr = writtenPathsForQuery(q.getQueryName(), writtenQueryPaths);
 
          try
          {
@@ -99,9 +102,15 @@ public class JavaWriter implements SourceCodeWriter
             bw.write("import java.util.*;\n");
             bw.write("import java.math.*;\n");
             bw.write("import java.time.*;\n");
+            if ( nullableFieldRepr == NullableFieldRepr.ANNOTATED ) bw.write(
+                "import org.checkerframework.checker.nullness.qual.Nullable;\n" +
+               "import org.checkerframework.checker.nullness.qual.NonNull;\n" +
+               "import org.checkerframework.framework.qual.DefaultQualifier;\n" +
+               "import org.checkerframework.framework.qual.TypeUseLocation;\n"
+            );
             bw.write("import com.fasterxml.jackson.databind.JsonNode;\n");
 
-            if ( filesHeader.isPresent() ) bw.write(filesHeader.get());
+            if ( filesHeader != null ) bw.write(filesHeader);
 
             bw.write("\n\n");
             bw.write("public class " + queryClassName + "\n");
@@ -112,7 +121,7 @@ public class JavaWriter implements SourceCodeWriter
             {
                String memberName = writtenQueryPathsByRepr.size() == 1 ? "sqlResource" :
                   "sqlResource" + upperCamelCase(resultsRepr.toString());
-               String resourceName = sqlResourceNamePrefix + writtenQueryPathsByRepr.get(resultsRepr).getFileName();
+               String resourceName = sqlResourceNamePrefix + requireNonNull(writtenQueryPathsByRepr.get(resultsRepr)).getFileName();
                bw.write("   public static final String " + memberName + " = \"" + resourceName + "\";\n");
             }
             bw.write("\n");
@@ -148,7 +157,7 @@ public class JavaWriter implements SourceCodeWriter
          }
          finally
          {
-            if ( outputFilePath.isPresent() ) bw.close();
+            if ( outputFilePath != null ) bw.close();
             else bw.flush();
          }
       }
@@ -163,19 +172,19 @@ public class JavaWriter implements SourceCodeWriter
       )
       throws IOException
    {
-      Optional<Path> outputDir = !targetPackage.isEmpty() ?
-         srcOutputBaseDir.map(d -> d.resolve(targetPackage.replace('.','/')))
+      @Nullable Path outputDir = !targetPackage.isEmpty() ?
+         applyIfPresent(srcOutputBaseDir, d -> d.resolve(targetPackage.replace('.','/')))
          : srcOutputBaseDir;
 
-      if ( outputDir.isPresent() )
-         Files.createDirectories(outputDir.get());
+      if ( outputDir != null )
+         Files.createDirectories(outputDir);
 
       for ( GeneratedModStatement modStmt : generatedModStatements )
       {
          if ( !modStmt.getGenerateSource() ) continue;
 
          String className = upperCamelCase(modStmt.getStatementName());
-         Optional<Path> outputFilePath = outputDir.map(d -> d.resolve(className + ".java"));
+         @Nullable Path outputFilePath = applyIfPresent(outputDir, d -> d.resolve(className + ".java"));
 
          BufferedWriter bw = newFileOrStdoutWriter(outputFilePath);
 
@@ -192,7 +201,7 @@ public class JavaWriter implements SourceCodeWriter
             bw.write("public class " + className + "\n");
             bw.write("{\n");
 
-            Path writtenPath = writtenPathsByModName.get(modStmt.getStatementName());
+            @Nullable Path writtenPath = writtenPathsByModName.get(modStmt.getStatementName());
 
             if ( writtenPath != null )
             {
@@ -208,7 +217,7 @@ public class JavaWriter implements SourceCodeWriter
          }
          finally
          {
-            if ( outputFilePath.isPresent() ) bw.close();
+            if ( outputFilePath != null ) bw.close();
             else bw.flush();
          }
       }
@@ -220,6 +229,10 @@ public class JavaWriter implements SourceCodeWriter
 
       String typeName = generatedType.getTypeName();
 
+      if ( nullableFieldRepr == NullableFieldRepr.ANNOTATED ) sb.append(
+         "@DefaultQualifier(value=NonNull.class)\n" +
+         "@SuppressWarnings(\"nullness\") // because fields will be set directly by the deserializer not by constructor\n"
+      );
       sb.append("public static class ");
       sb.append(typeName);
       sb.append("\n{\n");
@@ -302,7 +315,7 @@ public class JavaWriter implements SourceCodeWriter
 
    private String getJavaTypeNameForExpressionField(ExpressionField f)
    {
-      FieldTypeOverride typeOverride = f.getTypeOverride("Java").orElseThrow(() ->
+      FieldTypeOverride typeOverride = valueOrThrow(f.getTypeOverride("Java"), () ->
           new RuntimeException("Field type override is required for expression field " + f.getFieldExpression())
       );
       return typeOverride.getTypeDeclaration();
@@ -319,11 +332,11 @@ public class JavaWriter implements SourceCodeWriter
        boolean box
    )
    {
-      boolean notNull = !(f.getNullable().orElse(true));
+      boolean notNull = !valueOr(f.getNullable(), true);
 
-      Optional<FieldTypeOverride> typeOverride = f.getTypeOverride("Java");
-      if ( typeOverride.isPresent() )
-         return typeOverride.get().getTypeDeclaration();
+      @Nullable FieldTypeOverride typeOverride = f.getTypeOverride("Java");
+      if ( typeOverride != null )
+         return typeOverride.getTypeDeclaration();
 
       switch ( f.getJdbcTypeCode() )
       {
@@ -333,15 +346,15 @@ public class JavaWriter implements SourceCodeWriter
          case Types.INTEGER:
          case Types.BIGINT:
          {
-            boolean needsLong = !f.getPrecision().isPresent() || f.getPrecision().get() > 9;
+            boolean needsLong = applyOr(f.getPrecision(), prec -> prec > 9, true);
             if ( notNull ) return needsLong ? (box ? "Long" : "long") : (box ? "Integer" : "int");
             else return needsLong ? nullableType("Long"): nullableType("Integer");
          }
          case Types.DECIMAL:
          case Types.NUMERIC:
-            if ( f.getFractionalDigits().equals(opt(0) ) )
+            if ( Objects.equals(f.getFractionalDigits(), 0) )
             {
-               boolean needsLong = !f.getPrecision().isPresent() || f.getPrecision().get() > 9;
+               boolean needsLong = applyOr(f.getPrecision(), prec -> prec > 9, true);
                if ( notNull ) return needsLong ? (box ? "Long" : "long") : (box ? "Integer" : "int");
                else return needsLong ? nullableType("Long"): nullableType("Integer");
             }
@@ -412,8 +425,8 @@ public class JavaWriter implements SourceCodeWriter
    {
       StringBuilder sb = new StringBuilder();
 
-      if ( nullableFieldRepr == NullableFieldRepr.ANNOTATED)
-         sb.append("@Null ");
+      if ( nullableFieldRepr == NullableFieldRepr.ANNOTATED )
+         sb.append("@Nullable ");
       else if ( nullableFieldRepr == NullableFieldRepr.OPTWRAPPED  )
          sb.append("Optional<");
       else if ( nullableFieldRepr != NullableFieldRepr.BARETYPE )

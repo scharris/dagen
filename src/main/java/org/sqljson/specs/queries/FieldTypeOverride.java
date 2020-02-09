@@ -7,7 +7,11 @@ public class FieldTypeOverride
    private String language;
    private String typeDeclaration;
 
-   private FieldTypeOverride() {}
+   FieldTypeOverride()
+   {
+      this.language = "";
+      this.typeDeclaration = "";
+   }
 
    public FieldTypeOverride(String language, String typeDeclaration)
    {

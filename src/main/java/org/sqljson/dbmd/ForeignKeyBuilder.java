@@ -2,8 +2,8 @@ package org.sqljson.dbmd;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.regex.Pattern;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 import org.sqljson.util.StringFuns;
 
@@ -22,7 +22,7 @@ class ForeignKeyBuilder
         this.comps = new ArrayList<>();
     }
 
-    boolean neitherRelMatches(Optional<Pattern> relIdsPattern)
+    boolean neitherRelMatches(@Nullable Pattern relIdsPattern)
     {
         return !(StringFuns.matches(relIdsPattern, srcRel.getIdString()) || StringFuns.matches(relIdsPattern, tgtRel.getIdString()));
     }

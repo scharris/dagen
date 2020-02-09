@@ -12,6 +12,7 @@
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <jackson.version>2.10.1</jackson.version>
     <pg.version>42.2.9.jre7</pg.version>
+    <checkerFrameworkVersion>3.1.1</checkerFrameworkVersion>
   </properties>
 
   <dependencies>
@@ -64,6 +65,16 @@
       <version>5.2.2.RELEASE</version>
        <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>org.checkerframework</groupId>
+      <artifactId>checker-qual</artifactId>
+      <version>3.1.1</version>
+    </dependency>
+        <dependency>
+        <groupId>com.google.code.findbugs</groupId>
+        <artifactId>annotations</artifactId>
+        <version>3.0.1</version>
+    </dependency>
   </dependencies>
 
   <build>
@@ -74,7 +85,27 @@
         <artifactId>maven-compiler-plugin</artifactId>
         <version>3.8.1</version>
         <configuration>
-          <release>8</release>
+          <fork>true</fork>
+          <release>11</release>
+          <compilerArguments>
+            <Xmaxerrs>10000</Xmaxerrs>
+            <Xmaxwarns>10000</Xmaxwarns>
+          </compilerArguments>
+          <showWarnings>true</showWarnings>
+          <annotationProcessorPaths>
+            <path>
+              <groupId>org.checkerframework</groupId>
+              <artifactId>checker</artifactId>
+              <version>${checkerFrameworkVersion}</version>
+            </path>
+          </annotationProcessorPaths>
+          <annotationProcessors>
+            <annotationProcessor>org.checkerframework.checker.nullness.NullnessChecker</annotationProcessor>
+          </annotationProcessors>
+          <compilerArgs>
+            <arg>-J--add-opens=jdk.compiler/com.sun.tools.javac.comp=ALL-UNNAMED</arg>
+            <arg>-Alint</arg>
+          </compilerArgs>
         </configuration>
       </plugin>
       <plugin>
@@ -180,7 +211,6 @@
               <arguments>
                 <argument>--types-language:Java</argument>
                 <argument>--package:generated.query</argument>
-                <argument>--java-nullability:optwrapped</argument>
                 <argument>${project.basedir}/src/test/resources/dbmd-pg.yaml</argument>
                 <arguement>${project.basedir}/src/test/resources/query-specs.yaml</arguement>
                 <argument>${project.basedir}/src/test/java</argument>

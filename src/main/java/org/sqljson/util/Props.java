@@ -1,14 +1,16 @@
 package org.sqljson.util;
 
-import java.util.Optional;
 import java.util.Properties;
-import static java.util.Optional.empty;
+
+import static java.util.Objects.requireNonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
+
 
 
 public class Props
 {
    // Get the property value for the first contained key if any.
-   public static Optional<String> getProperty
+   public static @Nullable String getProperty
    (
       Properties p,
       String... keys
@@ -17,9 +19,9 @@ public class Props
       for ( String key: keys )
       {
          if ( p.containsKey(key) )
-            return Optionals.opt(p.getProperty(key));
+            return p.getProperty(key);
       }
-      return empty();
+      return null;
    }
 
    public static String requireProperty
@@ -28,10 +30,8 @@ public class Props
       String... keys
    )
    {
-      return getProperty(p, keys).orElseThrow(() ->
-         new RuntimeException("Property " + keys[0] + " is required.")
-      );
-    }
+      return requireNonNull(getProperty(p, keys), "Property " + keys[0] + " is required.");
+   }
 
    private Props() {}
 }

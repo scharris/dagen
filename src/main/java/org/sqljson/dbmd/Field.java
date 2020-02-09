@@ -1,8 +1,8 @@
 package org.sqljson.dbmd;
 
 import java.sql.Types;
-import java.util.Optional;
 import static java.util.Objects.requireNonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
@@ -19,43 +19,47 @@ public class Field {
 
     private String databaseType;
 
-    private Optional<Integer> length;
+    private @Nullable Integer length;
 
-    private Optional<Integer> precision;
+    private @Nullable Integer precision;
 
-    private Optional<Integer> fractionalDigits;
+    private @Nullable Integer fractionalDigits;
 
-    private Optional<Boolean> nullable;
+    private @Nullable Boolean nullable;
 
-    private Optional<Integer> primaryKeyPartNumber;
+    private @Nullable Integer primaryKeyPartNumber;
 
-    private Optional<String> comment;
+    private @Nullable String comment;
 
     public Field
         (
             String name,
             int jdbcTypeCode,
             String databaseType,
-            Optional<Integer> length,
-            Optional<Integer> precision,
-            Optional<Integer> fractionalDigits,
-            Optional<Boolean> nullable,
-            Optional<Integer> primaryKeyPartNumber,
-            Optional<String> comment
+            @Nullable Integer length,
+            @Nullable Integer precision,
+            @Nullable Integer fractionalDigits,
+            @Nullable Boolean nullable,
+            @Nullable Integer primaryKeyPartNumber,
+            @Nullable String comment
         )
     {
         this.name = requireNonNull(name);
-        this.jdbcTypeCode = requireNonNull(jdbcTypeCode);
+        this.jdbcTypeCode = jdbcTypeCode;
         this.databaseType = requireNonNull(databaseType);
-        this.length = requireNonNull(length);
-        this.fractionalDigits = requireNonNull(fractionalDigits);
-        this.precision = requireNonNull(precision);
-        this.nullable = requireNonNull(nullable);
-        this.primaryKeyPartNumber = requireNonNull(primaryKeyPartNumber);
-        this.comment = requireNonNull(comment);
+        this.length = length;
+        this.precision = precision;
+        this.fractionalDigits = fractionalDigits;
+        this.nullable = nullable;
+        this.primaryKeyPartNumber = primaryKeyPartNumber;
+        this.comment = comment;
     }
 
-    protected Field() {}
+    Field()
+    {
+       this.name = "";
+       this.databaseType = "";
+    }
 
     public String getName() { return name; }
 
@@ -63,17 +67,17 @@ public class Field {
 
     public String getDatabaseType() { return databaseType; }
 
-    public Optional<Integer> getLength() { return length; }
+    public @Nullable Integer getLength() { return length; }
 
-    public Optional<Integer> getFractionalDigits() { return fractionalDigits; }
+    public @Nullable Integer getFractionalDigits() { return fractionalDigits; }
 
-    public Optional<Integer> getPrecision() { return precision; }
+    public @Nullable Integer getPrecision() { return precision; }
 
-    public Optional<Boolean> getNullable() { return nullable; }
+    public @Nullable Boolean getNullable() { return nullable; }
 
-    public Optional<Integer> getPrimaryKeyPartNumber() { return primaryKeyPartNumber; }
+    public @Nullable Integer getPrimaryKeyPartNumber() { return primaryKeyPartNumber; }
 
-    public Optional<String> getComment() { return comment; }
+    public @Nullable String getComment() { return comment; }
 
     @JsonIgnore
     public boolean isNumericType() { return isJdbcTypeNumeric(jdbcTypeCode); }

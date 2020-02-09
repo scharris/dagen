@@ -1,12 +1,11 @@
 package org.sqljson.specs;
 
-import java.util.Optional;
 import java.util.function.Function;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 import org.sqljson.specs.mod_stmts.ParametersType;
-
-import static java.util.Optional.empty;
 import static org.sqljson.specs.mod_stmts.ParametersType.NUMBERED;
+import static org.sqljson.util.Nullables.valueOr;
 import static org.sqljson.util.StringFuns.maybeQualify;
 
 
@@ -23,11 +22,14 @@ public class FieldParamCondition
 
    private String field;
    private Operator op = Operator.EQ;
-   private Optional<String> paramName = empty();
+   private @Nullable String paramName = null;
 
-   private FieldParamCondition() {}
+   private FieldParamCondition()
+   {
+      this.field = "";
+   }
 
-   public FieldParamCondition(String field, Operator op, Optional<String> paramName)
+   public FieldParamCondition(String field, Operator op, @Nullable String paramName)
    {
       this.field = field;
       this.op = op;
@@ -38,16 +40,16 @@ public class FieldParamCondition
 
    public Operator getOp() { return op; }
 
-   public Optional<String> getParamName() { return paramName; }
+   public @Nullable String getParamName() { return paramName; }
 
    public String getFinalParamName(Function<String,String> defaultParamNameFn) // default param name as function of field name
    {
-      return paramName.orElse(defaultParamNameFn.apply(field));
+      return valueOr(paramName, defaultParamNameFn.apply(field));
    }
 
    public String toSql
    (
-      Optional<String> tableAlias,
+      @Nullable String tableAlias,
       ParametersType paramsType,
       Function<String,String> defaultParamNameFn // default param name as function of field name
    )

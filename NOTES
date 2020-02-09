@@ -1,3 +1,7 @@
+Use @Nullable, let user configure the nullable annotation to be used.
+  Add package-info.java for generated types package when using annotations.
+
+
 Docs Outline
 ------------
 Query generator

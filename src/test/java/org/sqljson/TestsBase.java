@@ -4,8 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.sql.*;
-import java.util.Optional;
-import javax.sql.DataSource;
+import static java.util.Objects.requireNonNull;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
@@ -14,6 +13,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import org.apache.commons.io.IOUtils;
+
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -70,7 +70,7 @@ public class TestsBase
 
     InputStream getResourceStream(String resource)
     {
-        return TestsBase.class.getClassLoader().getResourceAsStream(resource);
+        return requireNonNull(requireNonNull(TestsBase.class.getClassLoader()).getResourceAsStream(resource));
     }
 
     QueryGroupSpec readBadQuerySpec(String name)
@@ -171,17 +171,6 @@ public class TestsBase
         {
             throw new RuntimeException(e);
         }
-    }
-
-    protected <T> Optional<T> opt(T t)
-    {
-        return Optional.of(t);
-    }
-
-
-
-    interface ResultsProcessor {
-        void process(ResultSet rs) throws SQLException;
     }
 
     public static class Params extends MapSqlParameterSource

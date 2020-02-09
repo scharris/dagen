@@ -2,6 +2,8 @@ package org.sqljson.result_types;
 
 import java.util.Objects;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
+
 
 public class ParentReferenceField
 {
@@ -34,7 +36,7 @@ public class ParentReferenceField
    }
 
    @Override
-   public boolean equals(Object o)
+   public boolean equals(@Nullable Object o)
    {
       if (this == o) return true;
       if (o == null || getClass() != o.getClass()) return false;

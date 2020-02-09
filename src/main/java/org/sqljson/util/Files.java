@@ -2,15 +2,15 @@ package org.sqljson.util;
 
 import java.io.*;
 import java.nio.file.Path;
-import java.util.Optional;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 
 public final class Files
 {
-   public static BufferedWriter newFileOrStdoutWriter(Optional<Path> outputFilePath) throws IOException
+   public static BufferedWriter newFileOrStdoutWriter(@Nullable Path outputFilePath) throws IOException
    {
-      return outputFilePath.isPresent() ?
-         java.nio.file.Files.newBufferedWriter(outputFilePath.get())
+      return outputFilePath != null ?
+         java.nio.file.Files.newBufferedWriter(outputFilePath)
          : new BufferedWriter(new OutputStreamWriter(System.out));
    }
 

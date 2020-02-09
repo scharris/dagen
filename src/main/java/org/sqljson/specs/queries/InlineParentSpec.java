@@ -2,33 +2,39 @@ package org.sqljson.specs.queries;
 
 import java.util.*;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import static org.sqljson.util.Nullables.applyIfPresent;
 
 
 public final class InlineParentSpec implements ParentSpec
 {
    private TableJsonSpec tableJson;
-   private Optional<List<String>> viaForeignKeyFields = Optional.empty();
+   private @Nullable List<String> viaForeignKeyFields = null;
 
-   private InlineParentSpec() {}
+   private InlineParentSpec()
+   {
+      tableJson = new TableJsonSpec();
+   }
 
    public InlineParentSpec
    (
       TableJsonSpec tableJson,
-      Optional<List<String>> viaForeignKeyFields
+      @Nullable List<String> viaForeignKeyFields
    )
    {
       this.tableJson = tableJson;
-      this.viaForeignKeyFields = viaForeignKeyFields.map(Collections::unmodifiableList);
+      this.viaForeignKeyFields = applyIfPresent(viaForeignKeyFields, Collections::unmodifiableList);
    }
 
    public TableJsonSpec getTableJson() { return getParentTableJsonSpec(); }
 
-   public Optional<List<String>> getViaForeignKeyFields() { return viaForeignKeyFields; }
+   public @Nullable List<String> getViaForeignKeyFields() { return viaForeignKeyFields; }
 
    @JsonIgnore
    public TableJsonSpec getParentTableJsonSpec() { return tableJson; }
 
    @JsonIgnore
-   public Optional<Set<String>> getChildForeignKeyFieldsSet() { return viaForeignKeyFields.map(HashSet::new); }
+   public @Nullable Set<String> getChildForeignKeyFieldsSet() { return applyIfPresent(viaForeignKeyFields, HashSet::new); }
 }

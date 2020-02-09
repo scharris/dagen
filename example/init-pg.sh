@@ -1,11 +1,11 @@
 #!/bin/sh
-DDL_DIR=$(cd $(dirname $0) && pwd)/ddl
+SCRIPT_DIR=$(cd $(dirname $0) && pwd)/db/init
 
 docker run -d --name pg --rm  -p 5432:5432 --shm-size=256MB \
   -e POSTGRES_USER=drugs -e POSTGRES_PASSWORD=drugs -e POSTGRES_DB=drugs \
-  -v $DDL_DIR/create-schema-pg.sql:/docker-entrypoint-initdb.d/01.sql \
-  -v $DDL_DIR/create-schema-objects.sql:/docker-entrypoint-initdb.d/02.sql \
-  -v $DDL_DIR/create-test-data-pg.sql:/docker-entrypoint-initdb.d/03.sql \
+  -v "$SCRIPT_DIR"/create-schema-pg.sql:/docker-entrypoint-initdb.d/01.sql \
+  -v "$SCRIPT_DIR"/create-schema-objects.sql:/docker-entrypoint-initdb.d/02.sql \
+  -v "$SCRIPT_DIR"/create-test-data-pg.sql:/docker-entrypoint-initdb.d/03.sql \
   postgres:12
 
 # Connect via container embedded psql client via:

@@ -5,7 +5,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
-import static java.util.Optional.empty;
+import static java.util.Collections.emptyList;
+
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
@@ -16,6 +18,8 @@ import org.sqljson.util.AppUtils.SplitArgs;
 import static org.sqljson.util.AppUtils.splitOptionsAndRequiredArgs;
 import static org.sqljson.util.AppUtils.throwError;
 import static org.sqljson.util.Files.newFileOrStdoutWriter;
+import static org.sqljson.util.Nullables.ifPresent;
+import static org.sqljson.util.Nullables.applyIfPresent;
 import static org.sqljson.util.Serialization.writeJsonSchema;
 import org.sqljson.dbmd.DatabaseMetadata;
 import org.sqljson.specs.mod_stmts.ModGroupSpec;
@@ -67,9 +71,9 @@ public class ModStatementGeneratorMain
       if ( !Files.isRegularFile(modsSpecFilePath) )
          AppUtils.throwError("Mods specification file not found.");
 
-      Optional<Pair<Path,Path>> outputDirs = args.required.size() > 2 ?
-         Optionals.opt(Pair.make(Paths.get(args.required.get(2)), Paths.get(args.required.get(3))))
-         : empty();
+      List<Path> outputDirs = args.required.size() > 2 ?
+         Arrays.asList(Paths.get(args.required.get(2)), Paths.get(args.required.get(3)))
+         : emptyList();
 
       try ( InputStream dbmdIS = Files.newInputStream(dbmdPath);
             InputStream modsSpecIS = Files.newInputStream(modsSpecFilePath) )
@@ -80,13 +84,13 @@ public class ModStatementGeneratorMain
          DatabaseMetadata dbmd = yamlMapper.readValue(dbmdIS, DatabaseMetadata.class);
          ModGroupSpec modGroupSpec = yamlMapper.readValue(modsSpecIS, ModGroupSpec.class);
 
-         Optional<Path> srcOutputBaseDirPath = outputDirs.map(Pair::fst);
-         srcOutputBaseDirPath.ifPresent(path ->  {
+         @Nullable Path srcOutputBaseDirPath = outputDirs.size() > 0 ? outputDirs.get(0) : null;
+         ifPresent(srcOutputBaseDirPath, path ->  {
             if ( !Files.isDirectory(path) ) throwError("Source output base directory not found.");
          });
 
-         Optional<Path> modStmtsOutputDirPath = outputDirs.map(Pair::snd);
-         modStmtsOutputDirPath.ifPresent(path ->  {
+         @Nullable Path modStmtsOutputDirPath = outputDirs.size() > 1 ? outputDirs.get(1) : null;
+         ifPresent(modStmtsOutputDirPath, path ->  {
             if ( !Files.isDirectory(path) ) throwError("Mod statements output directory not found.");
          });
 
@@ -127,18 +131,18 @@ public class ModStatementGeneratorMain
    private static Map<String,Path> writeModSqls
    (
       List<GeneratedModStatement> generatedModStatements,
-      Optional<Path> outputDir
+      @Nullable Path outputDir
    )
       throws IOException
    {
       Map<String,Path> res = new HashMap<>();
 
-      if ( outputDir.isPresent() )
-         Files.createDirectories(outputDir.get());
+      if ( outputDir != null )
+         Files.createDirectories(outputDir);
 
       for ( GeneratedModStatement mod: generatedModStatements)
       {
-         Optional<Path> outputFilePath = outputDir.map(d -> d.resolve(mod.getStatementName() + ".sql"));
+         @Nullable Path outputFilePath = applyIfPresent(outputDir, d -> d.resolve(mod.getStatementName() + ".sql"));
 
          BufferedWriter bw = newFileOrStdoutWriter(outputFilePath);
 
@@ -150,11 +154,11 @@ public class ModStatementGeneratorMain
                mod.getSql() + "\n"
             );
 
-            outputFilePath.ifPresent(path -> res.put(mod.getStatementName(), path));
+            ifPresent(outputFilePath, path -> res.put(mod.getStatementName(), path));
          }
          finally
          {
-            if ( outputFilePath.isPresent() ) bw.close();
+            if ( outputFilePath != null ) bw.close();
             else bw.flush();
          }
       }
@@ -165,7 +169,7 @@ public class ModStatementGeneratorMain
    private static SourceCodeWriter getSourceCodeWriter
    (
       SplitArgs args,
-      Optional<Path> srcOutputBaseDir
+      @Nullable Path srcOutputBaseDir
    )
    {
       String sqlResourceNamePrefix = "";
@@ -186,7 +190,7 @@ public class ModStatementGeneratorMain
          case "Java":
             return new JavaWriter(targetPackage, srcOutputBaseDir, sqlResourceNamePrefix);
          case "Typescript":
-            return new TypescriptWriter(srcOutputBaseDir, empty(), sqlResourceNamePrefix);
+            return new TypescriptWriter(srcOutputBaseDir, null, sqlResourceNamePrefix);
          default:
             throw new RuntimeException("target language not supported");
       }

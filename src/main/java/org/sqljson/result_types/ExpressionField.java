@@ -3,8 +3,8 @@ package org.sqljson.result_types;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import static java.util.Collections.unmodifiableList;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 import org.sqljson.specs.queries.FieldTypeOverride;
 
@@ -12,10 +12,10 @@ import org.sqljson.specs.queries.FieldTypeOverride;
 public class ExpressionField
 {
     private String name;
-    private Optional<String> fieldExpression;
+    private @Nullable String fieldExpression;
     private List<FieldTypeOverride> fieldTypeOverrides;
 
-    public ExpressionField(String name, Optional<String> fieldExpression, List<FieldTypeOverride> typeOverrides)
+    public ExpressionField(String name, @Nullable String fieldExpression, List<FieldTypeOverride> typeOverrides)
     {
         this.name = name;
         this.fieldExpression = fieldExpression;
@@ -24,18 +24,18 @@ public class ExpressionField
 
     public String getName() { return name; }
 
-    public Optional<String> getFieldExpression() { return fieldExpression; }
+    public @Nullable String getFieldExpression() { return fieldExpression; }
 
     public List<FieldTypeOverride> getFieldTypeOverrides() { return fieldTypeOverrides; }
 
-    public Optional<FieldTypeOverride> getTypeOverride(String language)
+    public @Nullable FieldTypeOverride getTypeOverride(String language)
     {
-        return fieldTypeOverrides.stream().filter(to -> to.getLanguage().equals(language)).findAny();
+        return fieldTypeOverrides.stream().filter(to -> to.getLanguage().equals(language)).findAny().orElse(null);
     }
 
 
     @Override
-    public boolean equals(Object o)
+    public boolean equals(@Nullable Object o)
     {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;

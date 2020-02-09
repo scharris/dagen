@@ -1,12 +1,12 @@
 package org.sqljson.specs.queries;
 
-import java.util.Optional;
 import java.util.Set;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 
 public interface ParentSpec
 {
    TableJsonSpec getParentTableJsonSpec();
 
-   Optional<Set<String>> getChildForeignKeyFieldsSet();
+   @Nullable Set<String> getChildForeignKeyFieldsSet();
 }

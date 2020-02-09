@@ -4,8 +4,9 @@ import java.util.*;
 import java.util.function.Function;
 import static java.util.Collections.*;
 import static java.util.stream.Collectors.*;
-import static java.util.Optional.empty;
 import static java.util.function.Function.identity;
+
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 import org.sqljson.dbmd.*;
 import org.sqljson.result_types.GeneratedType;
@@ -16,14 +17,14 @@ import org.sqljson.util.StringFuns;
 import org.sqljson.sql.dialect.SqlDialect;
 import static org.sqljson.specs.mod_stmts.ParametersType.NAMED;
 import static org.sqljson.util.DatabaseUtils.verifyTableFieldsExist;
-import static org.sqljson.util.Optionals.opt;
+import static org.sqljson.util.Nullables.*;
 import static org.sqljson.util.StringFuns.*;
 
 
 public class QueryGenerator
 {
    private final DatabaseMetadata dbmd;
-   private final Optional<String> defaultSchema;
+   private final @Nullable String defaultSchema;
    private final Set<String> generateUnqualifiedNamesForSchemas;
    private final SqlDialect sqlDialect;
    private final int indentSpaces;
@@ -48,7 +49,7 @@ public class QueryGenerator
    public QueryGenerator
    (
       DatabaseMetadata dbmd,
-      Optional<String> defaultSchema,
+      @Nullable String defaultSchema,
       Set<String> generateUnqualifiedNamesForSchemas,
       Function<String,String> outputFieldNameDefaultFn
    )
@@ -76,8 +77,7 @@ public class QueryGenerator
 
       // This query spec may customize the default output field name making function.
       Function<String,String> outputFieldNameDefaultFn =
-         querySpec.getOutputFieldNameDefault().map(OutputFieldNameDefault::toFunctionOfFieldName)
-         .orElse(this.outputFieldNameDefaultFn);
+         applyOr(querySpec.getOutputFieldNameDefault(), OutputFieldNameDefault::toFunctionOfFieldName, this.outputFieldNameDefaultFn);
 
       Map<ResultsRepr,String> querySqls =
          querySpec.getResultsRepresentations().stream()
@@ -108,11 +108,11 @@ public class QueryGenerator
       switch (resultsRepr)
       {
          case MULTI_COLUMN_ROWS:
-            return makeBaseQuery(tjs, empty(), false, outputFieldNameDefaultFn).getSql();
+            return makeBaseQuery(tjs, null, false, outputFieldNameDefaultFn).getSql();
          case JSON_OBJECT_ROWS:
-            return makeJsonObjectRowsSql(tjs, empty(), outputFieldNameDefaultFn);
+            return makeJsonObjectRowsSql(tjs, null, outputFieldNameDefaultFn);
          case JSON_ARRAY_ROW:
-            return makeAggregatedJsonResultSql(tjs, empty(), outputFieldNameDefaultFn, false);
+            return makeAggregatedJsonResultSql(tjs, null, outputFieldNameDefaultFn, false);
          default:
             throw new RuntimeException("unrecognized results representation: " + resultsRepr);
       }
@@ -140,7 +140,7 @@ public class QueryGenerator
    private BaseQuery makeBaseQuery
    (
       TableJsonSpec tableJsonSpec,
-      Optional<ParentChildCondition> parentChildCond,
+      @Nullable ParentChildCondition parentChildCond,
       boolean exportAllPkFieldsAsHidden,
       Function<String,String> outputFieldNameDefaultFn
    )
@@ -149,7 +149,7 @@ public class QueryGenerator
 
       // Identify this table and make an alias for it.
       RelId relId = dbmd.identifyTable(tableJsonSpec.getTable(), defaultSchema);
-      parentChildCond.ifPresent(pcCond ->
+      ifPresent(parentChildCond, pcCond ->
          q.addAliasToScope(pcCond.getOtherTableAlias())
       );
       String alias = q.makeNewAliasFor(relId.getName());
@@ -192,11 +192,11 @@ public class QueryGenerator
          q.addParts(getReferencedParentBaseQueryParts(refdParentSpec, relId, alias, outputFieldNameDefaultFn));
 
       // Add parent/child relationship filter condition if any to the where clause.
-      parentChildCond.ifPresent(pcCond ->
+      ifPresent(parentChildCond, pcCond ->
          q.addWhereClauseEntry(pcCond.asEquationConditionOn(alias, dbmd))
       );
 
-      getWhereCondition(tableJsonSpec, alias).ifPresent(q::addWhereClauseEntry);
+      ifPresent(getWhereCondition(tableJsonSpec, alias), q::addWhereClauseEntry);
 
       String sql = makeSqlFromParts(q);
 
@@ -220,7 +220,7 @@ public class QueryGenerator
    private String makeAggregatedJsonResultSql
       (
          TableJsonSpec tableJsonSpec,
-         Optional<ParentChildCondition> parentChildLinkCond,
+         @Nullable ParentChildCondition parentChildLinkCond,
          Function<String,String> outputFieldNameDefaultFn,
          boolean unwrapSingleColumnValues
       )
@@ -255,7 +255,7 @@ public class QueryGenerator
    private String makeJsonObjectRowsSql
    (
       TableJsonSpec tableJsonSpec,
-      Optional<ParentChildCondition> parentChildLinkCond,
+      @Nullable ParentChildCondition parentChildLinkCond,
       Function<String,String> outputFieldNameDefaultFn
    )
    {
@@ -292,7 +292,7 @@ public class QueryGenerator
       if ( unwrapChildValues && childCollectionSpec.getTableJson().getJsonPropertiesCount() > 1 )
          throw new RuntimeException("Option 'unwrap' specified for child table " + tjs.getTable() + " having more than one column.");
 
-      return makeAggregatedJsonResultSql(tjs, opt(childFkCond), outputFieldNameDefaultFn, unwrapChildValues);
+      return makeAggregatedJsonResultSql(tjs, childFkCond, outputFieldNameDefaultFn, unwrapChildValues);
    }
 
    private SqlQueryParts getInlineParentBaseQueryParts
@@ -311,7 +311,7 @@ public class QueryGenerator
       RelId relId = dbmd.identifyTable(table, defaultSchema);
       ForeignKey fk = getForeignKey(childRelId, relId, inlineParentTableSpec.getChildForeignKeyFieldsSet());
 
-      BaseQuery fromClauseQuery = makeBaseQuery(tjs, empty(), true, outputFieldNameDefaultFn);
+      BaseQuery fromClauseQuery = makeBaseQuery(tjs, null, true, outputFieldNameDefaultFn);
 
       String fromClauseQueryAlias = StringFuns.makeNameNotInSet("q", avoidAliases);
       q.addAliasToScope(fromClauseQueryAlias);
@@ -373,7 +373,7 @@ public class QueryGenerator
 
       ParentPkCondition parentPkCond = new ParentPkCondition(childAlias, fk.getForeignKeyComponents());
 
-      return makeJsonObjectRowsSql(tjs, opt(parentPkCond), outputFieldNameDefaultFn);
+      return makeJsonObjectRowsSql(tjs, parentPkCond, outputFieldNameDefaultFn);
    }
 
    private String makeSqlFromParts(SqlQueryParts q)
@@ -398,7 +398,7 @@ public class QueryGenerator
          ")");
    }
 
-   private Optional<String> getWhereCondition
+   private @Nullable String getWhereCondition
    (
       TableJsonSpec tableJsonSpec,
       String tableAlias
@@ -416,19 +416,15 @@ public class QueryGenerator
       for ( FieldParamCondition fieldParamCond : tableJsonSpec.getFieldParamConditions() )
       {
          conds.add(
-            fieldParamCond.toSql(
-               opt(tableAlias),
-               NAMED,
-               getDefaultParamNameFn(tableJsonSpec.getTable(), fieldParamCond.getOp())
-            )
+            fieldParamCond.toSql(tableAlias, NAMED, getDefaultParamNameFn(tableJsonSpec.getTable(), fieldParamCond.getOp()))
          );
       }
 
-      tableJsonSpec.getCondition().ifPresent(otherCond ->
+      ifPresent(tableJsonSpec.getCondition(), otherCond ->
          conds.add("(" + substituteVarValue(otherCond, tableAlias) + ")")
       );
 
-      return conds.isEmpty() ? empty() : opt(String.join("\nand\n", conds));
+      return conds.isEmpty() ? null : String.join("\nand\n", conds);
    }
 
    /// The returned function creates a default param name from a field name in the
@@ -473,15 +469,16 @@ public class QueryGenerator
    (
       RelId childRelId,
       RelId parentRelId,
-      Optional<Set<String>> foreignKeyFields
+      @Nullable Set<String> foreignKeyFields
    )
    {
-      return
-         dbmd.getForeignKeyFromTo(childRelId, parentRelId, foreignKeyFields, ForeignKeyScope.REGISTERED_TABLES_ONLY)
-         .orElseThrow(() -> new RuntimeException(
+      return valueOrThrow(
+         dbmd.getForeignKeyFromTo(childRelId, parentRelId, foreignKeyFields, ForeignKeyScope.REGISTERED_TABLES_ONLY),
+         () -> new RuntimeException(
             "foreign key not found from " + childRelId.getName() + " to " + parentRelId.getName() +
-            " via " + (foreignKeyFields.map(fks -> "foreign keys " + fks).orElse(" implicit foreign key field(s)."))
-         ));
+            " via " + applyOr(foreignKeyFields, fks -> "foreign keys " + fks, " implicit foreign key field(s).")
+         )
+      );
    }
 
    private String getJsonPropertyName
@@ -492,9 +489,9 @@ public class QueryGenerator
    )
    {
       if ( tfe.isSimpleField() )
-         return tfe.getJsonProperty().orElseGet(() -> defaultFn.apply(tfe.getField()));
+         return valueOrGet(tfe.getJsonProperty(), () -> defaultFn.apply(tfe.getField()));
       else
-         return tfe.getJsonProperty().orElseThrow(() -> // expression fields must have output name specified
+         return valueOrThrow(tfe.getJsonProperty(), () -> // expression fields must have output name specified
             new RuntimeException(
                "Json propery name is required for expression field " + tfe.getExpression() +
                " of table " + tableName + "."
@@ -506,8 +503,8 @@ public class QueryGenerator
    /// qualifier if it has a schema for which it's specified to use unqualified names.
    private String minimalRelIdentifier(RelId relId)
    {
-      if ( !relId.getSchema().isPresent() ||
-           generateUnqualifiedNamesForSchemas.contains(dbmd.normalizeName(relId.getSchema().get())) )
+      @Nullable String schema = relId.getSchema();
+      if ( schema == null || generateUnqualifiedNamesForSchemas.contains(dbmd.normalizeName(schema)) )
          return relId.getName();
       else
          return relId.getIdString();

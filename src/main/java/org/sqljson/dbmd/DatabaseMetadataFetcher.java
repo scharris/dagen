@@ -5,11 +5,11 @@ import java.util.*;
 import java.util.regex.Pattern;
 import static java.util.Collections.emptyList;
 import static java.util.Objects.requireNonNull;
-import static java.util.Optional.empty;
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toMap;
 
-import org.sqljson.util.Optionals;
+import org.checkerframework.checker.nullness.qual.Nullable;
+
 import org.sqljson.util.StringFuns;
 import org.sqljson.dbmd.RelMetadata.RelType;
 import static org.sqljson.dbmd.RelMetadata.RelType.Table;
@@ -22,7 +22,6 @@ public class DatabaseMetadataFetcher
     public enum DateMapping { DATES_AS_DRIVER_REPORTED, DATES_AS_TIMESTAMPS, DATES_AS_DATES }
 
     private DateMapping dateMapping;
-
 
     public DatabaseMetadataFetcher()
     {
@@ -42,11 +41,11 @@ public class DatabaseMetadataFetcher
     public DatabaseMetadata fetchMetadata
     (
         Connection conn,
-        Optional<String> schema,
+        @Nullable String schema,
         boolean includeTables,
         boolean includeViews,
         boolean includeFks,
-        Optional<Pattern> excludeRelsPattern
+        @Nullable Pattern excludeRelsPattern
     )
         throws SQLException
     {
@@ -64,17 +63,17 @@ public class DatabaseMetadataFetcher
     public DatabaseMetadata fetchMetadata
     (
         DatabaseMetaData dbmd,
-        Optional<String> schema,
+        @Nullable String schema,
         boolean includeTables,
         boolean includeViews,
         boolean includeFks,
-        Optional<Pattern> excludeRelsPat
+        @Nullable Pattern excludeRelsPat
     )
         throws SQLException
     {
         CaseSensitivity caseSens = getDatabaseCaseSensitivity(dbmd);
 
-        Optional<String> nSchema = schema.map(s -> normalizeDatabaseIdentifier(s, caseSens));
+        @Nullable String nSchema = schema != null ? normalizeDatabaseIdentifier(schema, caseSens) : null;
 
         List<RelDescr> relDescrs = fetchRelationDescriptions(dbmd, nSchema, includeTables, includeViews, excludeRelsPat);
 
@@ -104,10 +103,10 @@ public class DatabaseMetadataFetcher
     public List<RelDescr> fetchRelationDescriptions
     (
         Connection conn,
-        Optional<String> schema,
+        String schema,
         boolean includeTables,
         boolean includeViews,
-        Optional<Pattern> excludeRelsPattern
+        @Nullable Pattern excludeRelsPattern
     )
         throws SQLException
     {
@@ -124,10 +123,10 @@ public class DatabaseMetadataFetcher
     public List<RelDescr> fetchRelationDescriptions
     (
         DatabaseMetaData dbmd,
-        Optional<String> schema,
+        @Nullable String schema,
         boolean includeTables,
         boolean includeViews,
-        Optional<Pattern> excludeRelsPattern
+        @Nullable Pattern excludeRelsPattern
     )
         throws SQLException
     {
@@ -139,20 +138,20 @@ public class DatabaseMetadataFetcher
         if ( includeViews )
             relTypes.add("VIEW");
 
-        ResultSet rs = dbmd.getTables(null, schema.orElse(null), null, relTypes.toArray(new String[0]));
+        ResultSet rs = dbmd.getTables(null, schema, null, relTypes.toArray(new String[0]));
 
         while ( rs.next() )
         {
-            Optional<String> relSchema = Optionals.optn(rs.getString("TABLE_SCHEM"));
-            String relName = rs.getString("TABLE_NAME");
+            @Nullable String relSchema = rs.getString("TABLE_SCHEM");
+            String relName = requireNonNull(rs.getString("TABLE_NAME"));
 
             RelId relId = new RelId(relSchema, relName);
 
             if ( !StringFuns.matches(excludeRelsPattern, relId.getIdString()) )
             {
-                RelType relType = rs.getString("TABLE_TYPE").toLowerCase().equals("table") ? Table : View;
+                RelType relType = requireNonNull(rs.getString("TABLE_TYPE")).toLowerCase().equals("table") ? Table : View;
 
-                relDescrs.add(new RelDescr(relId, relType, Optionals.optn(rs.getString("REMARKS"))));
+                relDescrs.add(new RelDescr(relId, relType, rs.getString("REMARKS")));
             }
         }
 
@@ -162,7 +161,7 @@ public class DatabaseMetadataFetcher
     public List<RelMetadata> fetchRelationMetadatas
     (
         List<RelDescr> relDescrs, // descriptions of relations to include
-        Optional<String> schema,
+        @Nullable String schema,
         Connection conn
     )
         throws SQLException
@@ -173,26 +172,26 @@ public class DatabaseMetadataFetcher
     public List<RelMetadata> fetchRelationMetadatas
     (
         List<RelDescr> relDescrs, // descriptions of relations to include
-        Optional<String> schema,
+        @Nullable String schema,
         DatabaseMetaData dbmd
     )
         throws SQLException
     {
         Map<RelId,RelDescr> relDescrsByRelId = relDescrs.stream().collect(toMap(RelDescr::getRelationId, identity()));
 
-        try ( ResultSet colsRS = dbmd.getColumns(null, schema.orElse(null), "%", "%") )
+        try ( ResultSet colsRS = dbmd.getColumns(null, schema, "%", "%") )
         {
             List<RelMetadata> relMds = new ArrayList<>();
-            RelMetadataBuilder rmdBldr = null;
+            @Nullable RelMetadataBuilder rmdBldr = null;
 
             while ( colsRS.next() )
             {
-                Optional<String> relSchema = Optionals.optn(colsRS.getString("TABLE_SCHEM"));
-                String relName = colsRS.getString("TABLE_NAME");
+                @Nullable String relSchema = colsRS.getString("TABLE_SCHEM");
+                String relName = requireNonNull(colsRS.getString("TABLE_NAME"));
 
                 RelId relId = new RelId(relSchema, relName);
 
-                RelDescr relDescr = relDescrsByRelId.get(relId);
+                @Nullable RelDescr relDescr = relDescrsByRelId.get(relId);
                 if ( relDescr != null ) // Include this relation?
                 {
                     Field f = makeField(colsRS, dbmd);
@@ -220,9 +219,9 @@ public class DatabaseMetadataFetcher
 
     public List<ForeignKey> fetchForeignKeys
     (
-        Optional<String> schema,
+        @Nullable String schema,
         Connection conn,
-        Optional<Pattern> excludeRelsPattern
+        @Nullable Pattern excludeRelsPattern
     )
         throws SQLException
     {
@@ -231,17 +230,19 @@ public class DatabaseMetadataFetcher
 
     public List<ForeignKey> fetchForeignKeys
     (
-        Optional<String> schema,
+        @Nullable String schema,
         DatabaseMetaData dbmd,
-        Optional<Pattern> excludeRelsPattern
+        @Nullable Pattern excludeRelsPattern
     )
         throws SQLException
     {
         List<ForeignKey> fks = new ArrayList<>();
 
-        try ( ResultSet rs = dbmd.getImportedKeys(null, schema.orElse(null), null) )
+        // Ignore warning about table-name (third) arg being null, which ora/pg drivers allow. In the future it may be
+        // necessary to fetch tables for the schema first and call for the imported keys for each separately.
+        try ( @SuppressWarnings("nullness") ResultSet rs = dbmd.getImportedKeys(null, schema, null) )
         {
-            ForeignKeyBuilder fkBldr = null;
+            @Nullable ForeignKeyBuilder fkBldr = null;
 
             while ( rs.next() )
             {
@@ -254,22 +255,19 @@ public class DatabaseMetadataFetcher
                         fks.add(fkBldr.build());
 
                     fkBldr = new ForeignKeyBuilder(
-                        new RelId(Optionals.optn(rs.getString("FKTABLE_SCHEM")),
-                                  rs.getString("FKTABLE_NAME")),
-                        new RelId(Optionals.optn(rs.getString("PKTABLE_SCHEM")),
-                                  rs.getString("PKTABLE_NAME"))
-                    );
-                    fkBldr.addComponent(
-                        new ForeignKey.Component(rs.getString("FKCOLUMN_NAME"), rs.getString("PKCOLUMN_NAME"))
+                        new RelId(rs.getString("FKTABLE_SCHEM"),
+                                  requireNonNull(rs.getString("FKTABLE_NAME"))),
+                        new RelId(rs.getString("PKTABLE_SCHEM"),
+                                  requireNonNull(rs.getString("PKTABLE_NAME")))
                     );
                 }
-                else // adding another fk component
-                {
-                    requireNonNull(fkBldr); // because we should have seen a component # 1 before entering here
-                    fkBldr.addComponent(
-                        new ForeignKey.Component(rs.getString("FKCOLUMN_NAME"), rs.getString("PKCOLUMN_NAME"))
-                    );
-                }
+
+                requireNonNull(fkBldr).addComponent(
+                    new ForeignKey.Component(
+                        requireNonNull(rs.getString("FKCOLUMN_NAME")),
+                        requireNonNull(rs.getString("PKCOLUMN_NAME"))
+                    )
+                );
             }
 
             if ( fkBldr != null && fkBldr.neitherRelMatches(excludeRelsPattern) )
@@ -313,7 +311,7 @@ public class DatabaseMetadataFetcher
             return id;
     }
 
-    protected static Optional<Integer> getRSInt
+    protected static @Nullable Integer getRSInt
     (
         ResultSet rs,
         String colName
@@ -321,7 +319,7 @@ public class DatabaseMetadataFetcher
        throws SQLException
     {
         int i = rs.getInt(colName);
-        return rs.wasNull() ? empty() : Optionals.opt(i);
+        return rs.wasNull() ? null : i;
     }
 
     protected Field makeField
@@ -331,17 +329,18 @@ public class DatabaseMetadataFetcher
     )
        throws SQLException
     {
-        try ( ResultSet pkRS = dbmd.getPrimaryKeys(colsRS.getString(1), colsRS.getString(2), colsRS.getString(3)) )
+
+        try ( ResultSet pkRS = dbmd.getPrimaryKeys(colsRS.getString(1), colsRS.getString(2), requireNonNull(colsRS.getString(3))) )
         {
             // Fetch the primary key field names and part numbers for this relation
             Map<String, Integer> pkSeqNumsByName = new HashMap<>();
             while (pkRS.next())
-                pkSeqNumsByName.put(pkRS.getString(4), pkRS.getInt(5));
+                pkSeqNumsByName.put(requireNonNull(pkRS.getString(4)), pkRS.getInt(5));
             pkRS.close();
 
-            String name = colsRS.getString("COLUMN_NAME");
-            int typeCode = colsRS.getInt("DATA_TYPE");
-            String dbType = colsRS.getString("TYPE_NAME");
+            String name = requireNonNull(colsRS.getString("COLUMN_NAME"));
+            int typeCode = requireNonNull(colsRS.getInt("DATA_TYPE"));
+            String dbType = requireNonNull(colsRS.getString("TYPE_NAME"));
 
             // Handle special cases/conversions for the type code.
             if ( typeCode == Types.DATE || typeCode == Types.TIMESTAMP )
@@ -350,18 +349,17 @@ public class DatabaseMetadataFetcher
                 // Oracle uses proprietary "OPAQUE" code of 2007 as of 11.2, should be Types.SQLXML = 2009.
                 typeCode = Types.SQLXML;
 
-            Optional<Integer> size = getRSInt(colsRS, "COLUMN_SIZE");
-            Optional<Integer> length = Field.isJdbcTypeChar(typeCode) ? size : empty();
-            Optional<Boolean> nullable = getRSInt(colsRS, "NULLABLE").flatMap(n ->
-                n == ResultSetMetaData.columnNullable ? Optionals.opt(true) :
-                n == ResultSetMetaData.columnNoNulls ? Optionals.opt(false) :
-                    empty()
-            );
-            Optional<Integer> fracDigs =
-                Field.isJdbcTypeNumeric(typeCode) ? getRSInt(colsRS, "DECIMAL_DIGITS") : empty();
-            Optional<Integer> prec = Field.isJdbcTypeNumeric(typeCode) ? size : empty();
-            Optional<Integer> pkPart = Optionals.optn(pkSeqNumsByName.get(name));
-            Optional<String> comment = Optionals.optn(colsRS.getString("REMARKS"));
+            @Nullable Integer size = getRSInt(colsRS, "COLUMN_SIZE");
+            @Nullable Integer length = Field.isJdbcTypeChar(typeCode) ? size : null;
+            @Nullable Integer nullableCode = getRSInt(colsRS, "NULLABLE");
+            @Nullable Boolean nullable =
+                nullableCode != null && nullableCode == ResultSetMetaData.columnNullable ? Boolean.TRUE :
+                nullableCode != null && nullableCode == ResultSetMetaData.columnNoNulls ? Boolean.FALSE :
+                null;
+            @Nullable Integer fracDigs = Field.isJdbcTypeNumeric(typeCode) ? getRSInt(colsRS, "DECIMAL_DIGITS") : null;
+            @Nullable Integer prec = Field.isJdbcTypeNumeric(typeCode) ? size : null;
+            @Nullable Integer pkPart = pkSeqNumsByName.get(name);
+            @Nullable String comment = colsRS.getString("REMARKS");
 
             return new Field(name, typeCode, dbType, length, prec, fracDigs, nullable, pkPart, comment);
         }

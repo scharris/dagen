@@ -2,7 +2,7 @@ package org.sqljson.result_types;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 import org.sqljson.dbmd.Field;
 import org.sqljson.specs.queries.FieldTypeOverride;
@@ -35,7 +35,7 @@ public class GeneratedTypeBuilder
    {
       expressionFields.add(tof);
    }
-   public void addExpressionField(String name, Optional<String> fieldExpr, List<FieldTypeOverride> typeOverrides)
+   public void addExpressionField(String name, @Nullable String fieldExpr, List<FieldTypeOverride> typeOverrides)
    {
       addExpressionField(new ExpressionField(name, fieldExpr, typeOverrides));
    }

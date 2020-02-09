@@ -12,7 +12,7 @@ querySpecs:
         - field: cid
           generateTypes:
             - language: Java
-              typeDeclaration: Optional<Integer>
+              typeDeclaration: "@Nullable Integer"
         - field: registered
         - field: market_entry_date
         - field: therapeutic_indications
@@ -20,7 +20,7 @@ querySpecs:
           jsonProperty: cidPlus1000
           generateTypes:
             - language: Java
-              typeDeclaration: Optional<Integer>
+              typeDeclaration: "@Nullable Integer"
       childTableCollections:
         - collectionName: references
           tableJson:

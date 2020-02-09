@@ -37,7 +37,7 @@ querySpecs:
         - field: cid
           generateTypes:
             - language: Java
-              typeDeclaration: Optional<Integer>
+              typeDeclaration: "@Nullable Integer"
       fieldParamConditions:
         - field: id
 
@@ -52,7 +52,7 @@ querySpecs:
           jsonProperty: cidPlus1000
           generateTypes:
             - language: Java
-              typeDeclaration: Optional<Integer>
+              typeDeclaration: "@Nullable Integer"
       fieldParamConditions:
         - field: id
 

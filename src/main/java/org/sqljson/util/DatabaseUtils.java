@@ -1,16 +1,17 @@
 package org.sqljson.util;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 import org.sqljson.DatabaseObjectsNotFoundException;
 import org.sqljson.dbmd.DatabaseMetadata;
 import org.sqljson.dbmd.Field;
 import org.sqljson.dbmd.RelId;
 import org.sqljson.dbmd.RelMetadata;
+import static org.sqljson.util.Nullables.valueOrThrow;
 
 
 public final class DatabaseUtils
@@ -18,7 +19,7 @@ public final class DatabaseUtils
    public static void verifyTableFieldsExist
    (
       String table, // maybe qualified
-      Optional<String> defaultSchema,
+      @Nullable String defaultSchema,
       List<String> fieldNames,
       DatabaseMetadata dbmd
    )
@@ -26,7 +27,7 @@ public final class DatabaseUtils
    {
       RelId relId = dbmd.identifyTable(table, defaultSchema);
 
-      RelMetadata tableMetadata = dbmd.getRelationMetadata(relId).orElseThrow(() ->
+      RelMetadata tableMetadata = valueOrThrow(dbmd.getRelationMetadata(relId), () ->
          new DatabaseObjectsNotFoundException("Table " + relId.toString() + " not found.")
       );
 

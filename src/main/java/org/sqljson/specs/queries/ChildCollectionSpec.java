@@ -2,31 +2,38 @@ package org.sqljson.specs.queries;
 
 import java.util.*;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import static org.sqljson.util.Nullables.applyIfPresent;
 
 
 public final class ChildCollectionSpec
 {
    private String collectionName;
    private TableJsonSpec tableJson;
-   private Optional<List<String>> foreignKeyFields = Optional.empty();
-   private Optional<String> filter = Optional.empty();
+   private @Nullable List<String> foreignKeyFields = null;
+   private @Nullable String filter = null;
    private boolean unwrap = false;
 
-   private ChildCollectionSpec() {}
+   private ChildCollectionSpec()
+   {
+      this.collectionName = "";
+      this.tableJson = new TableJsonSpec();
+   }
 
    public ChildCollectionSpec
    (
       String collectionName,
       TableJsonSpec tableJson,
-      Optional<List<String>> fkFields,
-      Optional<String> filter,
+      @Nullable List<String> fkFields,
+      @Nullable String filter,
       boolean unwrap
    )
    {
       this.collectionName = collectionName;
       this.tableJson = tableJson;
-      this.foreignKeyFields = fkFields.map(Collections::unmodifiableList);
+      this.foreignKeyFields = applyIfPresent(fkFields, Collections::unmodifiableList);
       this.filter = filter;
       this.unwrap = unwrap;
    }
@@ -35,12 +42,12 @@ public final class ChildCollectionSpec
 
    public TableJsonSpec getTableJson() { return tableJson; }
 
-   public Optional<List<String>> getForeignKeyFields() { return foreignKeyFields; }
+   public @Nullable List<String> getForeignKeyFields() { return foreignKeyFields; }
 
    @JsonIgnore
-   public Optional<Set<String>> getForeignKeyFieldsSet() { return foreignKeyFields.map(HashSet::new); }
+   public @Nullable Set<String> getForeignKeyFieldsSet() { return applyIfPresent(foreignKeyFields, HashSet::new); }
 
-   public Optional<String> getFilter() { return filter; }
+   public @Nullable String getFilter() { return filter; }
 
    public boolean getUnwrap() { return unwrap; }
 }

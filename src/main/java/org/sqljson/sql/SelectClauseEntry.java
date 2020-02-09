@@ -2,9 +2,10 @@ package org.sqljson.sql;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.unmodifiableList;
+
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 import org.sqljson.specs.queries.FieldTypeOverride;
 
@@ -45,8 +46,8 @@ public class SelectClauseEntry
 
    public List<FieldTypeOverride> getFieldTypeOverrides() { return fieldTypeOverrides; }
 
-   public Optional<FieldTypeOverride> getGeneratedTypeOverride(String language)
+   public @Nullable FieldTypeOverride getGeneratedTypeOverride(String language)
    {
-      return fieldTypeOverrides.stream().filter(to -> to.getLanguage().equals(language)).findAny();
+      return fieldTypeOverrides.stream().filter(to -> to.getLanguage().equals(language)).findAny().orElse(null);
    }
 }
