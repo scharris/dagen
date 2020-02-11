@@ -377,7 +377,8 @@ public class JavaWriter implements SourceCodeWriter
          case Types.TIME:
             return notNull ? "LocalTime" : nullableType("LocalTime");
          case Types.TIMESTAMP:
-            return notNull ? "Instant" : nullableType("Instant");
+         case Types.TIMESTAMP_WITH_TIMEZONE:
+            return notNull ? "OffsetDateTime" : nullableType("OffsetDateTime");
          case Types.OTHER:
             if ( f.getDatabaseType().toLowerCase().startsWith("json") )
                return notNull ? "JsonNode" : nullableType("JsonNode");

@@ -27,7 +27,7 @@ public class DrugsQuery
       public String name;
       public @Nullable String meshId;
       public @Nullable Integer cid;
-      public @Nullable Instant registered;
+      public @Nullable OffsetDateTime registered;
       public @Nullable LocalDate marketEntryDate;
       public @Nullable String therapeuticIndications;
       public @Nullable Integer cidPlus1000;
@@ -54,7 +54,7 @@ public class DrugsQuery
       public @Nullable String displayName;
       public @Nullable String nctrIsisId;
       public @Nullable String cas;
-      public @Nullable Instant entered;
+      public @Nullable OffsetDateTime entered;
       public Analyst enteredByAnalyst;
    }
 
