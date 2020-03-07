@@ -1,5 +1,6 @@
 Review mod statement structures for clarity for common usages:
   Using expressions in field values involving params and/or other fields (for updates).
+    Why are parens required for expressions?
 
 Docs Outline
 ------------
