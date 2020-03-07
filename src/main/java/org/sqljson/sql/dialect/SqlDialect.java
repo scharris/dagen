@@ -56,4 +56,24 @@ public interface SqlDialect
       else if ( dbmsLower.contains("oracle") ) return DbmsType.ORA;
       else return DbmsType.ISO;
    }
+
+   static @Nullable String getCommonFieldParamConditionSql
+   (
+      String mqFieldName, // field name, maybe qualified
+      String paramValExpr,
+      FieldParamCondition.Operator op
+   )
+   {
+      switch ( op )
+      {
+         case EQ: return mqFieldName + " = " + paramValExpr;
+         case LT: return mqFieldName + " < " + paramValExpr;
+         case LE: return mqFieldName + " <= " + paramValExpr;
+         case GT: return mqFieldName + " > " + paramValExpr;
+         case GE: return mqFieldName + " >= " + paramValExpr;
+         case IN: return mqFieldName + " IN (" + paramValExpr + ")";
+         case EQ_IF_PARAM_NONNULL: return "(" + paramValExpr + " is null or " + mqFieldName + " = " + paramValExpr + ")";
+         default: return null;
+      }
+   }
 }

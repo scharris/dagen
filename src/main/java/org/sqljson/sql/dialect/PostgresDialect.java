@@ -2,16 +2,16 @@ package org.sqljson.sql.dialect;
 
 import java.util.List;
 import java.util.function.Function;
-
 import static java.util.stream.Collectors.joining;
-import static org.sqljson.specs.mod_stmts.ParametersType.NUMBERED;
-import static org.sqljson.util.StringFuns.maybeQualify;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
+
 import org.sqljson.specs.FieldParamCondition;
 import org.sqljson.specs.mod_stmts.ParametersType;
 import org.sqljson.sql.ColumnMetadata;
 import org.sqljson.util.StringFuns;
+import static org.sqljson.specs.mod_stmts.ParametersType.NUMBERED;
+import static org.sqljson.util.StringFuns.maybeQualify;
 
 
 public class PostgresDialect implements SqlDialect
@@ -82,16 +82,15 @@ public class PostgresDialect implements SqlDialect
       String mqFieldName = maybeQualify(tableAlias, fpcond.getField());
       String paramValExpr = paramsType == NUMBERED ? "?" : ":"+ fpcond.getFinalParamName(defaultParamNameFn);
 
+      @Nullable String sql = SqlDialect.getCommonFieldParamConditionSql(mqFieldName, paramValExpr, fpcond.getOp());
+
+      if ( sql != null )
+         return sql;
+
       switch ( fpcond.getOp() )
       {
-         case EQ: return mqFieldName + " = " + paramValExpr;
-         case LT: return mqFieldName + " < " + paramValExpr;
-         case LE: return mqFieldName + " <= " + paramValExpr;
-         case GT: return mqFieldName + " > " + paramValExpr;
-         case GE: return mqFieldName + " >= " + paramValExpr;
-         case IN: return mqFieldName + " IN (" + paramValExpr + ")";
-         case EQ_IF_PARAM_NONNULL: return "(" + paramValExpr + " is null or " + mqFieldName + " = " + paramValExpr + ")";
          case JSON_CONTAINS: return mqFieldName + " @> " + paramValExpr;
+         // (Add other dialect specific operators here.)
          default: throw new RuntimeException("Operator not recognized.");
       }
    }
