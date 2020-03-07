@@ -13,6 +13,7 @@ import org.sqljson.dbmd.DatabaseMetadata;
 import org.sqljson.dbmd.RelId;
 import org.sqljson.dbmd.RelMetadata;
 import org.sqljson.specs.FieldParamCondition;
+import org.sqljson.sql.dialect.SqlDialect;
 import org.sqljson.util.AppUtils;
 import org.sqljson.specs.mod_stmts.ModSpec;
 import org.sqljson.specs.mod_stmts.TableInputField;
@@ -25,6 +26,7 @@ import static org.sqljson.util.StringFuns.*;
 public class ModStatementGenerator
 {
    private final DatabaseMetadata dbmd;
+   private final SqlDialect sqlDialect;
    private final @Nullable String defaultSchema;
    private final Set<String> unqualifiedNamesSchemas;
    private final int indentSpaces;
@@ -38,9 +40,10 @@ public class ModStatementGenerator
    )
    {
       this.dbmd = dbmd;
+      this.indentSpaces = 2;
+      this.sqlDialect = SqlDialect.fromDatabaseMetadata(this.dbmd, this.indentSpaces);
       this.defaultSchema = defaultSchema;
       this.unqualifiedNamesSchemas = unqualifiedNamesSchemas.stream().map(dbmd::normalizeName).collect(toSet());
-      this.indentSpaces = 2;
    }
 
    public List<GeneratedModStatement> generateModStatements(List<ModSpec> modSpecs)
@@ -300,7 +303,8 @@ public class ModStatementGenerator
       for ( FieldParamCondition fieldParamCond : modSpec.getFieldParamConditions() )
       {
          conds.add(
-            fieldParamCond.toSql(
+            sqlDialect.getFieldParamConditionSql(
+               fieldParamCond,
                modSpec.getTableAlias(),
                modSpec.getParametersType(),
                this::getDefaultCondParamName

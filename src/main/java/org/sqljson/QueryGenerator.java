@@ -24,9 +24,9 @@ import static org.sqljson.util.StringFuns.*;
 public class QueryGenerator
 {
    private final DatabaseMetadata dbmd;
+   private final SqlDialect sqlDialect;
    private final @Nullable String defaultSchema;
    private final Set<String> generateUnqualifiedNamesForSchemas;
-   private final SqlDialect sqlDialect;
    private final int indentSpaces;
    private final QueryTypesGenerator queryTypesGenerator;
    private final Function<String,String> outputFieldNameDefaultFn;
@@ -55,10 +55,10 @@ public class QueryGenerator
    )
    {
       this.dbmd = dbmd;
-      this.defaultSchema = defaultSchema;
-      this.generateUnqualifiedNamesForSchemas = generateUnqualifiedNamesForSchemas.stream().map(dbmd::normalizeName).collect(toSet());
       this.indentSpaces = 2;
       this.sqlDialect = SqlDialect.fromDatabaseMetadata(this.dbmd, this.indentSpaces);
+      this.defaultSchema = defaultSchema;
+      this.generateUnqualifiedNamesForSchemas = generateUnqualifiedNamesForSchemas.stream().map(dbmd::normalizeName).collect(toSet());
       this.queryTypesGenerator = new QueryTypesGenerator(dbmd, defaultSchema, outputFieldNameDefaultFn);
       this.outputFieldNameDefaultFn = outputFieldNameDefaultFn;
    }
@@ -416,7 +416,12 @@ public class QueryGenerator
       for ( FieldParamCondition fieldParamCond : tableJsonSpec.getFieldParamConditions() )
       {
          conds.add(
-            fieldParamCond.toSql(tableAlias, NAMED, getDefaultParamNameFn(tableJsonSpec.getTable(), fieldParamCond.getOp()))
+            sqlDialect.getFieldParamConditionSql(
+                fieldParamCond,
+                tableAlias,
+                NAMED,
+                getDefaultParamNameFn(tableJsonSpec.getTable(), fieldParamCond.getOp())
+            )
          );
       }
 

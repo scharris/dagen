@@ -1,13 +1,18 @@
 package org.sqljson.sql.dialect;
 
 import java.util.List;
+import java.util.function.Function;
+
 import static java.util.stream.Collectors.joining;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
+import org.sqljson.specs.FieldParamCondition;
+import org.sqljson.specs.mod_stmts.ParametersType;
 import org.sqljson.sql.ColumnMetadata;
 
+import static org.sqljson.specs.mod_stmts.ParametersType.NUMBERED;
 import static org.sqljson.sql.SelectClauseEntry.Source.CHILD_COLLECTION;
-import static org.sqljson.util.StringFuns.indentLines;
-import static org.sqljson.util.StringFuns.unDoubleQuote;
+import static org.sqljson.util.StringFuns.*;
 
 
 public class OracleDialect implements SqlDialect
@@ -86,5 +91,31 @@ public class OracleDialect implements SqlDialect
          "from (\n" +
             indentLines(simpleAggregatedObjectsQuery, 2) + "\n" +
          ") q";
+   }
+
+   @Override
+   public String getFieldParamConditionSql
+       (
+           FieldParamCondition fpcond,
+           @Nullable String tableAlias,
+           ParametersType paramsType,
+           Function<String,String> defaultParamNameFn // default param name as function of field name
+       )
+   {
+      String mqFieldName = maybeQualify(tableAlias, fpcond.getField());
+      String paramValExpr = paramsType == NUMBERED ? "?" : ":"+ fpcond.getFinalParamName(defaultParamNameFn);
+
+      switch ( fpcond.getOp() )
+      {
+         case EQ: return mqFieldName + " = " + paramValExpr;
+         case LT: return mqFieldName + " < " + paramValExpr;
+         case LE: return mqFieldName + " <= " + paramValExpr;
+         case GT: return mqFieldName + " > " + paramValExpr;
+         case GE: return mqFieldName + " >= " + paramValExpr;
+         case IN: return mqFieldName + " IN (" + paramValExpr + ")";
+         case EQ_IF_PARAM_NONNULL: return "(" + paramValExpr + " is null or " + mqFieldName + " = " + paramValExpr + ")";
+         case JSON_CONTAINS: throw new RuntimeException("Oracle dialect does not currently support JSON_CONTAINS operator.");
+         default: throw new RuntimeException("Operator not recognized.");
+      }
    }
 }

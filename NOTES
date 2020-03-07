@@ -1,6 +1,5 @@
-Use @Nullable, let user configure the nullable annotation to be used.
-  Add package-info.java for generated types package when using annotations.
-
+Review mod statement structures for clarity for common usages:
+  Using expressions in field values involving params and/or other fields (for updates).
 
 Docs Outline
 ------------

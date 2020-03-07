@@ -1,8 +1,12 @@
 package org.sqljson.sql.dialect;
 
 import java.util.List;
+import java.util.function.Function;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.sqljson.dbmd.DatabaseMetadata;
+import org.sqljson.specs.FieldParamCondition;
+import org.sqljson.specs.mod_stmts.ParametersType;
 import org.sqljson.sql.ColumnMetadata;
 
 
@@ -26,6 +30,13 @@ public interface SqlDialect
    /// should also return in exactly one row and should export the same column name.
    String getAggregatedObjectsFinalQuery(String simpleAggregatedObjectsQuery, String jsonValueColumnName);
 
+   String getFieldParamConditionSql
+      (
+         FieldParamCondition fieldParamCondition,
+         @Nullable String tableAlias,
+         ParametersType paramsType,
+         Function<String,String> defaultParamNameFn // default param name as function of field name
+      );
 
    static SqlDialect fromDatabaseMetadata(DatabaseMetadata dbmd, int indentSpaces)
    {
