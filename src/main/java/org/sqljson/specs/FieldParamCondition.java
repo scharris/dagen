@@ -1,12 +1,6 @@
 package org.sqljson.specs;
 
-import java.util.function.Function;
 import org.checkerframework.checker.nullness.qual.Nullable;
-
-import org.sqljson.specs.mod_stmts.ParametersType;
-import static org.sqljson.specs.mod_stmts.ParametersType.NUMBERED;
-import static org.sqljson.util.Nullables.valueOr;
-import static org.sqljson.util.StringFuns.maybeQualify;
 
 
 public class FieldParamCondition
@@ -41,9 +35,4 @@ public class FieldParamCondition
    public Operator getOp() { return op; }
 
    public @Nullable String getParamName() { return paramName; }
-
-   public String getFinalParamName(Function<String,String> defaultParamNameFn) // default param name as function of field name
-   {
-      return valueOr(paramName, defaultParamNameFn.apply(field));
-   }
 }

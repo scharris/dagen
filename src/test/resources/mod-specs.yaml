@@ -7,48 +7,61 @@ modificationStatementSpecs:
     command: INSERT
     table: drug
     parametersType: NAMED
-    inputFields:
+    targetFields:
       - field: id
+        value: :id
       - field: name
+        value: :name
       - field: compound_id
+        value: :compoundId
       - field: registered_by
+        value: :registeredBy
 
   ##################################################################
   - statementName: drug insert numbered params
     command: INSERT
     table: drug
     parametersType: NUMBERED
-    inputFields:
+    targetFields:
       - field: id
+        value: '?'
       - field: name
+        value: '?'
       - field: compound_id
+        value: '?'
       - field: registered_by
+        value: '?'
 
   ##################################################################
   - statementName: drug insert with literal field value expr
     command: INSERT
     table: drug
     parametersType: NAMED
-    inputFields:
+    targetFields:
       - field: id
+        value: :id
       - field: name
+        value: :name
       - field: compound_id
-        value: (2 + 1)
+        value: 2 + 1
       - field: registered_by
+        value: :registeredBy
 
   ##################################################################
   - statementName: drug insert with multi param field value expr
     command: INSERT
     table: drug
     parametersType: NAMED
-    inputFields:
+    targetFields:
       - field: id
+        value: :id
       - field: name
-        value: "(:namePrefix || ':' || :nameSuffix)"
-        expressionValueParamNames: [namePrefix, nameSuffix]
+        value: ":namePrefix || ':' || :nameSuffix"
+        paramNames: [namePrefix, nameSuffix]
       - field: compound_id
+        value: :compoundId
       - field: registered_by
-
+        value: :registeredBy
 
   ##################################################################
   - statementName: drug update with named params
@@ -56,9 +69,11 @@ modificationStatementSpecs:
     table: drug
     tableAlias: d
     parametersType: NAMED
-    inputFields:
+    targetFields:
       - field: name
+        value: :name
       - field: mesh_id
+        value: :meshId
     fieldParamConditions:
       - field: id
 
@@ -68,9 +83,26 @@ modificationStatementSpecs:
     table: drug
     tableAlias: d
     parametersType: NUMBERED
-    inputFields:
+    targetFields:
       - field: name
+        value: '?'
       - field: mesh_id
+        value: '?'
+    fieldParamConditions:
+      - field: id
+
+  ##################################################################
+  - statementName: drug update with numbered params with customized name
+    command: UPDATE
+    table: drug
+    tableAlias: d
+    parametersType: NUMBERED
+    targetFields:
+      - field: name
+        value: '?'
+        paramNames: [customName] # Represents the name of the parameter in generated source code.
+      - field: mesh_id
+        value: '?'
     fieldParamConditions:
       - field: id
 
@@ -80,10 +112,10 @@ modificationStatementSpecs:
     table: drug
     tableAlias: d
     parametersType: NAMED
-    inputFields:
+    targetFields:
       - field: name
-        value: "(:namePartOne || '-' || :namePartTwo)"
-        expressionValueParamNames: [namePartOne, namePartTwo]
+        value: ":namePartOne || '-' || :namePartTwo"
+        paramNames: [namePartOne, namePartTwo]
     fieldParamConditions:
       - field: id
 
@@ -104,5 +136,4 @@ modificationStatementSpecs:
     parametersType: NUMBERED
     fieldParamConditions:
       - field: id
-
 

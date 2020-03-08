@@ -12,20 +12,20 @@ public class GeneratedModStatement
 {
    private final ModSpec modSpec;
    private final String sql;
-   private final List<String> inputFieldParamNames;
+   private final List<String> targetFieldParamNames;
    private final List<String> conditionParamNames;
 
    public GeneratedModStatement
    (
       ModSpec modSpec,
       String sql,
-      List<String> inputFieldParamNames,
+      List<String> targetFieldParamNames,
       List<String> conditionParamNames
    )
    {
       this.modSpec = modSpec;
       this.sql = sql;
-      this.inputFieldParamNames = unmodifiableList(new ArrayList<>(inputFieldParamNames));
+      this.targetFieldParamNames = unmodifiableList(new ArrayList<>(targetFieldParamNames));
       this.conditionParamNames = unmodifiableList(new ArrayList<>(conditionParamNames));
    }
 
@@ -34,7 +34,7 @@ public class GeneratedModStatement
    public String getSql() { return sql; }
 
 
-   public List<String> getInputFieldParamNames() { return inputFieldParamNames; }
+   public List<String> getTargetFieldParamNames() { return targetFieldParamNames; }
 
    public List<String> getConditionParamNames() { return conditionParamNames; }
 
@@ -47,7 +47,7 @@ public class GeneratedModStatement
    public List<String> getAllParameterNames()
    {
       List<String> paramNames = new ArrayList<>();
-      paramNames.addAll(inputFieldParamNames);
+      paramNames.addAll(targetFieldParamNames);
       paramNames.addAll(conditionParamNames);
       return paramNames;
    }

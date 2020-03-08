@@ -174,6 +174,27 @@ class ModStatementGeneratorTests extends TestsBase
     }
 
     @Test
+    @DisplayName("Update drug with numbered parameters with customized name.")
+    void updateDrugWithNumberedParamsWithCustomizedName() throws Exception
+    {
+        String sql = getGeneratedModStatementSql(DrugUpdateWithNumberedParamsWithCustomizedName.sqlResource);
+
+        PreparedStatementSetter pstmtSetter = pstmt -> {
+            pstmt.setLong(DrugUpdateWithNumberedParamsWithCustomizedName.idCondParamNum, 2L);
+            pstmt.setString(DrugUpdateWithNumberedParamsWithCustomizedName.customNameParamNum, "new name");
+            pstmt.setString(DrugUpdateWithNumberedParamsWithCustomizedName.meshIdParamNum, "M002");
+        };
+
+        doUpdate(sql, pstmtSetter, (count, jdbc) -> {
+            assertEquals(count, 1);
+            Map<String,Object> row = jdbc.queryForMap("select id, name, mesh_id from drug where id = ?", 2);
+            assertEquals(row.get("id"), 2);
+            assertEquals(row.get("name"), "new name");
+            assertEquals(row.get("mesh_id"), "M002");
+        });
+    }
+
+    @Test
     @DisplayName("Update drug with multi-parameter field value expression.")
     void updateDrugWithMultiParamFieldValueExpr() throws Exception
     {

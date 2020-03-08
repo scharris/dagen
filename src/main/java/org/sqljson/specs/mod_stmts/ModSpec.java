@@ -16,7 +16,7 @@ public class ModSpec
    private @Nullable String tableAlias = null;
    private ParametersType parametersType = NAMED;
    private boolean generateSourceCode = true; // sql resource name and param info
-   private List<TableInputField> inputFields = emptyList();
+   private List<TargetField> targetFields = emptyList();
    private List<FieldParamCondition> fieldParamConditions = emptyList();
    private @Nullable String condition = null; // augments field param equalities
 
@@ -35,7 +35,7 @@ public class ModSpec
       @Nullable String tableAlias,
       ParametersType parametersType,
       boolean generateSourceCode,
-      List<TableInputField> inputFields,
+      List<TargetField> targetFields,
       List<FieldParamCondition> fieldParamConditions,
       @Nullable String condition
    )
@@ -46,7 +46,7 @@ public class ModSpec
       this.tableAlias = tableAlias;
       this.parametersType = parametersType;
       this.generateSourceCode = generateSourceCode;
-      this.inputFields = inputFields;
+      this.targetFields = targetFields;
       this.fieldParamConditions = fieldParamConditions;
       this.condition = condition;
    }
@@ -63,7 +63,7 @@ public class ModSpec
 
    public boolean getGenerateSourceCode() { return generateSourceCode; }
 
-   public List<TableInputField> getInputFields() { return inputFields; }
+   public List<TargetField> getTargetFields() { return targetFields; }
 
    public List<FieldParamCondition> getFieldParamConditions() { return fieldParamConditions; }
 

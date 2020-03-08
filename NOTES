@@ -1,12 +1,13 @@
-Review mod statement structures for clarity for common usages:
-  Using expressions in field values involving params and/or other fields (for updates).
-    Why are parens required for expressions?
+Commit Notes
+------------
+Mod statements now require explicit values for input fields.
+
 
 Docs Outline
 ------------
 Query generator
   - Spec describes tree of tables, generates sql/json query to pull all related
-    data via single query operation.  Traditional joins have problems pulling
+    data via single query operation. Traditional joins have problems pulling
     data from independent child tables with a parent table.
   - Preamble about query group and options applying to all queries.
   - Top table and list of fields to include, without any field options, default

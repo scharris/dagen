@@ -34,3 +34,11 @@ java -cp "$JAR" \
   output/mod-stmts \
   output/mod-stmts
 echo "  Done"
+
+echo "Writing query specs json schema..."
+java -cp "$JAR" org.sqljson.QueryGeneratorMain --print-spec-json-schema > editor-config/query-specs-schema.json
+echo "  Done"
+
+echo "Writing mod statement specs json schema..."
+java -cp "$JAR" org.sqljson.QueryGeneratorMain --print-spec-json-schema > editor-config/mod-specs-schema.json
+echo "  Done"

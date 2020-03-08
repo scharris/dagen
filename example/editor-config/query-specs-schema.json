@@ -1,89 +1,79 @@
 {
-  "type": "object",
-  "id": "urn:jsonschema:org:sqljson:specs:queries:QueryGroupSpec",
-  "properties": {
-    "defaultSchema": {
-      "type": "string"
+  "type" : "object",
+  "id" : "urn:jsonschema:org:sqljson:specs:queries:QueryGroupSpec",
+  "properties" : {
+    "defaultSchema" : {
+      "type" : "string"
     },
-    "outputFieldNameDefault": {
-      "type": "string",
-      "enum": [
-        "AS_IN_DB",
-        "CAMELCASE"
-      ]
+    "outputFieldNameDefault" : {
+      "type" : "string",
+      "enum" : [ "AS_IN_DB", "CAMELCASE" ]
     },
-    "generateUnqualifiedNamesForSchemas": {
-      "type": "array",
-      "items": {
-        "type": "string"
+    "generateUnqualifiedNamesForSchemas" : {
+      "type" : "array",
+      "items" : {
+        "type" : "string"
       }
     },
-    "querySpecs": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "id": "urn:jsonschema:org:sqljson:specs:queries:QuerySpec",
-        "properties": {
-          "queryName": {
-            "type": "string"
+    "querySpecs" : {
+      "type" : "array",
+      "items" : {
+        "type" : "object",
+        "id" : "urn:jsonschema:org:sqljson:specs:queries:QuerySpec",
+        "properties" : {
+          "queryName" : {
+            "type" : "string"
           },
-          "resultsRepresentations": {
-            "type": "array",
-            "items": {
-              "type": "string",
-              "enum": [
-                "MULTI_COLUMN_ROWS",
-                "JSON_OBJECT_ROWS",
-                "JSON_ARRAY_ROW"
-              ]
+          "resultsRepresentations" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string",
+              "enum" : [ "MULTI_COLUMN_ROWS", "JSON_OBJECT_ROWS", "JSON_ARRAY_ROW" ]
             }
           },
-          "generateResultTypes": {
-            "type": "boolean"
+          "generateResultTypes" : {
+            "type" : "boolean"
           },
-          "generateSource": {
-            "type": "boolean"
+          "generateSource" : {
+            "type" : "boolean"
           },
-          "outputFieldNameDefault": {
-            "type": "string",
-            "enum": [
-              "AS_IN_DB",
-              "CAMELCASE"
-            ]
+          "outputFieldNameDefault" : {
+            "type" : "string",
+            "enum" : [ "AS_IN_DB", "CAMELCASE" ]
           },
-          "tableJson": {
-            "type": "object",
-            "id": "urn:jsonschema:org:sqljson:specs:queries:TableJsonSpec",
-            "properties": {
-              "table": {
-                "type": "string"
+          "tableJson" : {
+            "type" : "object",
+            "id" : "urn:jsonschema:org:sqljson:specs:queries:TableJsonSpec",
+            "properties" : {
+              "table" : {
+                "type" : "string"
               },
-              "fieldExpressions": {
-                "type": "array",
-                "items": {
-                  "type": "object",
-                  "id": "urn:jsonschema:org:sqljson:specs:queries:TableFieldExpr",
-                  "properties": {
-                    "field": {
-                      "type": "string"
+              "fieldExpressions" : {
+                "type" : "array",
+                "items" : {
+                  "type" : "object",
+                  "id" : "urn:jsonschema:org:sqljson:specs:queries:TableFieldExpr",
+                  "properties" : {
+                    "field" : {
+                      "type" : "string"
                     },
-                    "expression": {
-                      "type": "string"
+                    "expression" : {
+                      "type" : "string"
                     },
-                    "jsonProperty": {
-                      "type": "string"
+                    "jsonProperty" : {
+                      "type" : "string"
                     },
-                    "generateTypes": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "id": "urn:jsonschema:org:sqljson:specs:queries:FieldTypeOverride",
-                        "properties": {
-                          "language": {
-                            "type": "string"
+                    "generateTypes" : {
+                      "type" : "array",
+                      "items" : {
+                        "type" : "object",
+                        "id" : "urn:jsonschema:org:sqljson:specs:queries:FieldTypeOverride",
+                        "properties" : {
+                          "language" : {
+                            "type" : "string"
                           },
-                          "typeDeclaration": {
-                            "type": "string"
+                          "typeDeclaration" : {
+                            "type" : "string"
                           }
                         }
                       }
@@ -91,104 +81,96 @@
                   }
                 }
               },
-              "inlineParentTables": {
-                "type": "array",
-                "items": {
-                  "type": "object",
-                  "id": "urn:jsonschema:org:sqljson:specs:queries:InlineParentSpec",
-                  "properties": {
-                    "tableJson": {
-                      "type": "object",
-                      "$ref": "urn:jsonschema:org:sqljson:specs:queries:TableJsonSpec"
+              "inlineParentTables" : {
+                "type" : "array",
+                "items" : {
+                  "type" : "object",
+                  "id" : "urn:jsonschema:org:sqljson:specs:queries:InlineParentSpec",
+                  "properties" : {
+                    "tableJson" : {
+                      "type" : "object",
+                      "$ref" : "urn:jsonschema:org:sqljson:specs:queries:TableJsonSpec"
                     },
-                    "viaForeignKeyFields": {
-                      "type": "array",
-                      "items": {
-                        "type": "string"
+                    "viaForeignKeyFields" : {
+                      "type" : "array",
+                      "items" : {
+                        "type" : "string"
                       }
                     }
                   }
                 }
               },
-              "referencedParentTables": {
-                "type": "array",
-                "items": {
-                  "type": "object",
-                  "id": "urn:jsonschema:org:sqljson:specs:queries:ReferencedParentSpec",
-                  "properties": {
-                    "referenceName": {
-                      "type": "string"
+              "referencedParentTables" : {
+                "type" : "array",
+                "items" : {
+                  "type" : "object",
+                  "id" : "urn:jsonschema:org:sqljson:specs:queries:ReferencedParentSpec",
+                  "properties" : {
+                    "referenceName" : {
+                      "type" : "string"
                     },
-                    "tableJson": {
-                      "type": "object",
-                      "$ref": "urn:jsonschema:org:sqljson:specs:queries:TableJsonSpec"
+                    "tableJson" : {
+                      "type" : "object",
+                      "$ref" : "urn:jsonschema:org:sqljson:specs:queries:TableJsonSpec"
                     },
-                    "viaForeignKeyFields": {
-                      "type": "array",
-                      "items": {
-                        "type": "string"
+                    "viaForeignKeyFields" : {
+                      "type" : "array",
+                      "items" : {
+                        "type" : "string"
                       }
                     }
                   }
                 }
               },
-              "childTableCollections": {
-                "type": "array",
-                "items": {
-                  "type": "object",
-                  "id": "urn:jsonschema:org:sqljson:specs:queries:ChildCollectionSpec",
-                  "properties": {
-                    "collectionName": {
-                      "type": "string"
+              "childTableCollections" : {
+                "type" : "array",
+                "items" : {
+                  "type" : "object",
+                  "id" : "urn:jsonschema:org:sqljson:specs:queries:ChildCollectionSpec",
+                  "properties" : {
+                    "collectionName" : {
+                      "type" : "string"
                     },
-                    "tableJson": {
-                      "type": "object",
-                      "$ref": "urn:jsonschema:org:sqljson:specs:queries:TableJsonSpec"
+                    "tableJson" : {
+                      "type" : "object",
+                      "$ref" : "urn:jsonschema:org:sqljson:specs:queries:TableJsonSpec"
                     },
-                    "foreignKeyFields": {
-                      "type": "array",
-                      "items": {
-                        "type": "string"
+                    "foreignKeyFields" : {
+                      "type" : "array",
+                      "items" : {
+                        "type" : "string"
                       }
                     },
-                    "filter": {
-                      "type": "string"
+                    "filter" : {
+                      "type" : "string"
                     },
-                    "unwrap": {
-                      "type": "boolean"
+                    "unwrap" : {
+                      "type" : "boolean"
                     }
                   }
                 }
               },
-              "fieldParamConditions": {
-                "type": "array",
-                "items": {
-                  "type": "object",
-                  "id": "urn:jsonschema:org:sqljson:specs:FieldParamCondition",
-                  "properties": {
-                    "field": {
-                      "type": "string"
+              "fieldParamConditions" : {
+                "type" : "array",
+                "items" : {
+                  "type" : "object",
+                  "id" : "urn:jsonschema:org:sqljson:specs:FieldParamCondition",
+                  "properties" : {
+                    "field" : {
+                      "type" : "string"
                     },
-                    "op": {
-                      "type": "string",
-                      "enum": [
-                        "EQ",
-                        "LT",
-                        "LE",
-                        "GT",
-                        "GE",
-                        "IN",
-                        "EQ_IF_PARAM_NONNULL"
-                      ]
+                    "op" : {
+                      "type" : "string",
+                      "enum" : [ "EQ", "LT", "LE", "GT", "GE", "IN", "EQ_IF_PARAM_NONNULL", "JSON_CONTAINS" ]
                     },
-                    "paramName": {
-                      "type": "string"
+                    "paramName" : {
+                      "type" : "string"
                     }
                   }
                 }
               },
-              "condition": {
-                "type": "string"
+              "condition" : {
+                "type" : "string"
               }
             }
           }

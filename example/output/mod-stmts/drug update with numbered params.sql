@@ -2,7 +2,7 @@
 -- drug update with numbered params
 update drug d
 set
-  name = (? || '-' || ?),
+  name = ? || '-' || ?,
   compound_id = ?,
   mesh_id = ?
 where (

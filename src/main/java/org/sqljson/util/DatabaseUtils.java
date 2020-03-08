@@ -44,14 +44,14 @@ public final class DatabaseUtils
    {
       Set<String> dbmdTableFields = tableMetadata.getFields().stream().map(Field::getName).collect(toSet());
 
-      List<String> missingTableInputFields =
+      List<String> missingFields =
          fieldNames.stream()
-            .filter(fieldName -> !dbmdTableFields.contains(dbmd.normalizeName(fieldName)))
-            .collect(toList());
+         .filter(fieldName -> !dbmdTableFields.contains(dbmd.normalizeName(fieldName)))
+         .collect(toList());
 
-      if ( !missingTableInputFields.isEmpty() )
+      if ( !missingFields.isEmpty() )
          throw new DatabaseObjectsNotFoundException(
-            "Field(s) not found in table " + tableMetadata.getRelationId() + ": " + missingTableInputFields + "."
+            "Field(s) not found in table " + tableMetadata.getRelationId() + ": " + missingFields + "."
          );
    }
 

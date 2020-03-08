@@ -455,7 +455,8 @@ public class QueryGenerator
       List<String> paramNames = new ArrayList<>();
 
       tableJsonSpec.getFieldParamConditions().stream()
-         .map(fpCond -> fpCond.getFinalParamName(getDefaultParamNameFn(tableJsonSpec.getTable(), fpCond.getOp())))
+         .map(fpCond -> valueOr(fpCond.getParamName(),
+                                getDefaultParamNameFn(tableJsonSpec.getTable(), fpCond.getOp()).apply(fpCond.getField())))
          .forEach(paramNames::add);
 
       for ( ChildCollectionSpec childSpec: tableJsonSpec.getChildTableCollections() )

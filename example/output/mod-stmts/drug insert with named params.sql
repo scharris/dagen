@@ -11,8 +11,8 @@ insert into drug
 values
   (
     :id,
-    (:namePrefix || ':' || :nameSuffix),
-    (2 - 1),
+    :namePrefix || ':' || :nameSuffix,
+    2 - 1,
     :meshId,
     :registeredBy
   )

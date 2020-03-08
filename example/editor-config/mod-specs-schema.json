@@ -1,99 +1,84 @@
 {
-  "type": "object",
-  "id": "urn:jsonschema:org:sqljson:specs:mod_stmts:ModGroupSpec",
-  "properties": {
-    "defaultSchema": {
-      "type": "string"
+  "type" : "object",
+  "id" : "urn:jsonschema:org:sqljson:specs:mod_stmts:ModGroupSpec",
+  "properties" : {
+    "defaultSchema" : {
+      "type" : "string"
     },
-    "generateUnqualifiedNamesForSchemas": {
-      "type": "array",
-      "items": {
-        "type": "string"
+    "generateUnqualifiedNamesForSchemas" : {
+      "type" : "array",
+      "items" : {
+        "type" : "string"
       }
     },
-    "modificationStatementSpecs": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "id": "urn:jsonschema:org:sqljson:specs:mod_stmts:ModSpec",
-        "properties": {
-          "statementName": {
-            "type": "string"
+    "modificationStatementSpecs" : {
+      "type" : "array",
+      "items" : {
+        "type" : "object",
+        "id" : "urn:jsonschema:org:sqljson:specs:mod_stmts:ModSpec",
+        "properties" : {
+          "statementName" : {
+            "type" : "string"
           },
-          "command": {
-            "type": "string",
-            "enum": [
-              "INSERT",
-              "UPDATE",
-              "DELETE"
-            ]
+          "command" : {
+            "type" : "string",
+            "enum" : [ "INSERT", "UPDATE", "DELETE" ]
           },
-          "table": {
-            "type": "string"
+          "table" : {
+            "type" : "string"
           },
-          "tableAlias": {
-            "type": "string"
+          "tableAlias" : {
+            "type" : "string"
           },
-          "parametersType": {
-            "type": "string",
-            "enum": [
-              "NUMBERED",
-              "NAMED"
-            ]
+          "parametersType" : {
+            "type" : "string",
+            "enum" : [ "NUMBERED", "NAMED" ]
           },
-          "generateSourceCode": {
-            "type": "boolean"
+          "generateSourceCode" : {
+            "type" : "boolean"
           },
-          "inputFields": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "id": "urn:jsonschema:org:sqljson:specs:mod_stmts:TableInputField",
-              "properties": {
-                "field": {
-                  "type": "string"
+          "targetFields" : {
+            "type" : "array",
+            "items" : {
+              "type" : "object",
+              "id" : "urn:jsonschema:org:sqljson:specs:mod_stmts:TargetField",
+              "properties" : {
+                "field" : {
+                  "type" : "string"
                 },
-                "value": {
-                  "type": "string"
+                "value" : {
+                  "type" : "string"
                 },
-                "expressionValueParamNames": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
+                "paramNames" : {
+                  "type" : "array",
+                  "items" : {
+                    "type" : "string"
                   }
                 }
               }
             }
           },
-          "fieldParamConditions": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "id": "urn:jsonschema:org:sqljson:specs:FieldParamCondition",
-              "properties": {
-                "field": {
-                  "type": "string"
+          "fieldParamConditions" : {
+            "type" : "array",
+            "items" : {
+              "type" : "object",
+              "id" : "urn:jsonschema:org:sqljson:specs:FieldParamCondition",
+              "properties" : {
+                "field" : {
+                  "type" : "string"
                 },
-                "op": {
-                  "type": "string",
-                  "enum": [
-                    "EQ",
-                    "LT",
-                    "LE",
-                    "GT",
-                    "GE",
-                    "IN",
-                    "EQ_IF_PARAM_NONNULL"
-                  ]
+                "op" : {
+                  "type" : "string",
+                  "enum" : [ "EQ", "LT", "LE", "GT", "GE", "IN", "EQ_IF_PARAM_NONNULL", "JSON_CONTAINS" ]
                 },
-                "paramName": {
-                  "type": "string"
+                "paramName" : {
+                  "type" : "string"
                 }
               }
             }
           },
-          "condition": {
-            "type": "string"
+          "condition" : {
+            "type" : "string"
           }
         }
       }

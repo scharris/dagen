@@ -14,6 +14,14 @@ public final class StringFuns
       return makeNameNotInSet(baseName, existingNames, "");
    }
 
+   public static int countOccurrences(String s, char c)
+   {
+      int count = 0;
+      for (int i = 0; i < s.length(); ++i)
+         if ( s.charAt(i) == c ) ++count;
+      return count;
+   }
+
    public static String makeNameNotInSet(String baseName, Set<String> existingNames, String suffixSep)
    {
       if ( !existingNames.contains(baseName) )

@@ -2,7 +2,7 @@
 -- drug update with named params
 update drug d
 set
-  name = (:namePartOne || '-' || :namePartTwo),
+  name = :namePartOne || '-' || :namePartTwo,
   compound_id = :compoundId,
   mesh_id = :meshId
 where (

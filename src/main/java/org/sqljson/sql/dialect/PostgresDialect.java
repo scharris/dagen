@@ -11,6 +11,7 @@ import org.sqljson.specs.mod_stmts.ParametersType;
 import org.sqljson.sql.ColumnMetadata;
 import org.sqljson.util.StringFuns;
 import static org.sqljson.specs.mod_stmts.ParametersType.NUMBERED;
+import static org.sqljson.util.Nullables.valueOr;
 import static org.sqljson.util.StringFuns.maybeQualify;
 
 
@@ -80,7 +81,7 @@ public class PostgresDialect implements SqlDialect
    )
    {
       String mqFieldName = maybeQualify(tableAlias, fpcond.getField());
-      String paramValExpr = paramsType == NUMBERED ? "?" : ":"+ fpcond.getFinalParamName(defaultParamNameFn);
+      String paramValExpr = paramsType == NUMBERED ? "?" : ":"+ valueOr(fpcond.getParamName(), defaultParamNameFn.apply(fpcond.getField()));
 
       @Nullable String sql = SqlDialect.getCommonFieldParamConditionSql(mqFieldName, paramValExpr, fpcond.getOp());
 

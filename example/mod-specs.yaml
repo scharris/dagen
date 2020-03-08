@@ -7,32 +7,38 @@ modificationStatementSpecs:
     command: INSERT
     table: drug
     parametersType: NAMED # <- default, or NUMBERED
-    inputFields:
+    targetFields:
       - field: id
+        value: :id
       - field: name
-        value: "(:namePrefix || ':' || :nameSuffix)"
-        expressionValueParamNames: [namePrefix, nameSuffix]
+        value: ":namePrefix || ':' || :nameSuffix"
+        # Must provide param names used in value above since it's not of the form ':<name>' or '?'.
+        paramNames: [namePrefix, nameSuffix]
       - field: compound_id
-        value: (2 - 1) # expression, must be enclosed in parens
+        value: 2 - 1
+        # paramNames defaults to [] and above doesn't use any params, so there is no error here.
       - field: mesh_id
-      # value ":meshId" due to chosen param name default
+        value: :meshId
       - field: registered_by
+        value: :registeredBy
 
   ##################################################################
   - statementName: drug insert with numbered params
     command: INSERT
     table: drug
     parametersType: NUMBERED
-    inputFields:
+    targetFields:
       - field: id
+        value: '?'
       - field: name
-        value: "(? || ':' || ?)"
-        expressionValueParamNames: [namePrefix, nameSuffix]
+        value: "? || ':' || ?"
+        paramNames: [namePrefix, nameSuffix]
       - field: compound_id
-        value: (2 - 1) # expression, must be enclosed in parens
-        expressionValueParamNames: []
+        value: 2 - 1
       - field: mesh_id
+        value: '?'
       - field: registered_by
+        value: '?'
 
   ##################################################################
   - statementName: drug update with named params
@@ -40,12 +46,14 @@ modificationStatementSpecs:
     table: drug
     tableAlias: d
     parametersType: NAMED
-    inputFields:
+    targetFields:
       - field: name
-        value: "(:namePartOne || '-' || :namePartTwo)"
-        expressionValueParamNames: [namePartOne, namePartTwo]
+        value: ":namePartOne || '-' || :namePartTwo"
+        paramNames: [namePartOne, namePartTwo]
       - field: compound_id
+        value: :compoundId
       - field: mesh_id
+        value: :meshId
     fieldParamConditions:
       - field: cid
       - field: mesh_id
@@ -58,12 +66,14 @@ modificationStatementSpecs:
     table: drug
     tableAlias: d
     parametersType: NUMBERED
-    inputFields:
+    targetFields:
       - field: name
-        value: "(? || '-' || ?)"
-        expressionValueParamNames: [namePartOne, namePartTwo]
+        value: "? || '-' || ?"
+        paramNames: [namePartOne, namePartTwo]
       - field: compound_id
+        value: "?"
       - field: mesh_id
+        value: "?"
     fieldParamConditions:
       - field: cid
       - field: mesh_id
@@ -92,3 +102,4 @@ modificationStatementSpecs:
     fieldParamConditions:
       - field: cid
         op: IN
+
