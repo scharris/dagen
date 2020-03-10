@@ -10,4 +10,5 @@ querySpecs:
         - field: id
         - field: name
         - field: mesh_id
-      condition: '$d : $d.id = 2'
+      recordCondition:
+        sql: '$d : $d.id = 2'

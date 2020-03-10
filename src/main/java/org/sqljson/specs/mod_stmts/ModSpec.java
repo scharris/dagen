@@ -4,6 +4,7 @@ import java.util.List;
 import static java.util.Collections.emptyList;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
+import org.sqljson.specs.RecordCondition;
 import org.sqljson.specs.FieldParamCondition;
 import static org.sqljson.specs.mod_stmts.ParametersType.NAMED;
 
@@ -18,7 +19,7 @@ public class ModSpec
    private boolean generateSourceCode = true; // sql resource name and param info
    private List<TargetField> targetFields = emptyList();
    private List<FieldParamCondition> fieldParamConditions = emptyList();
-   private @Nullable String condition = null; // augments field param equalities
+   private @Nullable RecordCondition recordCondition = null; // augments field param equalities
 
    private ModSpec()
    {
@@ -37,7 +38,7 @@ public class ModSpec
       boolean generateSourceCode,
       List<TargetField> targetFields,
       List<FieldParamCondition> fieldParamConditions,
-      @Nullable String condition
+      @Nullable RecordCondition recordCondition
    )
    {
       this.statementName = statementName;
@@ -48,7 +49,7 @@ public class ModSpec
       this.generateSourceCode = generateSourceCode;
       this.targetFields = targetFields;
       this.fieldParamConditions = fieldParamConditions;
-      this.condition = condition;
+      this.recordCondition = recordCondition;
    }
 
    public String getStatementName() { return statementName; }
@@ -67,5 +68,5 @@ public class ModSpec
 
    public List<FieldParamCondition> getFieldParamConditions() { return fieldParamConditions; }
 
-   public @Nullable String getCondition() { return condition; }
+   public @Nullable RecordCondition getRecordCondition() { return recordCondition; }
 }

@@ -9,6 +9,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import org.sqljson.specs.RecordCondition;
 import org.sqljson.specs.FieldParamCondition;
 
 
@@ -26,7 +27,7 @@ public final class TableJsonSpec
 
    private List<FieldParamCondition> fieldParamConditions = emptyList();
 
-   private @Nullable String condition = null;
+   private @Nullable RecordCondition recordCondition = null;
 
    TableJsonSpec()
    {
@@ -41,7 +42,7 @@ public final class TableJsonSpec
       List<ReferencedParentSpec> referencedParentTables,
       List<ChildCollectionSpec> childTableCollections,
       List<FieldParamCondition> fieldParamConditions,
-      @Nullable String condition
+      @Nullable RecordCondition recordCondition
    )
    {
       requireNonNull(table);
@@ -57,7 +58,7 @@ public final class TableJsonSpec
       this.referencedParentTables = unmodifiableList(new ArrayList<>(referencedParentTables));
       this.childTableCollections = unmodifiableList(new ArrayList<>(childTableCollections));
       this.fieldParamConditions = fieldParamConditions;
-      this.condition = condition;
+      this.recordCondition = recordCondition;
    }
 
    /// The table name, possibly schema-qualified, of this output specification.
@@ -74,10 +75,10 @@ public final class TableJsonSpec
 
    public List<FieldParamCondition> getFieldParamConditions() { return fieldParamConditions; }
 
-   public @Nullable String getCondition() { return condition; }
+   public @Nullable RecordCondition getRecordCondition() { return recordCondition; }
 
    @JsonIgnore
-   public boolean hasCondition() { return !fieldParamConditions.isEmpty() || condition != null; }
+   public boolean hasCondition() { return !fieldParamConditions.isEmpty() || recordCondition != null; }
 
    @JsonIgnore
    public int getJsonPropertiesCount()

@@ -11,4 +11,5 @@ querySpecs:
         # bad field reference
         - field: xname
         - field: mesh_id
-      condition: '$d : $d.id = 2'
+      recordCondition:
+        sql: '$d : $d.id = 2'

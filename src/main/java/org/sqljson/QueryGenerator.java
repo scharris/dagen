@@ -11,6 +11,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.sqljson.dbmd.*;
 import org.sqljson.result_types.GeneratedType;
 import org.sqljson.specs.FieldParamCondition;
+import org.sqljson.specs.RecordCondition;
 import org.sqljson.specs.queries.*;
 import org.sqljson.sql.*;
 import org.sqljson.util.StringFuns;
@@ -87,14 +88,7 @@ public class QueryGenerator
             queryTypesGenerator.generateTypes(querySpec.getTableJson(), emptyMap())
             : emptyList();
 
-      return
-         new GeneratedQuery(
-            queryName,
-            querySqls,
-            generatedTypes,
-            querySpec.getGenerateSource(),
-            getAllFieldParamConditionParamNames(querySpec)
-         );
+      return new GeneratedQuery(queryName, querySqls, generatedTypes, querySpec.getGenerateSource(), getAllParamNames(querySpec));
    }
 
    private String makeSqlForResultsRepr
@@ -425,8 +419,8 @@ public class QueryGenerator
          );
       }
 
-      ifPresent(tableJsonSpec.getCondition(), otherCond ->
-         conds.add("(" + substituteVarValue(otherCond, tableAlias) + ")")
+      ifPresent(tableJsonSpec.getRecordCondition(), cond ->
+         conds.add("(" + substituteVarValue(cond.getSql(), tableAlias) + ")")
       );
 
       return conds.isEmpty() ? null : String.join("\nand\n", conds);
@@ -445,12 +439,12 @@ public class QueryGenerator
       };
    }
 
-   private List<String> getAllFieldParamConditionParamNames(QuerySpec querySpec)
+   private List<String> getAllParamNames(QuerySpec querySpec)
    {
-      return getAllFieldParamConditionParamNames(querySpec.getTableJson());
+      return getAllParamNames(querySpec.getTableJson());
    }
 
-   private List<String> getAllFieldParamConditionParamNames(TableJsonSpec tableJsonSpec)
+   private List<String> getAllParamNames(TableJsonSpec tableJsonSpec)
    {
       List<String> paramNames = new ArrayList<>();
 
@@ -460,13 +454,17 @@ public class QueryGenerator
          .forEach(paramNames::add);
 
       for ( ChildCollectionSpec childSpec: tableJsonSpec.getChildTableCollections() )
-         paramNames.addAll(getAllFieldParamConditionParamNames(childSpec.getTableJson()));
+         paramNames.addAll(getAllParamNames(childSpec.getTableJson()));
 
       for ( InlineParentSpec parentSpec : tableJsonSpec.getInlineParentTables() )
-         paramNames.addAll(getAllFieldParamConditionParamNames(parentSpec.getParentTableJsonSpec()));
+         paramNames.addAll(getAllParamNames(parentSpec.getParentTableJsonSpec()));
 
       for ( ReferencedParentSpec parentSpec : tableJsonSpec.getReferencedParentTables() )
-         paramNames.addAll(getAllFieldParamConditionParamNames(parentSpec.getParentTableJsonSpec()));
+         paramNames.addAll(getAllParamNames(parentSpec.getParentTableJsonSpec()));
+
+      @Nullable RecordCondition recCond = tableJsonSpec.getRecordCondition();
+      if ( recCond != null )
+         paramNames.addAll(recCond.getParamNames());
 
       return paramNames;
    }

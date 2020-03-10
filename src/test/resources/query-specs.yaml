@@ -24,7 +24,9 @@ querySpecs:
         - field: id
         - field: name
         - field: mesh_id
-      condition: '$a : $a.id = :idMinusOne + 1'
+      recordCondition:
+        sql: '$a : $a.id = :idMinusOne + 1'
+        paramNames: ['idMinusOne']
 
   # Like the above but with an additional field with a customized type provided here.
   - queryName: drug fields customized type query

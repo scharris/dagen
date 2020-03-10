@@ -20,4 +20,5 @@ querySpecs:
             fieldExpressions:
               - field: display_name
               - field: nctr_isis_id
-      condition: '$d : $d.id = 2'
+      recordCondition:
+        sql: '$d : $d.id = 2'

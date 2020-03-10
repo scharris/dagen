@@ -70,7 +70,7 @@ public class ModStatementGenerator
    {
       if ( modSpec.getTableAlias() != null )
          AppUtils.throwError("A table alias is not allowed in an INSERT command.");
-      if ( !modSpec.getFieldParamConditions().isEmpty() || modSpec.getCondition() != null )
+      if ( !modSpec.getFieldParamConditions().isEmpty() || modSpec.getRecordCondition() != null )
          AppUtils.throwError("Conditions are not allowed for INSERT commands.");
 
       String sql = makeInsertSql(modSpec);
@@ -209,17 +209,9 @@ public class ModStatementGenerator
       }
    }
 
-   private String getDefaultCondParamName(String fieldName)
+   private String getDefaultFieldConditionParamName(String fieldName)
    {
       return lowerCamelCase(unDoubleQuote(fieldName)) + "Cond";
-   }
-
-   private List<String> getConditionParamNames(ModSpec modSpec)
-   {
-      return
-        modSpec.getFieldParamConditions().stream()
-        .map(eq -> valueOr(eq.getParamName(), getDefaultCondParamName(eq.getField())))
-        .collect(toList());
    }
 
    private @Nullable String getCondition(ModSpec modSpec)
@@ -233,19 +225,34 @@ public class ModStatementGenerator
                fieldParamCond,
                modSpec.getTableAlias(),
                modSpec.getParametersType(),
-               this::getDefaultCondParamName
+               this::getDefaultFieldConditionParamName
             )
          );
       }
 
       // Other condition goes last so it will not interfere with parameter numbering in case it introduces its own params.
-      ifPresent(modSpec.getCondition(), cond ->
-          conds.add("(" + cond + ")")
+      ifPresent(modSpec.getRecordCondition(), cond ->
+          conds.add("(" + cond.getSql() + ")")
       );
 
       return conds.isEmpty() ? null : String.join("\nand\n", conds);
    }
 
+   private List<String> getConditionParamNames(ModSpec modSpec)
+   {
+      // Since the parameters may be numbered, the ordering of params here must
+      // match their occurrence in the sql generated in getCondition().
+      List<String> res =
+          modSpec.getFieldParamConditions().stream()
+          .map(eq -> valueOr(eq.getParamName(), getDefaultFieldConditionParamName(eq.getField())))
+          .collect(toList());
+
+      ifPresent(modSpec.getRecordCondition(), cond ->
+          res.addAll(cond.getParamNames())
+      );
+
+      return res;
+   }
 
    /// Return a possibly qualified identifier for the given table, omitting the schema
    /// qualifier if it has a schema for which it's specified to use unqualified names.
