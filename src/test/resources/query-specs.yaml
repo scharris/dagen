@@ -25,7 +25,7 @@ querySpecs:
         - field: name
         - field: mesh_id
       recordCondition:
-        sql: '$a : $a.id = :idMinusOne + 1'
+        sql: '$a$.id = :idMinusOne + 1'
         paramNames: ['idMinusOne']
 
   # Like the above but with an additional field with a customized type provided here.
@@ -50,7 +50,8 @@ querySpecs:
       table: drug
       fieldExpressions:
         - field: id
-        - expression: "$a : $a.cid + 1000"
+        - expression: "$d.cid + 1000"
+          withTableAliasAs: $d # custom table alias used in expression
           jsonProperty: cidPlus1000
           generateTypes:
             - language: Java
@@ -69,6 +70,29 @@ querySpecs:
         - field: name
       childTableCollections:
         - collectionName: brands
+          tableJson:
+            table: brand
+            fieldExpressions:
+              - field: brand_name
+              - field: manufacturer_id
+      fieldParamConditions:
+        - field: id
+
+  # drug with brands via custom join condition
+  - queryName: drug with brands custom join query
+    resultsRepresentations: [JSON_OBJECT_ROWS]
+    generateResultTypes: true
+    tableJson:
+      table: drug
+      fieldExpressions:
+        - field: id
+        - field: name
+      childTableCollections:
+        - collectionName: brands
+          customJoinCondition:
+            withChildAliasAs: $b
+            withParentAliasAs: $d
+            joinExpression: $b.drug_id = $d.id
           tableJson:
             table: brand
             fieldExpressions:
@@ -178,7 +202,7 @@ querySpecs:
             fieldExpressions:
               - field: name
                 jsonProperty: advisoryType
-              - expression: "$a : (select 1 + 1)"
+              - expression: "(select 1 + 1)"
                 jsonProperty: exprYieldingTwo
                 generateTypes:
                   - language: Java

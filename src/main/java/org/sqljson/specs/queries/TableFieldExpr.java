@@ -8,13 +8,12 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-import org.sqljson.util.StringFuns;
-
 
 public final class TableFieldExpr
 {
    private @Nullable String field;
    private @Nullable String expression;
+   private @Nullable String withTableAliasAs;
    private @Nullable String jsonProperty;
    private List<FieldTypeOverride> generateTypes = emptyList();
 
@@ -24,22 +23,28 @@ public final class TableFieldExpr
    (
       @Nullable String field,
       @Nullable String expression,
+      @Nullable String withTableAliasAs,
       @Nullable String jsonProperty,
       List<FieldTypeOverride> fieldTypeOverrides
    )
    {
       this.field = field;
       this.expression = expression;
+      this.withTableAliasAs = withTableAliasAs;
       this.jsonProperty = jsonProperty;
       this.generateTypes = fieldTypeOverrides;
 
       if ( (field != null) == (expression != null) )
          throw new RuntimeException("Exactly one of database field name and value expression should be specified.");
+      if ( withTableAliasAs != null && expression == null )
+         throw new RuntimeException("Cannot specify withTableAliasAs without expression value.");
    }
 
    public String getField() { return requireNonNull(field); }
 
    public String getExpression() { return requireNonNull(expression); }
+
+   public @Nullable String getWithTableAliasAs() { return withTableAliasAs; }
 
    public @Nullable String getJsonProperty() { return jsonProperty; }
 
@@ -57,13 +62,5 @@ public final class TableFieldExpr
          throw new RuntimeException("Exactly one of database field name and value expression should be specified.");
 
       return field != null;
-   }
-
-   public String getValueExpressionForAlias(String tableAlias)
-   {
-      if ( isSimpleField() )
-         return tableAlias + "." + field;
-      else
-         return StringFuns.substituteVarValue(requireNonNull(expression), tableAlias);
    }
 }

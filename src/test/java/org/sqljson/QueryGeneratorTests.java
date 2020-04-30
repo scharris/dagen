@@ -134,6 +134,25 @@ class QueryGeneratorTests extends TestsBase
     }
 
     @Test
+    @DisplayName("Query for a drug with related brands child collection via custom join, deserialize to generated type.")
+    void readDrugWithBrandsChildCollectionViaCustomJoin() throws Exception
+    {
+        String sql = getGeneratedQuerySql("drug with brands custom join query(json object rows).sql");
+
+        SqlParameterSource params = params(DrugWithBrandsCustomJoinQuery.drugIdParam, 2L);
+
+        doQuery(sql, params, rs -> {
+            DrugWithBrandsCustomJoinQuery.Drug res = readJson(rs.getString(1), DrugWithBrandsCustomJoinQuery.Drug.class);
+            assertEquals(res.id, 2);
+            List<DrugWithBrandsCustomJoinQuery.Brand> brands = res.brands;
+            assertEquals(brands.size(), 1);
+            assertEquals(brands.get(0).brandName, "Brand2(TM)");
+            assertEquals(brands.get(0).manufacturerId, 3L);
+        });
+    }
+
+
+    @Test
     @DisplayName("Query for a drug with related brands and advisories, deserialize to generated type.")
     void readDrugWithBrandsAndAdvisoriesChildCollections() throws Exception
     {

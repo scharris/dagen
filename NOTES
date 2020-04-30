@@ -1,4 +1,9 @@
 
+Finish the Oracle implementation (unwrapped child collections).
+
+Improve error reporting
+  - Introduce exception type for invalid spec file content.
+  - Identify statement name and statement part in error text.
 
 Docs Outline
 ------------

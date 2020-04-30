@@ -34,6 +34,8 @@ public class QueryGenerator
 
    private static final String HIDDEN_PK_PREFIX = "_";
 
+   private static final String DEFAULT_TABLE_ALIAS_VAR = "$$";
+
    /*
    Note: field name quoting
    - A field name from the database metadata (DBMD) is quoted iff its interpretation by the database would change
@@ -161,7 +163,7 @@ public class QueryGenerator
       // Add this table's own field expressions to the select clause.
       for ( TableFieldExpr tfe : tableJsonSpec.getFieldExpressions() )
          q.addSelectClauseEntry(
-            tfe.getValueExpressionForAlias(alias),
+            getTableFieldExpressionForAlias(tfe, alias),
             dbmd.quoteIfNeeded(getJsonPropertyName(tfe, outputFieldNameDefaultFn, tableJsonSpec.getTable())),
             SelectClauseEntry.Source.NATIVE_FIELD,
             tfe.getGenerateTypes()
@@ -276,17 +278,38 @@ public class QueryGenerator
    {
       TableJsonSpec tjs = childCollectionSpec.getTableJson();
 
-      RelId relId = dbmd.identifyTable(tjs.getTable(), defaultSchema);
+      RelId childRelId = dbmd.identifyTable(tjs.getTable(), defaultSchema);
 
-      ForeignKey fk = getForeignKey(relId, parentRelId, childCollectionSpec.getForeignKeyFieldsSet());
-
-      ChildFkCondition childFkCond = new ChildFkCondition(parentAlias, fk.getForeignKeyComponents());
+      ParentChildCondition pcCond = getChildCollectionJoinCondition(childCollectionSpec, childRelId, parentRelId, parentAlias);
 
       boolean unwrapChildValues = childCollectionSpec.getUnwrap();
       if ( unwrapChildValues && childCollectionSpec.getTableJson().getJsonPropertiesCount() > 1 )
          throw new RuntimeException("Option 'unwrap' specified for child table " + tjs.getTable() + " having more than one column.");
 
-      return makeAggregatedJsonResultSql(tjs, childFkCond, outputFieldNameDefaultFn, unwrapChildValues);
+      return makeAggregatedJsonResultSql(tjs, pcCond, outputFieldNameDefaultFn, unwrapChildValues);
+   }
+
+   private ParentChildCondition getChildCollectionJoinCondition
+       (
+           ChildCollectionSpec childCollectionSpec,
+           RelId childRelId, RelId parentRelId,
+           String parentAlias
+       )
+   {
+      @Nullable CustomJoinCondition customJoinCond = childCollectionSpec.getCustomJoinCondition();
+
+      if ( customJoinCond != null ) // custom join condition specified
+      {
+         if ( childCollectionSpec.getForeignKeyFields() != null )
+            throw new RuntimeException("Child collection specifies both customJoinCondition and foreignKeyFields.");
+
+         return customJoinCond.asConditionOnChildForParentAlias(parentAlias);
+      }
+      else // foreign key join condition
+      {
+         ForeignKey fk = getForeignKey(childRelId, parentRelId, childCollectionSpec.getForeignKeyFieldsSet());
+         return new ChildFkCondition(parentAlias, fk.getForeignKeyComponents());
+      }
    }
 
    private SqlQueryParts getInlineParentBaseQueryParts
@@ -419,11 +442,27 @@ public class QueryGenerator
          );
       }
 
-      ifPresent(tableJsonSpec.getRecordCondition(), cond ->
-         conds.add("(" + substituteVarValue(cond.getSql(), tableAlias) + ")")
-      );
+      ifPresent(tableJsonSpec.getRecordCondition(), cond -> {
+         String tableAliasVar = valueOr(cond.getWithTableAliasAs(), DEFAULT_TABLE_ALIAS_VAR);
+         conds.add("(" + cond.getSql().replace(tableAliasVar, tableAlias) + ")");
+      });
 
       return conds.isEmpty() ? null : String.join("\nand\n", conds);
+   }
+
+   private String getTableFieldExpressionForAlias
+       (
+           TableFieldExpr tableFieldExpr,
+           String tableAlias
+       )
+   {
+      if ( tableFieldExpr.isSimpleField() )
+         return tableAlias + "." + tableFieldExpr.getField();
+      else
+      {
+         String tableAliasVarInExpr = valueOr(tableFieldExpr.getWithTableAliasAs(), DEFAULT_TABLE_ALIAS_VAR);
+         return tableFieldExpr.getExpression().replace(tableAliasVarInExpr, tableAlias);
+      }
    }
 
    /// The returned function creates a default param name from a field name in the
