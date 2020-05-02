@@ -17,11 +17,11 @@ public class TargetField
    }
 
    public TargetField
-   (
-      String field,
-      String value,
-      List<String> paramNames
-   )
+      (
+         String field,
+         String value,
+         List<String> paramNames
+      )
    {
       this.field = field;
       this.value = value;
@@ -33,5 +33,4 @@ public class TargetField
    public String getValue() { return value; }
 
    public List<String> getParamNames() { return paramNames; }
-
 }

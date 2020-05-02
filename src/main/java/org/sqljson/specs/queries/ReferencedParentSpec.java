@@ -22,11 +22,11 @@ public final class ReferencedParentSpec implements ParentSpec
    }
 
    public ReferencedParentSpec
-   (
-      String referenceName,
-      TableJsonSpec tableJson,
-      @Nullable List<String> viaForeignKeyFields
-   )
+      (
+         String referenceName,
+         TableJsonSpec tableJson,
+         @Nullable List<String> viaForeignKeyFields
+      )
    {
       this.referenceName = referenceName;
       this.tableJson = tableJson;
@@ -34,11 +34,11 @@ public final class ReferencedParentSpec implements ParentSpec
    }
 
    public ReferencedParentSpec
-       (
-           String referenceName,
-           TableJsonSpec tableJson,
-           @Nullable CustomJoinCondition customJoinCondition
-       )
+      (
+         String referenceName,
+         TableJsonSpec tableJson,
+         @Nullable CustomJoinCondition customJoinCondition
+      )
    {
       this.referenceName = referenceName;
       this.tableJson = tableJson;
@@ -59,3 +59,4 @@ public final class ReferencedParentSpec implements ParentSpec
 
    public @Nullable CustomJoinCondition getCustomJoinCondition() { return customJoinCondition; }
 }
+

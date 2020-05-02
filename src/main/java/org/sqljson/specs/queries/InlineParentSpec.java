@@ -20,20 +20,20 @@ public final class InlineParentSpec implements ParentSpec
    }
 
    public InlineParentSpec
-   (
-      TableJsonSpec tableJson,
-      @Nullable List<String> viaForeignKeyFields
-   )
+      (
+         TableJsonSpec tableJson,
+         @Nullable List<String> viaForeignKeyFields
+      )
    {
       this.tableJson = tableJson;
       this.viaForeignKeyFields = applyIfPresent(viaForeignKeyFields, Collections::unmodifiableList);
    }
 
    public InlineParentSpec
-   (
-      TableJsonSpec tableJson,
-      @Nullable CustomJoinCondition customJoinCondition
-   )
+      (
+         TableJsonSpec tableJson,
+         @Nullable CustomJoinCondition customJoinCondition
+      )
    {
       this.tableJson = tableJson;
       this.customJoinCondition = customJoinCondition;
@@ -49,3 +49,4 @@ public final class InlineParentSpec implements ParentSpec
 
    public @Nullable CustomJoinCondition getCustomJoinCondition() { return customJoinCondition; }
 }
+

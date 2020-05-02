@@ -19,18 +19,22 @@ public class SelectClauseEntry
    private final Source source;
    private final List<FieldTypeOverride> fieldTypeOverrides;
 
-   public SelectClauseEntry(String valueExpression, String outputName, Source source)
+   public SelectClauseEntry
+      (
+         String valueExpression,
+         String outputName, Source source
+      )
    {
       this(valueExpression, outputName, source, emptyList());
    }
 
    public SelectClauseEntry
-   (
-      String valueExpression,
-      String outputName,
-      Source source,
-      List<FieldTypeOverride> typeOverrides
-   )
+      (
+         String valueExpression,
+         String outputName,
+         Source source,
+         List<FieldTypeOverride> typeOverrides
+      )
    {
       this.valueExpression = valueExpression;
       this.outputName = outputName;
@@ -51,3 +55,4 @@ public class SelectClauseEntry
       return fieldTypeOverrides.stream().filter(to -> to.getLanguage().equals(language)).findAny().orElse(null);
    }
 }
+

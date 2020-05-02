@@ -17,12 +17,12 @@ import static org.sqljson.util.Nullables.valueOrThrow;
 public final class DatabaseUtils
 {
    public static void verifyTableFieldsExist
-   (
-      String table, // maybe qualified
-      @Nullable String defaultSchema,
-      List<String> fieldNames,
-      DatabaseMetadata dbmd
-   )
+      (
+         String table, // maybe qualified
+         @Nullable String defaultSchema,
+         List<String> fieldNames,
+         DatabaseMetadata dbmd
+      )
       throws DatabaseObjectsNotFoundException
    {
       RelId relId = dbmd.identifyTable(table, defaultSchema);
@@ -57,3 +57,4 @@ public final class DatabaseUtils
 
    private DatabaseUtils() {}
 }
+

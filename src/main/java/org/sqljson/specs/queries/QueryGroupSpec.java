@@ -19,12 +19,12 @@ public final class QueryGroupSpec
    private QueryGroupSpec() {}
 
    public QueryGroupSpec
-   (
-      @Nullable String defaultSchema,
-      OutputFieldNameDefault outputFieldNameDefault,
-      List<String> generateUnqualifiedNamesForSchemas,
-      List<QuerySpec> querySpecs
-   )
+      (
+         @Nullable String defaultSchema,
+         OutputFieldNameDefault outputFieldNameDefault,
+         List<String> generateUnqualifiedNamesForSchemas,
+         List<QuerySpec> querySpecs
+      )
    {
       this.defaultSchema = defaultSchema;
       this.outputFieldNameDefault = outputFieldNameDefault;
@@ -40,3 +40,4 @@ public final class QueryGroupSpec
 
    public List<QuerySpec> getQuerySpecs() { return querySpecs; }
 }
+

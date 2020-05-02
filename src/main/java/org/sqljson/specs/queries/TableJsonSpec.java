@@ -35,15 +35,15 @@ public final class TableJsonSpec
    }
 
    public TableJsonSpec
-   (
-      String table,
-      List<TableFieldExpr> fieldExpressions,
-      List<InlineParentSpec> inlineParentTables,
-      List<ReferencedParentSpec> referencedParentTables,
-      List<ChildCollectionSpec> childTableCollections,
-      List<FieldParamCondition> fieldParamConditions,
-      @Nullable RecordCondition recordCondition
-   )
+      (
+         String table,
+         List<TableFieldExpr> fieldExpressions,
+         List<InlineParentSpec> inlineParentTables,
+         List<ReferencedParentSpec> referencedParentTables,
+         List<ChildCollectionSpec> childTableCollections,
+         List<FieldParamCondition> fieldParamConditions,
+         @Nullable RecordCondition recordCondition
+      )
    {
       requireNonNull(table);
       requireNonNull(fieldExpressions);
@@ -90,3 +90,4 @@ public final class TableJsonSpec
           inlineParentTables.stream().mapToInt(ip -> ip.getParentTableJsonSpec().getJsonPropertiesCount()).sum();
    }
 }
+

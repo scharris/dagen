@@ -14,7 +14,11 @@ public class ParentPkCondition implements ParentChildCondition
    private final String childAlias;
    private final List<ForeignKey.Component> matchedFields;
 
-   public ParentPkCondition(String childAlias, List<ForeignKey.Component> matchedFields)
+   public ParentPkCondition
+      (
+         String childAlias,
+         List<ForeignKey.Component> matchedFields
+      )
    {
       this.childAlias = childAlias;
       this.matchedFields = unmodifiableList(new ArrayList<>(matchedFields));
@@ -23,20 +27,20 @@ public class ParentPkCondition implements ParentChildCondition
    public String getOtherTableAlias() { return childAlias; }
 
    public String asEquationConditionOn
-       (
-           String parentAlias,
-           DatabaseMetadata dbmd
-       )
+      (
+         String parentAlias,
+         DatabaseMetadata dbmd
+      )
    {
       return asEquationConditionOn(parentAlias, dbmd, "");
    }
 
    public String asEquationConditionOn
-       (
-           String parentAlias,
-           DatabaseMetadata dbmd,
-           String parentPkPrefix
-       )
+      (
+         String parentAlias,
+         DatabaseMetadata dbmd,
+         String parentPkPrefix
+      )
    {
       return
          matchedFields.stream()
@@ -48,3 +52,4 @@ public class ParentPkCondition implements ParentChildCondition
          .collect(joining(" and "));
    }
 }
+

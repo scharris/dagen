@@ -7,7 +7,6 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.sqljson.dbmd.Field;
 import org.sqljson.specs.queries.FieldTypeOverride;
 
-
 public class GeneratedTypeBuilder
 {
    private final List<DatabaseField> databaseFields;
@@ -24,7 +23,12 @@ public class GeneratedTypeBuilder
       this.parentReferenceFields = new ArrayList<>();
    }
 
-   public void addDatabaseField(String fieldName, Field f, List<FieldTypeOverride> typeOverrides)
+   public void addDatabaseField
+      (
+         String fieldName,
+         Field f,
+         List<FieldTypeOverride> typeOverrides
+      )
    {
       databaseFields.add(new DatabaseField(fieldName, f, typeOverrides));
    }
@@ -42,23 +46,33 @@ public class GeneratedTypeBuilder
 
    public void addExpressionFields(List<ExpressionField> tofs) { expressionFields.addAll(tofs); }
 
-   public void addChildCollectionField(String fieldName, GeneratedType childType, boolean nullable)
+   public void addChildCollectionField
+      (
+         String fieldName,
+         GeneratedType childType,
+         boolean nullable
+      )
    {
       childCollectionFields.add(new ChildCollectionField(fieldName, childType, nullable));
    }
    public void addChildCollectionFields(List<ChildCollectionField> fs) { childCollectionFields.addAll(fs); }
 
-   public void addParentReferenceField(String fieldName, GeneratedType parentType, boolean nullable)
+   public void addParentReferenceField
+      (
+         String fieldName,
+         GeneratedType parentType,
+         boolean nullable
+      )
    {
       parentReferenceFields.add(new ParentReferenceField(fieldName, parentType, nullable));
    }
    public void addParentReferenceFields(List<ParentReferenceField> fs) { parentReferenceFields.addAll(fs); }
 
    public void addAllFieldsFrom
-   (
-      GeneratedType generatedType,
-      boolean forceNullable
-   )
+      (
+         GeneratedType generatedType,
+         boolean forceNullable
+      )
    {
       if ( !forceNullable )
       {
@@ -92,3 +106,4 @@ public class GeneratedTypeBuilder
       return new GeneratedType(name, databaseFields, expressionFields, childCollectionFields, parentReferenceFields);
    }
 }
+

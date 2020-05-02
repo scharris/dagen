@@ -27,10 +27,10 @@ public class OracleDialect implements SqlDialect
 
    @Override
    public String getRowObjectExpression
-   (
-      List<ColumnMetadata> columnMetadatas,
-      String fromAlias
-   )
+      (
+         List<ColumnMetadata> columnMetadatas,
+         String fromAlias
+      )
    {
       String objectFieldDecls =
          columnMetadatas.stream()
@@ -49,10 +49,10 @@ public class OracleDialect implements SqlDialect
 
    @Override
    public String getAggregatedRowObjectsExpression
-   (
-      List<ColumnMetadata> columnMetadatas,
-      String fromAlias
-   )
+      (
+         List<ColumnMetadata> columnMetadatas,
+         String fromAlias
+      )
    {
       return
          "json_arrayagg(" +
@@ -62,10 +62,10 @@ public class OracleDialect implements SqlDialect
 
    @Override
    public String getAggregatedColumnValuesExpression
-       (
-           ColumnMetadata columnMetadata,
-           String fromAlias
-       )
+      (
+         ColumnMetadata columnMetadata,
+         String fromAlias
+      )
    {
        // TODO
        throw new RuntimeException("Unwrapped child collections are not yet supported for Oracle database.");
@@ -96,12 +96,12 @@ public class OracleDialect implements SqlDialect
 
    @Override
    public String getFieldParamConditionSql
-   (
-      FieldParamCondition fpcond,
-      @Nullable String tableAlias,
-      ParametersType paramsType,
-      Function<String,String> defaultParamNameFn // default param name as function of field name
-   )
+      (
+         FieldParamCondition fpcond,
+         @Nullable String tableAlias,
+         ParametersType paramsType,
+         Function<String,String> defaultParamNameFn // default param name as function of field name
+      )
    {
       String mqFieldName = maybeQualify(tableAlias, fpcond.getField());
       String paramValExpr = paramsType == NUMBERED ? "?" : ":"+ valueOr(fpcond.getParamName(), defaultParamNameFn.apply(fpcond.getField()));
@@ -114,3 +114,4 @@ public class OracleDialect implements SqlDialect
          throw new RuntimeException("Sql dialect does not support operator " + fpcond.getOp() + ".");
    }
 }
+

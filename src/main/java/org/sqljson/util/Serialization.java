@@ -11,7 +11,11 @@ import com.fasterxml.jackson.module.jsonSchema.JsonSchemaGenerator;
 
 public final class Serialization
 {
-   public static <T> void writeJsonSchema(Class<T> forClass, OutputStream os)
+   public static <T> void writeJsonSchema
+      (
+         Class<T> forClass,
+         OutputStream os
+      )
    {
       try
       {
@@ -31,3 +35,4 @@ public final class Serialization
 
    private Serialization() {}
 }
+

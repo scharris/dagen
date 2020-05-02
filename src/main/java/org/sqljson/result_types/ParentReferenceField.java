@@ -12,11 +12,11 @@ public class ParentReferenceField
    boolean nullable;
 
    public ParentReferenceField
-   (
-      String name,
-      GeneratedType generatedType,
-      boolean nullable
-   )
+      (
+         String name,
+         GeneratedType generatedType,
+         boolean nullable
+      )
    {
       this.name = name;
       this.generatedType = generatedType;
@@ -41,7 +41,8 @@ public class ParentReferenceField
       if (this == o) return true;
       if (o == null || getClass() != o.getClass()) return false;
       ParentReferenceField that = (ParentReferenceField) o;
-      return nullable == that.nullable &&
+      return
+         nullable == that.nullable &&
          name.equals(that.name) &&
          generatedType.equals(that.generatedType);
    }

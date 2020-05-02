@@ -19,26 +19,33 @@ public class GeneratedType
    private final boolean unwrapped;
 
    GeneratedType
-   (
-      String typeName,
-      List<DatabaseField> databaseFields,
-      List<ExpressionField> expressionFields,
-      List<ChildCollectionField> childCollectionFields,
-      List<ParentReferenceField> parentReferenceFields
-   )
+      (
+         String typeName,
+         List<DatabaseField> databaseFields,
+         List<ExpressionField> expressionFields,
+         List<ChildCollectionField> childCollectionFields,
+         List<ParentReferenceField> parentReferenceFields
+      )
    {
-       this(typeName, databaseFields, expressionFields, childCollectionFields, parentReferenceFields, false);
+       this(
+          typeName,
+          databaseFields,
+          expressionFields,
+          childCollectionFields,
+          parentReferenceFields,
+          false
+       );
    }
 
    GeneratedType
-   (
-      String typeName,
-      List<DatabaseField> databaseFields,
-      List<ExpressionField> expressionFields,
-      List<ChildCollectionField> childCollectionFields,
-      List<ParentReferenceField> parentReferenceFields,
-      boolean unwrapped
-   )
+      (
+         String typeName,
+         List<DatabaseField> databaseFields,
+         List<ExpressionField> expressionFields,
+         List<ChildCollectionField> childCollectionFields,
+         List<ParentReferenceField> parentReferenceFields,
+         boolean unwrapped
+      )
    {
       this.typeName = typeName;
       this.databaseFields = unmodifiableList(new ArrayList<>(databaseFields));
@@ -107,7 +114,8 @@ public class GeneratedType
       if (this == o) return true;
       if (o == null || getClass() != o.getClass()) return false;
       GeneratedType that = (GeneratedType) o;
-      return typeName.equals(that.typeName) &&
+      return
+         typeName.equals(that.typeName) &&
          databaseFields.equals(that.databaseFields) &&
          expressionFields.equals(that.expressionFields) &&
          childCollectionFields.equals(that.childCollectionFields) &&
@@ -135,3 +143,4 @@ public class GeneratedType
          '}';
    }
 }
+

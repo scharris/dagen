@@ -23,7 +23,12 @@ public class FieldParamCondition
       this.field = "";
    }
 
-   public FieldParamCondition(String field, Operator op, @Nullable String paramName)
+   public FieldParamCondition
+      (
+         String field,
+         Operator op,
+         @Nullable String paramName
+      )
    {
       this.field = field;
       this.op = op;
@@ -36,3 +41,4 @@ public class FieldParamCondition
 
    public @Nullable String getParamName() { return paramName; }
 }
+

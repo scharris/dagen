@@ -16,12 +16,12 @@ public class GeneratedModStatement
    private final List<String> conditionParamNames;
 
    public GeneratedModStatement
-   (
-      ModSpec modSpec,
-      String sql,
-      List<String> targetFieldParamNames,
-      List<String> conditionParamNames
-   )
+      (
+         ModSpec modSpec,
+         String sql,
+         List<String> targetFieldParamNames,
+         List<String> conditionParamNames
+      )
    {
       this.modSpec = modSpec;
       this.sql = sql;
@@ -52,3 +52,4 @@ public class GeneratedModStatement
       return paramNames;
    }
 }
+

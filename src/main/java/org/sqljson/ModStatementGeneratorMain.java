@@ -129,10 +129,10 @@ public class ModStatementGeneratorMain
     * @return file paths written by mod name
     */
    private static Map<String,Path> writeModSqls
-   (
-      List<GeneratedModStatement> generatedModStatements,
-      @Nullable Path outputDir
-   )
+      (
+         List<GeneratedModStatement> generatedModStatements,
+         @Nullable Path outputDir
+      )
       throws IOException
    {
       Map<String,Path> res = new HashMap<>();
@@ -167,10 +167,10 @@ public class ModStatementGeneratorMain
    }
 
    private static SourceCodeWriter getSourceCodeWriter
-   (
-      SplitArgs args,
-      @Nullable Path srcOutputBaseDir
-   )
+      (
+         SplitArgs args,
+         @Nullable Path srcOutputBaseDir
+      )
    {
       String sqlResourceNamePrefix = "";
       String language = "";
@@ -196,3 +196,4 @@ public class ModStatementGeneratorMain
       }
    }
 }
+

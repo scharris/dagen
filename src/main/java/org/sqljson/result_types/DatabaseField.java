@@ -20,7 +20,12 @@ public class DatabaseField
    private @Nullable Boolean nullable;
    private List<FieldTypeOverride> typeOverrides;
 
-   DatabaseField(String name, Field dbField, List<FieldTypeOverride> typeOverrides)
+   DatabaseField
+      (
+         String name,
+         Field dbField,
+         List<FieldTypeOverride> typeOverrides
+      )
    {
       this.name = name;
       this.jdbcTypeCode = dbField.getJdbcTypeCode();
@@ -33,16 +38,16 @@ public class DatabaseField
    }
 
    private DatabaseField
-   (
-      String name,
-      int jdbcTypeCode,
-      String databaseType,
-      @Nullable Integer length,
-      @Nullable Integer precision,
-      @Nullable Integer fractionalDigits,
-      @Nullable Boolean nullable,
-      List<FieldTypeOverride> typeOverrides
-   )
+      (
+         String name,
+         int jdbcTypeCode,
+         String databaseType,
+         @Nullable Integer length,
+         @Nullable Integer precision,
+         @Nullable Integer fractionalDigits,
+         @Nullable Boolean nullable,
+         List<FieldTypeOverride> typeOverrides
+      )
    {
       this.name = name;
       this.jdbcTypeCode = jdbcTypeCode;
@@ -65,7 +70,11 @@ public class DatabaseField
 
    public @Nullable FieldTypeOverride getTypeOverride(String language)
    {
-      return typeOverrides.stream().filter(to -> to.getLanguage().equals(language)).findAny().orElse(null);
+      return
+         typeOverrides.stream()
+         .filter(to -> to.getLanguage().equals(language))
+         .findAny()
+         .orElse(null);
    }
 
    DatabaseField toNullable()
@@ -84,7 +93,8 @@ public class DatabaseField
       if (this == o) return true;
       if (o == null || getClass() != o.getClass()) return false;
       DatabaseField that = (DatabaseField) o;
-      return jdbcTypeCode == that.jdbcTypeCode &&
+      return
+         jdbcTypeCode == that.jdbcTypeCode &&
          name.equals(that.name) &&
          databaseType.equals(that.databaseType) &&
          Objects.equals(length, that.length) &&

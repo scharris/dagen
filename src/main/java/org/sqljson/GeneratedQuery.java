@@ -18,13 +18,13 @@ public class GeneratedQuery
    private final List<String> paramNames;
 
    public GeneratedQuery
-   (
-      String queryName,
-      Map<ResultsRepr,String> generatedSqls,
-      List<GeneratedType> generatedResultTypes,
-      boolean generateSourceEnabled,
-      List<String> paramNames
-   )
+      (
+         String queryName,
+         Map<ResultsRepr,String> generatedSqls,
+         List<GeneratedType> generatedResultTypes,
+         boolean generateSourceEnabled,
+         List<String> paramNames
+      )
    {
       this.queryName = queryName;
       this.generatedSqls = unmodifiableMap(new HashMap<>(generatedSqls));
@@ -47,3 +47,4 @@ public class GeneratedQuery
 
    public List<String> getParamNames() { return paramNames; }
 }
+

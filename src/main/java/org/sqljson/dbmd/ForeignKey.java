@@ -2,155 +2,153 @@ package org.sqljson.dbmd;
 
 import java.io.Serializable;
 import java.util.*;
-
 import static java.util.Collections.unmodifiableList;
 import static java.util.Objects.requireNonNull;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-
 public class ForeignKey implements Serializable {
 
-    private RelId sourceRelationId;
+   private RelId sourceRelationId;
 
-    private RelId targetRelationId;
+   private RelId targetRelationId;
 
-    private List<Component> foreignKeyComponents;
+   private List<Component> foreignKeyComponents;
 
-    public enum EquationStyle {SOURCE_ON_LEFTHAND_SIDE, TARGET_ON_LEFTHAND_SIDE}
+   public enum EquationStyle { SOURCE_ON_LEFTHAND_SIDE, TARGET_ON_LEFTHAND_SIDE }
 
-    public ForeignKey
-    (
-        RelId sourceRelationId,
-        RelId targetRelationId,
-        List<Component> foreignKeyComponents
-    )
-    {
-        this.sourceRelationId = requireNonNull(sourceRelationId);
-        this.targetRelationId = requireNonNull(targetRelationId);
-        this.foreignKeyComponents = unmodifiableList(new ArrayList<>(requireNonNull(foreignKeyComponents)));
-    }
+   public ForeignKey
+      (
+         RelId sourceRelationId,
+         RelId targetRelationId,
+         List<Component> foreignKeyComponents
+      )
+   {
+      this.sourceRelationId = requireNonNull(sourceRelationId);
+      this.targetRelationId = requireNonNull(targetRelationId);
+      this.foreignKeyComponents = unmodifiableList(new ArrayList<>(requireNonNull(foreignKeyComponents)));
+   }
 
-    ForeignKey()
-    {
-        sourceRelationId = RelId.DUMMY_INSTANCE;
-        targetRelationId = RelId.DUMMY_INSTANCE;
-        foreignKeyComponents = Collections.emptyList();
-    }
+   ForeignKey()
+   {
+      sourceRelationId = RelId.DUMMY_INSTANCE;
+      targetRelationId = RelId.DUMMY_INSTANCE;
+      foreignKeyComponents = Collections.emptyList();
+   }
 
-    public RelId getSourceRelationId() { return sourceRelationId; }
+   public RelId getSourceRelationId() { return sourceRelationId; }
 
-    public RelId getTargetRelationId() { return targetRelationId; }
+   public RelId getTargetRelationId() { return targetRelationId; }
 
-    public List<Component> getForeignKeyComponents() { return foreignKeyComponents; }
+   public List<Component> getForeignKeyComponents() { return foreignKeyComponents; }
 
-    @JsonIgnore()
-    public List<String> getSourceFieldNames()
-    {
-        List<String> names = new ArrayList<>();
+   @JsonIgnore()
+   public List<String> getSourceFieldNames()
+   {
+      List<String> names = new ArrayList<>();
 
-        for(Component comp: foreignKeyComponents)
-            names.add(comp.getForeignKeyFieldName());
+      for ( Component comp: foreignKeyComponents )
+         names.add(comp.getForeignKeyFieldName());
 
-        return names;
-    }
+      return names;
+   }
 
-    @JsonIgnore()
-    public List<String> getTargetFieldNames()
-    {
-        List<String> names = new ArrayList<>();
+   @JsonIgnore()
+   public List<String> getTargetFieldNames()
+   {
+      List<String> names = new ArrayList<>();
 
-        for(Component comp: foreignKeyComponents)
-            names.add(comp.getPrimaryKeyFieldName());
+      for ( Component comp: foreignKeyComponents )
+         names.add(comp.getPrimaryKeyFieldName());
 
-        return names;
-    }
+      return names;
+   }
 
-    public String asEquation
-    (
-        String src_rel_alias,
-        String tgt_rel_alias
-    )
-    {
-        return asEquation(src_rel_alias, tgt_rel_alias, EquationStyle.SOURCE_ON_LEFTHAND_SIDE);
-    }
+   public String asEquation
+      (
+         String src_rel_alias,
+         String tgt_rel_alias
+      )
+   {
+      return asEquation(src_rel_alias, tgt_rel_alias, EquationStyle.SOURCE_ON_LEFTHAND_SIDE);
+   }
 
-    public String asEquation
-    (
-        String srcRelAlias,
-        String tgtRelAlias,
-        EquationStyle style
-    )
-    {
-        StringBuilder sb = new StringBuilder();
+   public String asEquation
+      (
+         String srcRelAlias,
+         String tgtRelAlias,
+         EquationStyle style
+      )
+   {
+      StringBuilder sb = new StringBuilder();
 
-        boolean srcFirst = style == EquationStyle.SOURCE_ON_LEFTHAND_SIDE;
+      boolean srcFirst = style == EquationStyle.SOURCE_ON_LEFTHAND_SIDE;
 
-        for ( Component fkc: foreignKeyComponents)
-        {
-            if ( sb.length() > 0 )
-                sb.append(" and ");
+      for ( Component fkc: foreignKeyComponents )
+      {
+         if ( sb.length() > 0 )
+            sb.append(" and ");
 
-            String fstAlias = srcFirst ? srcRelAlias : tgtRelAlias;
-            String fstFld = srcFirst ? fkc.getForeignKeyFieldName() : fkc.getPrimaryKeyFieldName();
+         String fstAlias = srcFirst ? srcRelAlias : tgtRelAlias;
+         String fstFld = srcFirst ? fkc.getForeignKeyFieldName() : fkc.getPrimaryKeyFieldName();
 
-            String sndAlias = srcFirst ? tgtRelAlias : srcRelAlias;
-            String sndFld = srcFirst ? fkc.getPrimaryKeyFieldName() : fkc.getForeignKeyFieldName();
+         String sndAlias = srcFirst ? tgtRelAlias : srcRelAlias;
+         String sndFld = srcFirst ? fkc.getPrimaryKeyFieldName() : fkc.getForeignKeyFieldName();
 
-            if ( fstAlias.length() > 0 )
-            {
-                sb.append(fstAlias);
-                sb.append('.');
-            }
-            sb.append(fstFld);
+         if ( fstAlias.length() > 0 )
+         {
+            sb.append(fstAlias);
+            sb.append('.');
+         }
+         sb.append(fstFld);
 
-            sb.append(" = ");
+         sb.append(" = ");
 
-            if ( sndAlias.length() > 0 )
-            {
-                sb.append(sndAlias);
-                sb.append('.');
-            }
-            sb.append(sndFld);
-        }
+         if ( sndAlias.length() > 0 )
+         {
+            sb.append(sndAlias);
+            sb.append('.');
+         }
+         sb.append(sndFld);
+      }
 
-        return sb.toString();
-    }
+      return sb.toString();
+   }
 
-    public boolean sourceFieldNamesSetEqualsNormalizedNamesSet(Set<String> normdReqdFkFieldNames)
-    {
-        if ( getForeignKeyComponents().size() != normdReqdFkFieldNames.size() )
-            return false;
+   public boolean sourceFieldNamesSetEqualsNormalizedNamesSet(Set<String> normdReqdFkFieldNames)
+   {
+      if ( getForeignKeyComponents().size() != normdReqdFkFieldNames.size() )
+         return false;
 
-        Set<String> childFkFieldNames = new HashSet<>();
+      Set<String> childFkFieldNames = new HashSet<>();
 
-        for( ForeignKey.Component fk_comp: getForeignKeyComponents() )
-            childFkFieldNames.add(fk_comp.getForeignKeyFieldName());
+      for ( ForeignKey.Component fk_comp: getForeignKeyComponents() )
+         childFkFieldNames.add(fk_comp.getForeignKeyFieldName());
 
-        return childFkFieldNames.equals(normdReqdFkFieldNames);
-    }
+      return childFkFieldNames.equals(normdReqdFkFieldNames);
+   }
 
-    public static class Component
-    {
-        private String foreignKeyFieldName;
+   public static class Component
+   {
+      private String foreignKeyFieldName;
 
-        private String primaryKeyFieldName;
+      private String primaryKeyFieldName;
 
-        public Component(String fkName, String pkName)
-        {
-            foreignKeyFieldName = fkName;
-            primaryKeyFieldName = pkName;
-        }
+      public Component(String fkName, String pkName)
+      {
+         foreignKeyFieldName = fkName;
+         primaryKeyFieldName = pkName;
+      }
 
-        private Component()
-        {
-            this.foreignKeyFieldName = "";
-            this.primaryKeyFieldName = "";
-        }
+      private Component()
+      {
+         this.foreignKeyFieldName = "";
+         this.primaryKeyFieldName = "";
+      }
 
-        public String getForeignKeyFieldName() { return foreignKeyFieldName; }
+      public String getForeignKeyFieldName() { return foreignKeyFieldName; }
 
-        public String getPrimaryKeyFieldName() { return primaryKeyFieldName; }
-    }
+      public String getPrimaryKeyFieldName() { return primaryKeyFieldName; }
+   }
 }
 

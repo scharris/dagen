@@ -26,10 +26,10 @@ public class PostgresDialect implements SqlDialect
 
    @Override
    public String getRowObjectExpression
-   (
-      List<ColumnMetadata> columnMetadatas,
-      String fromAlias
-   )
+      (
+         List<ColumnMetadata> columnMetadatas,
+         String fromAlias
+      )
    {
       String objectFieldDecls =
          columnMetadatas.stream()
@@ -44,10 +44,10 @@ public class PostgresDialect implements SqlDialect
 
    @Override
    public String getAggregatedRowObjectsExpression
-   (
-      List<ColumnMetadata> columnMetadatas,
-      String fromAlias
-   )
+      (
+         List<ColumnMetadata> columnMetadatas,
+         String fromAlias
+      )
    {
       return
          "coalesce(jsonb_agg(" +
@@ -57,28 +57,32 @@ public class PostgresDialect implements SqlDialect
 
    @Override
    public String getAggregatedColumnValuesExpression
-   (
-       ColumnMetadata columnMetadata,
-       String fromAlias
-   )
+      (
+          ColumnMetadata columnMetadata,
+          String fromAlias
+      )
    {
       return "coalesce(jsonb_agg(" + fromAlias + "." + columnMetadata.getName() + "))";
    }
 
    @Override
-   public String getAggregatedObjectsFinalQuery(String simpleAggregateQuery, String jsonValueColumnName)
+   public String getAggregatedObjectsFinalQuery
+      (
+         String simpleAggregateQuery,
+         String jsonValueColumnName
+      )
    {
       return simpleAggregateQuery; // no correction necessary
    }
 
    @Override
    public String getFieldParamConditionSql
-   (
-      FieldParamCondition fpcond,
-      @Nullable String tableAlias,
-      ParametersType paramsType,
-      Function<String,String> defaultParamNameFn // default param name as function of field name
-   )
+      (
+         FieldParamCondition fpcond,
+         @Nullable String tableAlias,
+         ParametersType paramsType,
+         Function<String,String> defaultParamNameFn // default param name as function of field name
+      )
    {
       String mqFieldName = maybeQualify(tableAlias, fpcond.getField());
       String paramValExpr = paramsType == NUMBERED ? "?" : ":"+ valueOr(fpcond.getParamName(), defaultParamNameFn.apply(fpcond.getField()));
@@ -96,3 +100,4 @@ public class PostgresDialect implements SqlDialect
       }
    }
 }
+

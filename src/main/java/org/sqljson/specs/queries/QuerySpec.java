@@ -25,14 +25,14 @@ public final class QuerySpec
    }
 
    public QuerySpec
-   (
-      String queryName,
-      List<ResultsRepr> resultsRepresentations,
-      boolean generateResultTypes,
-      boolean generateSource,
-      @Nullable OutputFieldNameDefault outputFieldNameDefault,
-      TableJsonSpec tableJson
-   )
+      (
+         String queryName,
+         List<ResultsRepr> resultsRepresentations,
+         boolean generateResultTypes,
+         boolean generateSource,
+         @Nullable OutputFieldNameDefault outputFieldNameDefault,
+         TableJsonSpec tableJson
+      )
    {
       this.queryName = queryName;
       this.resultsRepresentations = unmodifiableList(new ArrayList<>(resultsRepresentations));

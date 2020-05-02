@@ -20,13 +20,13 @@ public final class TableFieldExpr
    private TableFieldExpr() {}
 
    public TableFieldExpr
-   (
-      @Nullable String field,
-      @Nullable String expression,
-      @Nullable String withTableAliasAs,
-      @Nullable String jsonProperty,
-      List<FieldTypeOverride> fieldTypeOverrides
-   )
+      (
+         @Nullable String field,
+         @Nullable String expression,
+         @Nullable String withTableAliasAs,
+         @Nullable String jsonProperty,
+         List<FieldTypeOverride> fieldTypeOverrides
+      )
    {
       this.field = field;
       this.expression = expression;
@@ -64,3 +64,4 @@ public final class TableFieldExpr
       return field != null;
    }
 }
+

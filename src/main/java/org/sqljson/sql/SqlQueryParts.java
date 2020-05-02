@@ -26,12 +26,12 @@ public class SqlQueryParts
    }
 
    public SqlQueryParts
-   (
-      List<SelectClauseEntry> selectEntries,
-      List<String> fromEntries,
-      List<String> whereEntries,
-      Set<String> aliasesInScope
-   )
+      (
+         List<SelectClauseEntry> selectEntries,
+         List<String> fromEntries,
+         List<String> whereEntries,
+         Set<String> aliasesInScope
+      )
    {
       this.selectEntries = new ArrayList<>(selectEntries);
       this.fromEntries = new ArrayList<>(fromEntries);
@@ -39,17 +39,22 @@ public class SqlQueryParts
       this.aliasesInScope = new HashSet<>(aliasesInScope);
    }
 
-   public void addSelectClauseEntry(String expr, String name, SelectClauseEntry.Source src)
+   public void addSelectClauseEntry
+      (
+         String expr,
+         String name,
+         SelectClauseEntry.Source src
+      )
    {
       selectEntries.add(new SelectClauseEntry(expr, name, src));
    }
    public void addSelectClauseEntry
-   (
-      String expr,
-      String name,
-      SelectClauseEntry.Source src,
-      List<FieldTypeOverride> typeOverrides
-   )
+      (
+         String expr,
+         String name,
+         SelectClauseEntry.Source src,
+         List<FieldTypeOverride> typeOverrides
+      )
    {
       selectEntries.add(new SelectClauseEntry(expr, name, src, typeOverrides));
    }
@@ -85,3 +90,4 @@ public class SqlQueryParts
       return alias;
    }
 }
+

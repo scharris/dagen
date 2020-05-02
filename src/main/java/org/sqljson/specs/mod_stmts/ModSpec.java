@@ -29,17 +29,17 @@ public class ModSpec
    }
 
    public ModSpec
-   (
-      String statementName,
-      ModType command,
-      String table,
-      @Nullable String tableAlias,
-      ParametersType parametersType,
-      boolean generateSourceCode,
-      List<TargetField> targetFields,
-      List<FieldParamCondition> fieldParamConditions,
-      @Nullable RecordCondition recordCondition
-   )
+      (
+         String statementName,
+         ModType command,
+         String table,
+         @Nullable String tableAlias,
+         ParametersType parametersType,
+         boolean generateSourceCode,
+         List<TargetField> targetFields,
+         List<FieldParamCondition> fieldParamConditions,
+         @Nullable RecordCondition recordCondition
+      )
    {
       this.statementName = statementName;
       this.command = command;
@@ -70,3 +70,4 @@ public class ModSpec
 
    public @Nullable RecordCondition getRecordCondition() { return recordCondition; }
 }
+

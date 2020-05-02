@@ -7,7 +7,11 @@ import org.sqljson.dbmd.DatabaseMetadata;
 /// table which is identified by its alias.
 public interface ParentChildCondition
 {
-   String asEquationConditionOn(String tableAlias, DatabaseMetadata dbmd);
+   String asEquationConditionOn
+      (
+         String tableAlias,
+         DatabaseMetadata dbmd
+      );
 
    String getOtherTableAlias();
 }

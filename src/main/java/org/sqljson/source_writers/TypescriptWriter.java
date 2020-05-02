@@ -27,11 +27,11 @@ public class TypescriptWriter implements SourceCodeWriter
    private String sqlResourceNamePrefix;
 
    public TypescriptWriter
-   (
-      @Nullable Path srcOutputDir,
-      @Nullable String filesHeader,
-      String sqlResourceNamePrefix
-   )
+      (
+         @Nullable Path srcOutputDir,
+         @Nullable String filesHeader,
+         String sqlResourceNamePrefix
+      )
    {
       this.srcOutputDir = srcOutputDir;
       this.filesHeader = filesHeader;
@@ -40,11 +40,11 @@ public class TypescriptWriter implements SourceCodeWriter
 
    @Override
    public void writeQueries
-   (
-      List<GeneratedQuery> generatedQueries,
-      List<WrittenQueryReprPath> writtenQueryPaths,
-      boolean includeTimestamp
-   )
+      (
+         List<GeneratedQuery> generatedQueries,
+         List<WrittenQueryReprPath> writtenQueryPaths,
+         boolean includeTimestamp
+      )
       throws IOException
    {
       if ( srcOutputDir != null )
@@ -116,11 +116,11 @@ public class TypescriptWriter implements SourceCodeWriter
 
    @Override
    public void writeModStatements
-   (
-      List<GeneratedModStatement> generatedModStatements,
-      Map<String,Path> writtenPathsByModName,
-      boolean includeTimestamp
-   )
+      (
+         List<GeneratedModStatement> generatedModStatements,
+         Map<String,Path> writtenPathsByModName,
+         boolean includeTimestamp
+      )
       throws IOException
    {
       // TODO
@@ -261,3 +261,4 @@ public class TypescriptWriter implements SourceCodeWriter
           new RuntimeException("Unhandled field category when unwrapping " + genType.getTypeName() + ".");
    }
 }
+

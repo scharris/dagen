@@ -144,10 +144,10 @@ public class QueryGeneratorMain
    }
 
    private static SourceCodeWriter getSourceCodeWriter
-   (
-      SplitArgs args,
-      @Nullable Path srcOutputBaseDir
-   )
+      (
+         SplitArgs args,
+         @Nullable Path srcOutputBaseDir
+      )
    {
       String language = "";
       String targetPackage = "";
@@ -190,10 +190,10 @@ public class QueryGeneratorMain
     * @return A list of structures identifying the output locations of written queries.
     */
    private static List<WrittenQueryReprPath> writeQueries
-   (
-      List<GeneratedQuery> generatedQueries,
-      @Nullable Path outputDir
-   )
+      (
+         List<GeneratedQuery> generatedQueries,
+         @Nullable Path outputDir
+      )
       throws IOException
    {
       List<WrittenQueryReprPath> res = new ArrayList<>();
@@ -231,3 +231,4 @@ public class QueryGeneratorMain
       return res;
    }
 }
+

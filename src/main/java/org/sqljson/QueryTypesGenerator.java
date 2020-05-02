@@ -23,11 +23,11 @@ class QueryTypesGenerator
    private final Function<String,String> outputFieldNameDefaultFn;
 
    QueryTypesGenerator
-   (
-      DatabaseMetadata dbmd,
-      @Nullable String defaultSchema,
-      Function<String,String> outputFieldNameDefaultFn
-   )
+      (
+         DatabaseMetadata dbmd,
+         @Nullable String defaultSchema,
+         Function<String,String> outputFieldNameDefaultFn
+      )
    {
       this.dbmd = dbmd;
       this.defaultSchema = defaultSchema;
@@ -36,10 +36,10 @@ class QueryTypesGenerator
 
    @SuppressWarnings("keyfor")
    List<GeneratedType> generateTypes
-   (
-      TableJsonSpec tjs,
-      Map<String,GeneratedType> previouslyGeneratedTypesByName
-   )
+      (
+         TableJsonSpec tjs,
+         Map<String,GeneratedType> previouslyGeneratedTypesByName
+      )
    {
       Map<String,GeneratedType> typesInScope = new HashMap<>(previouslyGeneratedTypesByName);
 
@@ -90,11 +90,11 @@ class QueryTypesGenerator
    }
 
    private GeneratedTypeBuilder buildExpressionFields
-   (
-       RelId relId,
-       List<TableFieldExpr> tableFieldExpressions,
-       Map<String,Field> dbFieldsByName
-   )
+      (
+         RelId relId,
+         List<TableFieldExpr> tableFieldExpressions,
+         Map<String,Field> dbFieldsByName
+      )
    {
       GeneratedTypeBuilder typeBuilder = new GeneratedTypeBuilder();
 
@@ -120,11 +120,11 @@ class QueryTypesGenerator
 
    // Build the inline parents part of the generated type.
    private InlineParentsPart buildInlineParentsPart
-   (
-      RelId relId,
-      List<InlineParentSpec> inlineParentSpecs,
-      Map<String,GeneratedType> envTypesInScope
-   )
+      (
+         RelId relId,
+         List<InlineParentSpec> inlineParentSpecs,
+         Map<String,GeneratedType> envTypesInScope
+      )
    {
       Map<String,GeneratedType> typesInScope = new HashMap<>(envTypesInScope);
 
@@ -152,11 +152,11 @@ class QueryTypesGenerator
    }
 
    private ReferencedParentsPart buildReferencedParentsPart
-   (
-      RelId relId,
-      List<ReferencedParentSpec> referencedParentSpecs,
-      Map<String,GeneratedType> envTypesInScope
-   )
+      (
+         RelId relId,
+         List<ReferencedParentSpec> referencedParentSpecs,
+         Map<String,GeneratedType> envTypesInScope
+      )
    {
       Map<String,GeneratedType> typesInScope = new HashMap<>(envTypesInScope);
 
@@ -182,10 +182,10 @@ class QueryTypesGenerator
    }
 
    private ChildCollectionsPart buildChildCollectionsPart
-   (
-      List<ChildCollectionSpec> childCollectionSpecs,
-      Map<String,GeneratedType> envTypesInScope
-   )
+      (
+         List<ChildCollectionSpec> childCollectionSpecs,
+         Map<String,GeneratedType> envTypesInScope
+      )
    {
       Map<String,GeneratedType> typesInScope = new HashMap<>(envTypesInScope);
 
@@ -211,10 +211,10 @@ class QueryTypesGenerator
    }
 
    private String getOutputFieldName
-   (
-      TableFieldExpr tableFieldExpr,
-      Field dbField
-   )
+      (
+         TableFieldExpr tableFieldExpr,
+         Field dbField
+      )
    {
       return valueOrGet(tableFieldExpr.getJsonProperty(), () -> outputFieldNameDefaultFn.apply(dbField.getName()));
    }
@@ -229,10 +229,10 @@ class QueryTypesGenerator
    }
 
    private @Nullable GeneratedType findTypeIgnoringNameExtensions
-   (
-      GeneratedType typeToFind,
-      Map<String,GeneratedType> inMap
-   )
+      (
+         GeneratedType typeToFind,
+         Map<String,GeneratedType> inMap
+      )
    {
       String baseName = typeToFind.getTypeName();
 
@@ -255,7 +255,7 @@ class QueryTypesGenerator
       RelId parentRelId = dbmd.identifyTable(parentSpec.getParentTableJsonSpec().getTable(), defaultSchema);
       @Nullable Set<String> specFkFields = parentSpec.getChildForeignKeyFieldsSet();
       ForeignKey fk = valueOrThrow(dbmd.getForeignKeyFromTo(childRelId, parentRelId, specFkFields, ForeignKeyScope.REGISTERED_TABLES_ONLY), () ->
-          new RuntimeException("foreign key to parent not found")
+         new RuntimeException("foreign key to parent not found")
       );
 
       Map<String,Field> childFieldsByName = getTableFieldsByName(childRelId);
@@ -279,7 +279,11 @@ class InlineParentsPart
    GeneratedTypeBuilder typesBuilder;
    List<GeneratedType> generatedTypes;
 
-   public InlineParentsPart(GeneratedTypeBuilder typesBuilder, List<GeneratedType> generatedTypes)
+   public InlineParentsPart
+      (
+         GeneratedTypeBuilder typesBuilder,
+         List<GeneratedType> generatedTypes
+      )
    {
       this.typesBuilder = typesBuilder;
       this.generatedTypes = generatedTypes;
@@ -291,7 +295,11 @@ class ReferencedParentsPart
    GeneratedTypeBuilder typesBuilder;
    List<GeneratedType> generatedTypes;
 
-   public ReferencedParentsPart(GeneratedTypeBuilder typesBuilder, List<GeneratedType> generatedTypes)
+   public ReferencedParentsPart
+      (
+         GeneratedTypeBuilder typesBuilder,
+         List<GeneratedType> generatedTypes
+      )
    {
       this.typesBuilder = typesBuilder;
       this.generatedTypes = generatedTypes;
@@ -303,11 +311,14 @@ class ChildCollectionsPart
    GeneratedTypeBuilder typesBuilder;
    List<GeneratedType> generatedTypes;
 
-   public ChildCollectionsPart(GeneratedTypeBuilder typesBuilder, List<GeneratedType> generatedTypes)
+   public ChildCollectionsPart
+      (
+         GeneratedTypeBuilder typesBuilder,
+         List<GeneratedType> generatedTypes
+      )
    {
       this.typesBuilder = typesBuilder;
       this.generatedTypes = generatedTypes;
    }
 }
-
 

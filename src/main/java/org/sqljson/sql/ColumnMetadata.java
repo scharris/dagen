@@ -14,17 +14,21 @@ public class ColumnMetadata
    private final SelectClauseEntry.Source source;
    private final List<FieldTypeOverride> fieldTypeOverrides;
 
-   public ColumnMetadata(String name, SelectClauseEntry.Source source)
+   public ColumnMetadata
+      (
+         String name,
+         SelectClauseEntry.Source source
+      )
    {
       this(name, source, emptyList());
    }
 
    public ColumnMetadata
-   (
-      String name,
-      SelectClauseEntry.Source source,
-      List<FieldTypeOverride> fieldTypeOverrides
-   )
+      (
+         String name,
+         SelectClauseEntry.Source source,
+         List<FieldTypeOverride> fieldTypeOverrides
+      )
    {
       this.name = name;
       this.source = source;
@@ -37,3 +41,4 @@ public class ColumnMetadata
 
    public List<FieldTypeOverride> getFieldTypeOverrides() { return fieldTypeOverrides; }
 }
+

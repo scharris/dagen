@@ -36,3 +36,4 @@ public class AppUtils
 
    private AppUtils() {}
 }
+

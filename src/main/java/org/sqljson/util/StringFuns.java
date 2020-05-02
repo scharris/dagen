@@ -2,6 +2,7 @@ package org.sqljson.util;
 
 import java.util.Set;
 import java.util.regex.Pattern;
+
 import org.checkerframework.checker.nullness.qual.Nullable;
 
 
@@ -9,12 +10,20 @@ public final class StringFuns
 {
    private static final String SPACES = "                                                                              ";
 
-   public static String makeNameNotInSet(String baseName, Set<String> existingNames)
+   public static String makeNameNotInSet
+      (
+         String baseName,
+         Set<String> existingNames
+      )
    {
       return makeNameNotInSet(baseName, existingNames, "");
    }
 
-   public static int countOccurrences(String s, char c)
+   public static int countOccurrences
+      (
+         String s,
+         char c
+      )
    {
       int count = 0;
       for (int i = 0; i < s.length(); ++i)
@@ -22,7 +31,12 @@ public final class StringFuns
       return count;
    }
 
-   public static String makeNameNotInSet(String baseName, Set<String> existingNames, String suffixSep)
+   public static String makeNameNotInSet
+      (
+         String baseName,
+         Set<String> existingNames,
+         String suffixSep
+      )
    {
       if ( !existingNames.contains(baseName) )
          return baseName;
@@ -34,7 +48,11 @@ public final class StringFuns
       }
    }
 
-   public static String lowercaseInitials(String name, String sep)
+   public static String lowercaseInitials
+      (
+         String name,
+         String sep
+      )
    {
       StringBuilder sb = new StringBuilder();
 
@@ -77,12 +95,21 @@ public final class StringFuns
       return res.toString();
    }
 
-   public static String indentLines(String linesStr, int spacesCount)
+   public static String indentLines
+      (
+         String linesStr,
+         int spacesCount
+      )
    {
       return indentLines(linesStr, spacesCount, true);
    }
 
-   public static String indentLines(String linesStr, int spacesCount, boolean indentFirstLine)
+   public static String indentLines
+      (
+         String linesStr,
+         int spacesCount,
+         boolean indentFirstLine
+      )
    {
       StringBuilder sb = new StringBuilder();
 
@@ -107,14 +134,36 @@ public final class StringFuns
       return s;
    }
 
-   public static boolean matches(@Nullable Pattern pat, String s)
+   public static boolean matches
+      (
+         @Nullable Pattern pat,
+         String s
+      )
    {
       return pat != null && pat.matcher(s).matches();
    }
 
-   public static String maybeQualify(@Nullable String qualifier, String objectName)
+   public static String maybeQualify
+      (
+         @Nullable String qualifier,
+         String objectName
+      )
    {
       return (qualifier != null ? qualifier + "." : "") + objectName;
+   }
+
+   public static String replaceStringsInWith
+      (
+         String s,
+         String s1,
+         String v1,
+         String s2,
+         String v2
+      )
+   {
+      return ( s2.length() >= s1.length() ) ?
+         s.replace(s2, v2).replace(s1, v1)
+         : s.replace(s1, v1).replace(s2, v2);
    }
 
    private StringFuns() {}

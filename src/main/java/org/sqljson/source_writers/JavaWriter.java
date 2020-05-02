@@ -35,11 +35,11 @@ public class JavaWriter implements SourceCodeWriter
    public enum NullableFieldRepr { OPTWRAPPED, ANNOTATED, BARETYPE }
 
    public JavaWriter
-   (
-      String targetPackage,
-      @Nullable Path srcOutputBaseDir,
-      String sqlResourceNamePrefix
-   )
+      (
+         String targetPackage,
+         @Nullable Path srcOutputBaseDir,
+         String sqlResourceNamePrefix
+      )
    {
       this.targetPackage = targetPackage;
       this.srcOutputBaseDir = srcOutputBaseDir;
@@ -49,13 +49,13 @@ public class JavaWriter implements SourceCodeWriter
    }
 
    public JavaWriter
-   (
-      String targetPackage,
-      @Nullable Path srcOutputBaseDir,
-      NullableFieldRepr nullableFieldRepr,
-      @Nullable String filesHeader,
-      String sqlResourceNamePrefix
-   )
+      (
+         String targetPackage,
+         @Nullable Path srcOutputBaseDir,
+         NullableFieldRepr nullableFieldRepr,
+         @Nullable String filesHeader,
+         String sqlResourceNamePrefix
+      )
    {
       this.targetPackage = targetPackage;
       this.srcOutputBaseDir = srcOutputBaseDir;
@@ -67,11 +67,11 @@ public class JavaWriter implements SourceCodeWriter
    @Override
    @SuppressWarnings("keyfor")
    public void writeQueries
-   (
-      List<GeneratedQuery> generatedQueries,
-      List<WrittenQueryReprPath> writtenQueryPaths,
-      boolean includeTimestamp
-   )
+      (
+         List<GeneratedQuery> generatedQueries,
+         List<WrittenQueryReprPath> writtenQueryPaths,
+         boolean includeTimestamp
+      )
       throws IOException
    {
       @Nullable Path outputDir = !targetPackage.isEmpty() ?
@@ -279,11 +279,11 @@ public class JavaWriter implements SourceCodeWriter
    }
 
    private void writeParamMembers
-   (
-      List<String> paramNames,
-      BufferedWriter bw,
-      boolean hasNamedParams
-   )
+      (
+         List<String> paramNames,
+         BufferedWriter bw,
+         boolean hasNamedParams
+      )
       throws IOException
    {
       for ( int paramIx = 0; paramIx < paramNames.size(); ++paramIx )
@@ -327,10 +327,10 @@ public class JavaWriter implements SourceCodeWriter
    }
 
    private String getJavaTypeNameForDatabaseField
-   (
-       DatabaseField f,
-       boolean box
-   )
+      (
+          DatabaseField f,
+          boolean box
+      )
    {
       boolean notNull = !valueOr(f.getNullable(), true);
 
@@ -446,3 +446,4 @@ public class JavaWriter implements SourceCodeWriter
       return xs.stream().sorted().collect(toList());
    }
 }
+

@@ -18,11 +18,11 @@ public final class ModGroupSpec
    private ModGroupSpec() {}
 
    public ModGroupSpec
-   (
-      @Nullable String defaultSchema,
-      List<String> generateUnqualifiedNamesForSchemas,
-      List<ModSpec> modificationStatementSpecs
-   )
+      (
+         @Nullable String defaultSchema,
+         List<String> generateUnqualifiedNamesForSchemas,
+         List<ModSpec> modificationStatementSpecs
+      )
    {
       this.defaultSchema = defaultSchema;
       this.generateUnqualifiedNamesForSchemas = generateUnqualifiedNamesForSchemas;
@@ -35,5 +35,4 @@ public final class ModGroupSpec
 
    public List<ModSpec> getModificationStatementSpecs() { return modificationStatementSpecs; }
 }
-
 

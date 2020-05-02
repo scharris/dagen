@@ -50,12 +50,12 @@ public class QueryGenerator
    */
 
    public QueryGenerator
-   (
-      DatabaseMetadata dbmd,
-      @Nullable String defaultSchema,
-      Set<String> generateUnqualifiedNamesForSchemas,
-      Function<String,String> outputFieldNameDefaultFn
-   )
+      (
+         DatabaseMetadata dbmd,
+         @Nullable String defaultSchema,
+         Set<String> generateUnqualifiedNamesForSchemas,
+         Function<String,String> outputFieldNameDefaultFn
+      )
    {
       this.dbmd = dbmd;
       this.indentSpaces = 2;
@@ -94,11 +94,11 @@ public class QueryGenerator
    }
 
    private String makeSqlForResultsRepr
-   (
-      QuerySpec querySpec,
-      ResultsRepr resultsRepr,
-      Function<String,String> outputFieldNameDefaultFn
-   )
+      (
+         QuerySpec querySpec,
+         ResultsRepr resultsRepr,
+         Function<String,String> outputFieldNameDefaultFn
+      )
    {
       TableJsonSpec tjs = querySpec.getTableJson();
       switch (resultsRepr)
@@ -134,12 +134,12 @@ public class QueryGenerator
     *    about the query (e.g. column names).
     */
    private BaseQuery makeBaseQuery
-   (
-      TableJsonSpec tableJsonSpec,
-      @Nullable ParentChildCondition parentChildCond,
-      boolean exportAllPkFieldsAsHidden,
-      Function<String,String> outputFieldNameDefaultFn
-   )
+      (
+         TableJsonSpec tableJsonSpec,
+         @Nullable ParentChildCondition parentChildCond,
+         boolean exportAllPkFieldsAsHidden,
+         Function<String,String> outputFieldNameDefaultFn
+      )
    {
       SqlQueryParts q = new SqlQueryParts();
 
@@ -249,11 +249,11 @@ public class QueryGenerator
     * @return the generated SQL query
     */
    private String makeJsonObjectRowsSql
-   (
-      TableJsonSpec tableJsonSpec,
-      @Nullable ParentChildCondition parentChildCond,
-      Function<String,String> outputFieldNameDefaultFn
-   )
+      (
+         TableJsonSpec tableJsonSpec,
+         @Nullable ParentChildCondition parentChildCond,
+         Function<String,String> outputFieldNameDefaultFn
+      )
    {
       BaseQuery baseQuery = makeBaseQuery(tableJsonSpec, parentChildCond, false, outputFieldNameDefaultFn);
 
@@ -268,12 +268,12 @@ public class QueryGenerator
    }
 
    private String makeChildRecordsQuery
-   (
-      ChildCollectionSpec childCollectionSpec,
-      RelId parentRelId,
-      String parentAlias,
-      Function<String,String> outputFieldNameDefaultFn
-   )
+      (
+         ChildCollectionSpec childCollectionSpec,
+         RelId parentRelId,
+         String parentAlias,
+         Function<String,String> outputFieldNameDefaultFn
+      )
    {
       TableJsonSpec tjs = childCollectionSpec.getTableJson();
 
@@ -289,11 +289,11 @@ public class QueryGenerator
    }
 
    private ParentChildCondition getChildCollectionJoinCondition
-       (
-           ChildCollectionSpec childCollectionSpec,
-           RelId childRelId, RelId parentRelId,
-           String parentAlias
-       )
+      (
+         ChildCollectionSpec childCollectionSpec,
+         RelId childRelId, RelId parentRelId,
+         String parentAlias
+      )
    {
       @Nullable CustomJoinCondition customJoinCond = childCollectionSpec.getCustomJoinCondition();
 
@@ -312,13 +312,13 @@ public class QueryGenerator
    }
 
    private SqlQueryParts getInlineParentBaseQueryParts
-   (
-      InlineParentSpec inlineParentTableSpec,
-      RelId childRelId,
-      String childAlias,
-      Set<String> avoidAliases,
-      Function<String,String> outputFieldNameDefaultFn
-   )
+      (
+         InlineParentSpec inlineParentTableSpec,
+         RelId childRelId,
+         String childAlias,
+         Set<String> avoidAliases,
+         Function<String,String> outputFieldNameDefaultFn
+      )
    {
       SqlQueryParts q = new SqlQueryParts();
 
@@ -344,8 +344,8 @@ public class QueryGenerator
       if ( customJoinCond != null )
       {
          // NOTE: Currently this requires underscore prefixes on the parent's primary key fields to be manually
-         //       entered in the custom join condition sql, which would be hard to know/remember to do.
-         //       Maybe should just accept paired matched fields instead of sql text condition.
+         //  entered in the custom join condition sql. Maybe should just accept paired matched fields instead
+         //  of sql text condition for inline parent tables.
          ParentChildCondition pcCond = customJoinCond.asConditionOnParentForChildAlias(childAlias);
          joinCond = pcCond.asEquationConditionOn(fromClauseQueryAlias, dbmd);
          if ( inlineParentTableSpec.getChildForeignKeyFieldsSet() != null )
@@ -390,12 +390,12 @@ public class QueryGenerator
    }
 
    private String makeParentRecordQuery
-   (
-      ReferencedParentSpec refdParentSpec,
-      RelId childRelId,
-      String childAlias,
-      Function<String,String> outputFieldNameDefaultFn
-   )
+      (
+         ReferencedParentSpec refdParentSpec,
+         RelId childRelId,
+         String childAlias,
+         Function<String,String> outputFieldNameDefaultFn
+      )
    {
       TableJsonSpec tjs = refdParentSpec.getParentTableJsonSpec();
 
@@ -441,10 +441,10 @@ public class QueryGenerator
    }
 
    private @Nullable String getWhereCondition
-   (
-      TableJsonSpec tableJsonSpec,
-      String tableAlias
-   )
+      (
+         TableJsonSpec tableJsonSpec,
+         String tableAlias
+      )
    {
       List<String> conds = new ArrayList<>();
 
@@ -476,10 +476,10 @@ public class QueryGenerator
    }
 
    private String getTableFieldExpressionForAlias
-       (
-           TableFieldExpr tableFieldExpr,
-           String tableAlias
-       )
+      (
+         TableFieldExpr tableFieldExpr,
+         String tableAlias
+      )
    {
       if ( tableFieldExpr.isSimpleField() )
          return tableAlias + "." + tableFieldExpr.getField();
@@ -514,7 +514,8 @@ public class QueryGenerator
 
       tableJsonSpec.getFieldParamConditions().stream()
          .map(fpCond -> valueOr(fpCond.getParamName(),
-                                getDefaultParamNameFn(tableJsonSpec.getTable(), fpCond.getOp()).apply(fpCond.getField())))
+               getDefaultParamNameFn(tableJsonSpec.getTable(), fpCond.getOp())
+               .apply(fpCond.getField())))
          .forEach(paramNames::add);
 
       for ( ChildCollectionSpec childSpec: tableJsonSpec.getChildTableCollections() )
@@ -534,11 +535,11 @@ public class QueryGenerator
    }
 
    private ForeignKey getForeignKey
-   (
-      RelId childRelId,
-      RelId parentRelId,
-      @Nullable Set<String> foreignKeyFields
-   )
+      (
+         RelId childRelId,
+         RelId parentRelId,
+         @Nullable Set<String> foreignKeyFields
+      )
    {
       return valueOrThrow(
          dbmd.getForeignKeyFromTo(childRelId, parentRelId, foreignKeyFields, ForeignKeyScope.REGISTERED_TABLES_ONLY),
@@ -550,11 +551,11 @@ public class QueryGenerator
    }
 
    private String getJsonPropertyName
-   (
-      TableFieldExpr tfe,
-      Function<String,String> defaultFn,
-      String tableName
-   )
+      (
+         TableFieldExpr tfe,
+         Function<String,String> defaultFn,
+         String tableName
+      )
    {
       if ( tfe.isSimpleField() )
          return valueOrGet(tfe.getJsonProperty(), () -> defaultFn.apply(tfe.getField()));
@@ -599,3 +600,4 @@ public class QueryGenerator
       List<ColumnMetadata> getResultColumnMetadatas() { return resultColumnMetadatas; }
    }
 }
+

@@ -12,11 +12,11 @@ public class ChildCollectionField
    boolean nullable;
 
    public ChildCollectionField
-   (
-      String name,
-      GeneratedType generatedType,
-      boolean nullable
-   )
+      (
+         String name,
+         GeneratedType generatedType,
+         boolean nullable
+      )
    {
       this.name = name;
       this.generatedType = generatedType;
@@ -41,7 +41,8 @@ public class ChildCollectionField
       if (this == o) return true;
       if (o == null || getClass() != o.getClass()) return false;
       ChildCollectionField that = (ChildCollectionField) o;
-      return nullable == that.nullable &&
+      return
+         nullable == that.nullable &&
          name.equals(that.name) &&
          generatedType.equals(that.generatedType);
    }

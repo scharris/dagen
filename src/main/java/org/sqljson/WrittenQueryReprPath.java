@@ -18,11 +18,11 @@ public class WrittenQueryReprPath
    private @Nullable Path outputFilePath;
 
    public WrittenQueryReprPath
-   (
-      String queryName,
-      ResultsRepr resultsRepr,
-      @Nullable Path outputFilePath
-   )
+      (
+         String queryName,
+         ResultsRepr resultsRepr,
+         @Nullable Path outputFilePath
+      )
    {
       this.queryName = queryName;
       this.resultsRepr = resultsRepr;
@@ -37,10 +37,10 @@ public class WrittenQueryReprPath
 
 
    public static Map<ResultsRepr, Path> writtenPathsForQuery
-   (
-      String queryName,
-      List<WrittenQueryReprPath> writtenPathsAllQueries
-   )
+      (
+         String queryName,
+         List<WrittenQueryReprPath> writtenPathsAllQueries
+      )
    {
       return
          writtenPathsAllQueries.stream()

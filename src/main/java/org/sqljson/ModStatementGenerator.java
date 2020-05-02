@@ -37,11 +37,11 @@ public class ModStatementGenerator
    private static final Pattern simpleNamedParamValueRegex = Pattern.compile("^:[A-Za-z][A-Za-z0-9_]*$");
 
    public ModStatementGenerator
-   (
-      DatabaseMetadata dbmd,
-      @Nullable String defaultSchema,
-      Set<String> unqualifiedNamesSchemas
-   )
+      (
+         DatabaseMetadata dbmd,
+         @Nullable String defaultSchema,
+         Set<String> unqualifiedNamesSchemas
+      )
    {
       this.dbmd = dbmd;
       this.indentSpaces = 2;
@@ -187,7 +187,11 @@ public class ModStatementGenerator
       return res;
    }
 
-   private void validateExpressionValueParamNames(TargetField targetField, ModSpec modSpec)
+   private void validateExpressionValueParamNames
+      (
+         TargetField targetField,
+         ModSpec modSpec
+      )
    {
       // For named parameters, check that the declared parameters actually occur in the value expression string.
       if ( modSpec.getParametersType() == NAMED )
@@ -266,10 +270,10 @@ public class ModStatementGenerator
    }
 
    private void verifyReferencedTableFields
-   (
-      ModSpec modSpec,
-      RelId relId
-   )
+      (
+         ModSpec modSpec,
+         RelId relId
+      )
       throws DatabaseObjectsNotFoundException
    {
       RelMetadata relMetadata = valueOrThrow(dbmd.getRelationMetadata(relId), () ->
@@ -282,5 +286,5 @@ public class ModStatementGenerator
       List<String> whereCondFields = modSpec.getFieldParamConditions().stream().map(FieldParamCondition::getField).collect(toList());
       verifyTableFieldsExist(whereCondFields, relMetadata, dbmd);
    }
-
 }
+

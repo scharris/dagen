@@ -6,15 +6,14 @@ import static java.util.Objects.requireNonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
 
-
 public class Props
 {
    // Get the property value for the first contained key if any.
    public static @Nullable String getProperty
-   (
-      Properties p,
-      String... keys
-   )
+      (
+         Properties p,
+         String... keys
+      )
    {
       for ( String key: keys )
       {
@@ -25,13 +24,14 @@ public class Props
    }
 
    public static String requireProperty
-   (
-      Properties p,
-      String... keys
-   )
+      (
+         Properties p,
+         String... keys
+      )
    {
       return requireNonNull(getProperty(p, keys), "Property " + keys[0] + " is required.");
    }
 
    private Props() {}
 }
+

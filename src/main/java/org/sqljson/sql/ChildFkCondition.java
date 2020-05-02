@@ -14,7 +14,11 @@ public class ChildFkCondition implements ParentChildCondition
    private final String parentAlias;
    private final List<ForeignKey.Component> matchedFields;
 
-   public ChildFkCondition(String parentAlias, List<ForeignKey.Component> matchedFields)
+   public ChildFkCondition
+      (
+         String parentAlias,
+         List<ForeignKey.Component> matchedFields
+      )
    {
       this.parentAlias = parentAlias;
       this.matchedFields = unmodifiableList(new ArrayList<>(matchedFields));
@@ -24,7 +28,11 @@ public class ChildFkCondition implements ParentChildCondition
 
    public List<ForeignKey.Component> getMatchedFields() { return matchedFields; }
 
-   public String asEquationConditionOn(String childAlias, DatabaseMetadata dbmd)
+   public String asEquationConditionOn
+      (
+         String childAlias,
+         DatabaseMetadata dbmd
+      )
    {
       return
          matchedFields.stream()
@@ -33,3 +41,4 @@ public class ChildFkCondition implements ParentChildCondition
          .collect(joining(" and "));
    }
 }
+

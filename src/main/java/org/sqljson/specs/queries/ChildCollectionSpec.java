@@ -24,13 +24,13 @@ public final class ChildCollectionSpec
    }
 
    public ChildCollectionSpec
-   (
-      String collectionName,
-      TableJsonSpec tableJson,
-      @Nullable List<String> fkFields,
-      @Nullable String filter,
-      boolean unwrap
-   )
+      (
+         String collectionName,
+         TableJsonSpec tableJson,
+         @Nullable List<String> fkFields,
+         @Nullable String filter,
+         boolean unwrap
+      )
    {
       this.collectionName = collectionName;
       this.tableJson = tableJson;
@@ -40,13 +40,13 @@ public final class ChildCollectionSpec
    }
 
    public ChildCollectionSpec
-       (
-           String collectionName,
-           TableJsonSpec tableJson,
-           CustomJoinCondition customJoinCondition,
-           @Nullable String filter,
-           boolean unwrap
-       )
+      (
+         String collectionName,
+         TableJsonSpec tableJson,
+         CustomJoinCondition customJoinCondition,
+         @Nullable String filter,
+         boolean unwrap
+      )
    {
       this.collectionName = collectionName;
       this.tableJson = tableJson;
@@ -65,9 +65,13 @@ public final class ChildCollectionSpec
    public @Nullable CustomJoinCondition getCustomJoinCondition() { return customJoinCondition; }
 
    @JsonIgnore
-   public @Nullable Set<String> getForeignKeyFieldsSet() { return applyIfPresent(foreignKeyFields, HashSet::new); }
+   public @Nullable Set<String> getForeignKeyFieldsSet()
+   {
+      return applyIfPresent(foreignKeyFields, HashSet::new);
+   }
 
    public @Nullable String getFilter() { return filter; }
 
    public boolean getUnwrap() { return unwrap; }
 }
+
