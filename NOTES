@@ -1,4 +1,6 @@
 
+Need to surround record conditions with parens.
+
 Finish the Oracle implementation (unwrapped child collections).
 
 Improve error reporting

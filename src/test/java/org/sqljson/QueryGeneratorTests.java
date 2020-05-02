@@ -248,6 +248,23 @@ class QueryGeneratorTests extends TestsBase
     }
 
     @Test
+    @DisplayName("Query for an advisory with custom-joined inline advisory type parent, deserialize to generated type.")
+    void readAdvisoryWithCustomJoinedInlineAdvisoryTypeParent() throws Exception
+    {
+        String sql = getGeneratedQuerySql("advisory with inline custom joined advisory type query(json object rows).sql");
+
+        SqlParameterSource params = params(AdvisoryWithInlineCustomJoinedAdvisoryTypeQuery.advisoryIdParam, 201L);
+
+        doQuery(sql, params, rs -> {
+            AdvisoryWithInlineCustomJoinedAdvisoryTypeQuery.Advisory res = readJson(rs.getString(1), AdvisoryWithInlineCustomJoinedAdvisoryTypeQuery.Advisory.class);
+            assertEquals(res.id, 201);
+            assertEquals(res.drugId, 2);
+            assertEquals(res.advisoryType, "Boxed Warning");
+            assertEquals(res.exprYieldingTwo, 2L);
+        });
+    }
+
+    @Test
     @DisplayName("Query for a drug with wrapped (object ref) analyst parent, deserialize to generated type.")
     void readDrugWithWrappedAnalystParent() throws Exception
     {
@@ -257,6 +274,23 @@ class QueryGeneratorTests extends TestsBase
 
         doQuery(sql, params, rs -> {
             DrugWithWrappedAnalystQuery.Drug res = readJson(rs.getString(1), DrugWithWrappedAnalystQuery.Drug.class);
+            assertEquals(res.id, 2);
+            assertEquals(res.registeredByAnalyst.id, 1);
+            assertEquals(res.registeredByAnalyst.shortName, "jdoe");
+        });
+    }
+
+    @Test
+    @DisplayName("Query for a drug with wrapped analyst parent via custom join, deserialize to generated type.")
+    void readDrugWithWrappedAnalystParentViaCustomJoin() throws Exception
+    {
+        String sql = getGeneratedQuerySql("drug with wrapped analyst via custom join query(json object rows).sql");
+
+        SqlParameterSource params = params(DrugWithWrappedAnalystViaCustomJoinQuery.drugIdParam, 2L);
+
+        doQuery(sql, params, rs -> {
+            DrugWithWrappedAnalystViaCustomJoinQuery.Drug res =
+                readJson(rs.getString(1), DrugWithWrappedAnalystViaCustomJoinQuery.Drug.class);
             assertEquals(res.id, 2);
             assertEquals(res.registeredByAnalyst.id, 1);
             assertEquals(res.registeredByAnalyst.shortName, "jdoe");

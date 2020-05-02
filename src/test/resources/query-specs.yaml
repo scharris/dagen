@@ -25,7 +25,7 @@ querySpecs:
         - field: name
         - field: mesh_id
       recordCondition:
-        sql: '$a$.id = :idMinusOne + 1'
+        sql: '$$.id = :idMinusOne + 1'
         paramNames: ['idMinusOne']
 
   # Like the above but with an additional field with a customized type provided here.
@@ -210,6 +210,35 @@ querySpecs:
       fieldParamConditions:
         - field: id
 
+  # Inline parent query with custom join condition.
+  - queryName: advisory with inline custom joined advisory type query
+    resultsRepresentations: [JSON_OBJECT_ROWS]
+    generateResultTypes: true
+    tableJson:
+      table: advisory
+      fieldExpressions:
+        - field: id
+        - field: drug_id
+        - field: text
+      inlineParentTables:
+        - tableJson:
+            table: advisory_type
+            fieldExpressions:
+              - field: name
+                jsonProperty: advisoryType
+              - expression: "(select 1 + 1)"
+                jsonProperty: exprYieldingTwo
+                generateTypes:
+                  - language: Java
+                    typeDeclaration: long
+          customJoinCondition:
+            withChildAliasAs: $a
+            withParentAliasAs: $at
+             # parent pk fields need leading "_" for custom joins of inline parent tables
+            joinExpression: "$a.advisory_type_id = $at._id"
+      fieldParamConditions:
+        - field: id
+
   # Referenced (wrapped) parent query, where parent is available through an object reference.
   - queryName: drug with wrapped analyst query
     resultsRepresentations: [JSON_OBJECT_ROWS]
@@ -227,6 +256,30 @@ querySpecs:
             fieldExpressions:
               - field: id
               - field: short_name
+      fieldParamConditions:
+        - field: id
+
+  # Referenced (wrapped) parent with custom join condition.
+  - queryName: drug with wrapped analyst via custom join query
+    resultsRepresentations: [JSON_OBJECT_ROWS]
+    generateResultTypes: true
+    tableJson:
+      table: drug
+      fieldExpressions:
+        - field: id
+        - field: name
+        - field: mesh_id
+      referencedParentTables:
+        - referenceName: registeredByAnalyst
+          tableJson:
+            table: analyst
+            fieldExpressions:
+              - field: id
+              - field: short_name
+          customJoinCondition:
+            withChildAliasAs: $d
+            withParentAliasAs: $a
+            joinExpression: "$d.registered_by = $a.id"
       fieldParamConditions:
         - field: id
 

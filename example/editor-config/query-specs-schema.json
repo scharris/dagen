@@ -1,3 +1,4 @@
+C:\Users\sharris\AppData\Local\JetBrains\Toolbox\apps\IDEA-U\ch-0\193.6494.35\jbr\bin\java.exe -javaagent:C:\Users\sharris\AppData\Local\JetBrains\Toolbox\apps\IDEA-U\ch-0\193.6494.35\lib\idea_rt.jar=59524:C:\Users\sharris\AppData\Local\JetBrains\Toolbox\apps\IDEA-U\ch-0\193.6494.35\bin -Dfile.encoding=UTF-8 -classpath C:\Users\sharris\projects\dagen\target\classes;C:\Users\sharris\.m2\repository\com\fasterxml\jackson\core\jackson-databind\2.10.1\jackson-databind-2.10.1.jar;C:\Users\sharris\.m2\repository\com\fasterxml\jackson\core\jackson-annotations\2.10.1\jackson-annotations-2.10.1.jar;C:\Users\sharris\.m2\repository\com\fasterxml\jackson\core\jackson-core\2.10.1\jackson-core-2.10.1.jar;C:\Users\sharris\.m2\repository\com\fasterxml\jackson\dataformat\jackson-dataformat-yaml\2.10.1\jackson-dataformat-yaml-2.10.1.jar;C:\Users\sharris\.m2\repository\org\yaml\snakeyaml\1.24\snakeyaml-1.24.jar;C:\Users\sharris\.m2\repository\com\fasterxml\jackson\datatype\jackson-datatype-jdk8\2.10.1\jackson-datatype-jdk8-2.10.1.jar;C:\Users\sharris\.m2\repository\com\fasterxml\jackson\module\jackson-module-jsonSchema\2.10.1\jackson-module-jsonSchema-2.10.1.jar;C:\Users\sharris\.m2\repository\javax\validation\validation-api\1.1.0.Final\validation-api-1.1.0.Final.jar;C:\Users\sharris\.m2\repository\org\postgresql\postgresql\42.2.9.jre7\postgresql-42.2.9.jre7.jar;C:\Users\sharris\.m2\repository\org\checkerframework\checker-qual\3.1.1\checker-qual-3.1.1.jar;C:\Users\sharris\.m2\repository\com\google\code\findbugs\annotations\3.0.1\annotations-3.0.1.jar;C:\Users\sharris\.m2\repository\net\jcip\jcip-annotations\1.0\jcip-annotations-1.0.jar;C:\Users\sharris\.m2\repository\com\google\code\findbugs\jsr305\3.0.1\jsr305-3.0.1.jar org.sqljson.QueryGeneratorMain --print-spec-json-schema
 {
   "type" : "object",
   "id" : "urn:jsonschema:org:sqljson:specs:queries:QueryGroupSpec",
@@ -94,10 +95,19 @@
                       "type" : "object",
                       "$ref" : "urn:jsonschema:org:sqljson:specs:queries:TableJsonSpec"
                     },
-                    "viaForeignKeyFields" : {
-                      "type" : "array",
-                      "items" : {
-                        "type" : "string"
+                    "customJoinCondition" : {
+                      "type" : "object",
+                      "id" : "urn:jsonschema:org:sqljson:specs:queries:CustomJoinCondition",
+                      "properties" : {
+                        "withParentAliasAs" : {
+                          "type" : "string"
+                        },
+                        "withChildAliasAs" : {
+                          "type" : "string"
+                        },
+                        "joinExpression" : {
+                          "type" : "string"
+                        }
                       }
                     }
                   }
@@ -121,6 +131,10 @@
                       "items" : {
                         "type" : "string"
                       }
+                    },
+                    "customJoinCondition" : {
+                      "type" : "object",
+                      "$ref" : "urn:jsonschema:org:sqljson:specs:queries:CustomJoinCondition"
                     }
                   }
                 }
@@ -146,18 +160,7 @@
                     },
                     "customJoinCondition" : {
                       "type" : "object",
-                      "id" : "urn:jsonschema:org:sqljson:specs:queries:CustomJoinCondition",
-                      "properties" : {
-                        "withParentAliasAs" : {
-                          "type" : "string"
-                        },
-                        "withChildAliasAs" : {
-                          "type" : "string"
-                        },
-                        "joinExpression" : {
-                          "type" : "string"
-                        }
-                      }
+                      "$ref" : "urn:jsonschema:org:sqljson:specs:queries:CustomJoinCondition"
                     },
                     "filter" : {
                       "type" : "string"

@@ -37,41 +37,48 @@ public class CustomJoinCondition
     public String getJoinExpression() { return joinExpression; }
 
 
-    public ParentChildCondition asConditionOnChildForParentAlias(String parentTableAlias)
+    public ParentChildCondition asConditionOnChildForParentAlias(String parentAlias)
     {
         return new ParentChildCondition()
         {
-            public String asEquationConditionOn(String childTableAlias, DatabaseMetadata dbmd)
+            public String asEquationConditionOn(String childAlias, DatabaseMetadata dbmd)
             {
-                return
-                    joinExpression
-                    .replace(withParentAliasAs, parentTableAlias)
-                    .replace(withChildAliasAs, childTableAlias);
+                return replaceStringsInWith(joinExpression,
+                    withParentAliasAs, parentAlias,
+                    withChildAliasAs, childAlias
+                );
             }
 
             public String getOtherTableAlias()
             {
-                return parentTableAlias;
+                return parentAlias;
             }
         };
     }
 
-    public ParentChildCondition asConditionOnParentForChildAlias(String childTableAlias)
+    public ParentChildCondition asConditionOnParentForChildAlias(String childAlias)
     {
         return new ParentChildCondition()
         {
-            public String asEquationConditionOn(String parentTableAlias, DatabaseMetadata dbmd)
+            public String asEquationConditionOn(String parentAlias, DatabaseMetadata dbmd)
             {
-                return
-                    joinExpression
-                    .replace(withChildAliasAs, childTableAlias)
-                    .replace(withParentAliasAs, childTableAlias);
+                return replaceStringsInWith(joinExpression,
+                    withParentAliasAs, parentAlias,
+                    withChildAliasAs, childAlias
+                );
             }
 
             public String getOtherTableAlias()
             {
-                return childTableAlias;
+                return childAlias;
             }
         };
+    }
+
+    private String replaceStringsInWith(String s, String s1, String v1, String s2, String v2)
+    {
+        return ( s2.length() >= s1.length() ) ? s.replace(s2, v2).replace(s1, v1)
+            : s.replace(s1, v1).replace(s2, v2);
+
     }
 }

@@ -12,6 +12,7 @@ public final class InlineParentSpec implements ParentSpec
 {
    private TableJsonSpec tableJson;
    private @Nullable List<String> viaForeignKeyFields = null;
+   private @Nullable CustomJoinCondition customJoinCondition = null;
 
    private InlineParentSpec()
    {
@@ -28,13 +29,23 @@ public final class InlineParentSpec implements ParentSpec
       this.viaForeignKeyFields = applyIfPresent(viaForeignKeyFields, Collections::unmodifiableList);
    }
 
-   public TableJsonSpec getTableJson() { return getParentTableJsonSpec(); }
+   public InlineParentSpec
+   (
+      TableJsonSpec tableJson,
+      @Nullable CustomJoinCondition customJoinCondition
+   )
+   {
+      this.tableJson = tableJson;
+      this.customJoinCondition = customJoinCondition;
+   }
 
-   public @Nullable List<String> getViaForeignKeyFields() { return viaForeignKeyFields; }
+   public TableJsonSpec getTableJson() { return getParentTableJsonSpec(); }
 
    @JsonIgnore
    public TableJsonSpec getParentTableJsonSpec() { return tableJson; }
 
    @JsonIgnore
    public @Nullable Set<String> getChildForeignKeyFieldsSet() { return applyIfPresent(viaForeignKeyFields, HashSet::new); }
+
+   public @Nullable CustomJoinCondition getCustomJoinCondition() { return customJoinCondition; }
 }

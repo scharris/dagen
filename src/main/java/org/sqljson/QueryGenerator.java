@@ -209,19 +209,19 @@ public class QueryGenerator
     *  representing the collection of json object representations of all rows
     *  of the table whose output specification is passed.
     * @param tableJsonSpec  The output specification for this table, the subject of the query.
-    * @param parentChildLinkCond A filter condition on this table (always) from a parent or child table whose alias
-    *                            (accessible from the condition) can be assumed to be in context.
+    * @param parentChildCond A filter condition on this table (always) from a parent or child table whose alias
+    *                        (accessible from the condition) can be assumed to be in context.
     * @return the generated SQL query
     */
    private String makeAggregatedJsonResultSql
       (
          TableJsonSpec tableJsonSpec,
-         @Nullable ParentChildCondition parentChildLinkCond,
+         @Nullable ParentChildCondition parentChildCond,
          Function<String,String> outputFieldNameDefaultFn,
          boolean unwrapSingleColumnValues
       )
    {
-      BaseQuery baseQuery = makeBaseQuery(tableJsonSpec, parentChildLinkCond, false, outputFieldNameDefaultFn);
+      BaseQuery baseQuery = makeBaseQuery(tableJsonSpec, parentChildCond, false, outputFieldNameDefaultFn);
 
       if ( unwrapSingleColumnValues && baseQuery.getResultColumnMetadatas().size() != 1 )
          throw new RuntimeException("Unwrapped child collection attempted on child with multiple columns.");
@@ -244,19 +244,18 @@ public class QueryGenerator
     *  result set. The query returns a JSON value in a single column and with
     *  any number of result rows.
     * @param tableJsonSpec  The output specification for this table, the subject of the query.
-    * @param parentChildLinkCond A filter condition on this table (always) from a parent or child table whose alias
-    *                            (accessible from the condition) can be assumed to be in context.
+    * @param parentChildCond A filter condition on this table (always) from a parent or child table whose alias
+    *                        (accessible from the condition) can be assumed to be in context.
     * @return the generated SQL query
     */
    private String makeJsonObjectRowsSql
    (
       TableJsonSpec tableJsonSpec,
-      @Nullable ParentChildCondition parentChildLinkCond,
+      @Nullable ParentChildCondition parentChildCond,
       Function<String,String> outputFieldNameDefaultFn
    )
    {
-      BaseQuery baseQuery =
-         makeBaseQuery(tableJsonSpec, parentChildLinkCond, false, outputFieldNameDefaultFn);
+      BaseQuery baseQuery = makeBaseQuery(tableJsonSpec, parentChildCond, false, outputFieldNameDefaultFn);
 
       String rowObjExpr = sqlDialect.getRowObjectExpression(baseQuery.getResultColumnMetadatas(), "q");
 
@@ -326,7 +325,6 @@ public class QueryGenerator
       TableJsonSpec tjs = inlineParentTableSpec.getTableJson();
       String table = tjs.getTable();
       RelId relId = dbmd.identifyTable(table, defaultSchema);
-      ForeignKey fk = getForeignKey(childRelId, relId, inlineParentTableSpec.getChildForeignKeyFieldsSet());
 
       BaseQuery fromClauseQuery = makeBaseQuery(tjs, null, true, outputFieldNameDefaultFn);
 
@@ -341,12 +339,29 @@ public class QueryGenerator
             parentCol.getFieldTypeOverrides()
          );
 
-      ParentPkCondition parentPkCond = new ParentPkCondition(childAlias, fk.getForeignKeyComponents());
+      String joinCond;
+      @Nullable CustomJoinCondition customJoinCond = inlineParentTableSpec.getCustomJoinCondition();
+      if ( customJoinCond != null )
+      {
+         // NOTE: Currently this requires underscore prefixes on the parent's primary key fields to be manually
+         //       entered in the custom join condition sql, which would be hard to know/remember to do.
+         //       Maybe should just accept paired matched fields instead of sql text condition.
+         ParentChildCondition pcCond = customJoinCond.asConditionOnParentForChildAlias(childAlias);
+         joinCond = pcCond.asEquationConditionOn(fromClauseQueryAlias, dbmd);
+         if ( inlineParentTableSpec.getChildForeignKeyFieldsSet() != null )
+            throw new RuntimeException("Inline parent table specifies both custom join and foreign key fields.");
+      }
+      else
+      {
+         ForeignKey fk = getForeignKey(childRelId, relId, inlineParentTableSpec.getChildForeignKeyFieldsSet());
+         ParentPkCondition parentPkCond = new ParentPkCondition(childAlias, fk.getForeignKeyComponents());
+         joinCond = parentPkCond.asEquationConditionOn(fromClauseQueryAlias, dbmd, HIDDEN_PK_PREFIX);
+      }
+
       q.addFromClauseEntry(
          "left join (\n" +
             indent(fromClauseQuery.getSql()) + "\n" +
-         ") " + fromClauseQueryAlias + " on " +
-         parentPkCond.asEquationConditionOn(fromClauseQueryAlias, dbmd, HIDDEN_PK_PREFIX)
+         ") " + fromClauseQueryAlias + " on " + joinCond
       );
 
       return q;
@@ -386,11 +401,21 @@ public class QueryGenerator
 
       RelId relId = dbmd.identifyTable(tjs.getTable(), defaultSchema);
 
-      ForeignKey fk = getForeignKey(childRelId, relId, refdParentSpec.getChildForeignKeyFieldsSet());
+      ParentChildCondition childCondOnParent;
+      @Nullable CustomJoinCondition customJoinCond = refdParentSpec.getCustomJoinCondition();
+      if ( customJoinCond != null )
+      {
+         childCondOnParent = customJoinCond.asConditionOnParentForChildAlias(childAlias);
+         if ( refdParentSpec.getChildForeignKeyFieldsSet() != null )
+            throw new RuntimeException("Referenced parent table specifies both custom join and foreign key fields.");
+      }
+      else
+      {
+         ForeignKey fk = getForeignKey(childRelId, relId, refdParentSpec.getChildForeignKeyFieldsSet());
+         childCondOnParent = new ParentPkCondition(childAlias, fk.getForeignKeyComponents());
+      }
 
-      ParentPkCondition parentPkCond = new ParentPkCondition(childAlias, fk.getForeignKeyComponents());
-
-      return makeJsonObjectRowsSql(tjs, parentPkCond, outputFieldNameDefaultFn);
+      return makeJsonObjectRowsSql(tjs, childCondOnParent, outputFieldNameDefaultFn);
    }
 
    private String makeSqlFromParts(SqlQueryParts q)

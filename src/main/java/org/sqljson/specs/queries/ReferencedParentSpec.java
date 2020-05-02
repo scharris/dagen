@@ -13,6 +13,7 @@ public final class ReferencedParentSpec implements ParentSpec
    private String referenceName;
    private TableJsonSpec tableJson;
    private @Nullable List<String> viaForeignKeyFields = null;
+   private @Nullable CustomJoinCondition customJoinCondition = null;
 
    private ReferencedParentSpec()
    {
@@ -32,6 +33,18 @@ public final class ReferencedParentSpec implements ParentSpec
       this.viaForeignKeyFields = applyIfPresent(viaForeignKeyFields, Collections::unmodifiableList);
    }
 
+   public ReferencedParentSpec
+       (
+           String referenceName,
+           TableJsonSpec tableJson,
+           @Nullable CustomJoinCondition customJoinCondition
+       )
+   {
+      this.referenceName = referenceName;
+      this.tableJson = tableJson;
+      this.customJoinCondition = customJoinCondition;
+   }
+
    public String getReferenceName() { return referenceName; }
 
    public TableJsonSpec getTableJson() { return getParentTableJsonSpec(); }
@@ -43,4 +56,6 @@ public final class ReferencedParentSpec implements ParentSpec
 
    @JsonIgnore
    public @Nullable Set<String> getChildForeignKeyFieldsSet() { return applyIfPresent(viaForeignKeyFields, HashSet::new); }
+
+   public @Nullable CustomJoinCondition getCustomJoinCondition() { return customJoinCondition; }
 }
