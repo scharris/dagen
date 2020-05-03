@@ -67,8 +67,8 @@ public class OracleDialect implements SqlDialect
          String fromAlias
       )
    {
-       // TODO
-       throw new RuntimeException("Unwrapped child collections are not yet supported for Oracle database.");
+      String qfield = fromAlias + "." + columnMetadata.getName();
+      return "coalesce(json_arrayagg(" + qfield + " returning clob), to_clob('[]'))";
    }
 
    /// Replace empty clob returned by json_arrayagg() when aggregating over no
