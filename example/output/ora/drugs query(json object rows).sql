@@ -95,7 +95,7 @@ from (
             select
               at.ID "_ID",
               at.name "advisoryType",
-              (select 1 + 1) "exprYieldingTwo",
+              (1 + 1) "exprYieldingTwo",
               q."authorityName" "authorityName",
               q."authorityUrl" "authorityUrl",
               q."authorityDescription" "authorityDescription"
