@@ -77,8 +77,23 @@
               }
             }
           },
-          "condition" : {
-            "type" : "string"
+          "recordCondition" : {
+            "type" : "object",
+            "id" : "urn:jsonschema:org:sqljson:specs:RecordCondition",
+            "properties" : {
+              "sql" : {
+                "type" : "string"
+              },
+              "paramNames" : {
+                "type" : "array",
+                "items" : {
+                  "type" : "string"
+                }
+              },
+              "withTableAliasAs" : {
+                "type" : "string"
+              }
+            }
           }
         }
       }

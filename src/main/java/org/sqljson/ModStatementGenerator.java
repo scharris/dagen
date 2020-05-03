@@ -36,6 +36,8 @@ public class ModStatementGenerator
 
    private static final Pattern simpleNamedParamValueRegex = Pattern.compile("^:[A-Za-z][A-Za-z0-9_]*$");
 
+   private static final String DEFAULT_TABLE_ALIAS_VAR = "$$";
+
    public ModStatementGenerator
       (
          DatabaseMetadata dbmd,
@@ -234,10 +236,16 @@ public class ModStatementGenerator
          );
       }
 
-      // Other condition goes last so it will not interfere with parameter numbering in case it introduces its own params.
-      ifPresent(modSpec.getRecordCondition(), cond ->
-          conds.add("(" + cond.getSql() + ")")
-      );
+      ifPresent(modSpec.getRecordCondition(), cond -> {
+         @Nullable String tableAlias = modSpec.getTableAlias();
+         if ( tableAlias != null )
+         {
+            String tableAliasVar = valueOr(cond.getWithTableAliasAs(), DEFAULT_TABLE_ALIAS_VAR);
+            conds.add("(" + cond.getSql().replace(tableAliasVar, tableAlias) + ")");
+         }
+         else
+            conds.add("(" + cond.getSql() + ")");
+      });
 
       return conds.isEmpty() ? null : String.join("\nand\n", conds);
    }

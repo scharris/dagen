@@ -16,7 +16,7 @@ querySpecs:
         - field: registered
         - field: market_entry_date
         - field: therapeutic_indications
-        - expression: "$a$.cid + 1000"
+        - expression: "$$.cid + 1000"
           jsonProperty: cidPlus1000
           generateTypes:
             - language: Java
@@ -114,4 +114,5 @@ querySpecs:
       fieldParamConditions:
         - field: mesh_id
           op: IN
-      condition: 'not $a$.id = 2'
+      recordCondition:
+        sql: 'not $$.id = 2'

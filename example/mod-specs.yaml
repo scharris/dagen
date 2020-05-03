@@ -58,7 +58,8 @@ modificationStatementSpecs:
       - field: cid
       - field: mesh_id
         paramName: oldMeshId
-    condition: d.compound_id < 0
+    recordCondition:
+      sql: $$.compound_id < 0
 
   ##################################################################
   - statementName: drug update with numbered params
@@ -78,7 +79,8 @@ modificationStatementSpecs:
       - field: cid
       - field: mesh_id
         paramName: oldMeshId
-    condition: d.compound_id < 0
+    recordCondition:
+      sql: $$.compound_id < 0
 
   ##################################################################
   - statementName: drug delete
