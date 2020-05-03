@@ -230,14 +230,12 @@ public class QueryGenerator
           sqlDialect.getAggregatedColumnValuesExpression(baseQuery.getResultColumnMetadatas().get(0), "q")
           : sqlDialect.getAggregatedRowObjectsExpression(baseQuery.getResultColumnMetadatas(), "q");
 
-      String simpleAggregateQuery =
+      return
          "select\n" +
             indent(aggExpr) + " json\n" +
          "from (\n" +
             indent(baseQuery.getSql()) + "\n" +
          ") q";
-
-      return sqlDialect.getAggregatedObjectsFinalQuery(simpleAggregateQuery, "json");
    }
 
    /** Make a query having JSON object result values at the top level of the

@@ -49,10 +49,9 @@ public class PostgresDialect implements SqlDialect
          String fromAlias
       )
    {
-      return
-         "coalesce(jsonb_agg(" +
-            getRowObjectExpression(columnMetadatas, fromAlias) +
-         "),'[]'::jsonb)";
+
+      String rowObjExpr = getRowObjectExpression(columnMetadatas, fromAlias);
+      return "coalesce(jsonb_agg(" + rowObjExpr + "),'[]'::jsonb)";
    }
 
    @Override
@@ -62,17 +61,8 @@ public class PostgresDialect implements SqlDialect
           String fromAlias
       )
    {
-      return "coalesce(jsonb_agg(" + fromAlias + "." + columnMetadata.getName() + "))";
-   }
-
-   @Override
-   public String getAggregatedObjectsFinalQuery
-      (
-         String simpleAggregateQuery,
-         String jsonValueColumnName
-      )
-   {
-      return simpleAggregateQuery; // no correction necessary
+      String qfield = fromAlias + "." + columnMetadata.getName();
+      return "coalesce(jsonb_agg(" + qfield + "))";
    }
 
    @Override

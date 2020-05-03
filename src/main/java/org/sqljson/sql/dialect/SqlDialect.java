@@ -34,18 +34,6 @@ public interface SqlDialect
          String fromAlias
       );
 
-   /// This method is intended to allow correcting the final value of an aggregate query by allowing it to be
-   /// wrapped in another query. For example this method is used to correct Oracle (<19) returning an empty clob
-   /// when using json_arrayagg() over a source returning no rows, in which case Oracle unhelpfully returns an
-   /// empty (non-null) CLOB, which is difficult to correct to to_clob('[]') without wrapping in an another query.
-   /// The simpleAggregatedObjectsQuery passed in should return exactly one row and one column. The returned query
-   /// should also return in exactly one row and should export the same column name.
-   String getAggregatedObjectsFinalQuery
-      (
-         String simpleAggregatedObjectsQuery,
-         String jsonValueColumnName
-      );
-
    String getFieldParamConditionSql
       (
          FieldParamCondition fieldParamCondition,

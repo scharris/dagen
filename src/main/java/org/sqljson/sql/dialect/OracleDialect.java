@@ -54,10 +54,8 @@ public class OracleDialect implements SqlDialect
          String fromAlias
       )
    {
-      return
-         "json_arrayagg(" +
-            getRowObjectExpression(columnMetadatas, fromAlias) +
-         " returning clob)";
+      String rowObjExpr = getRowObjectExpression(columnMetadatas, fromAlias);
+      return "coalesce(json_arrayagg(" + rowObjExpr + " returning clob), to_clob('[]'))";
    }
 
    @Override
@@ -69,29 +67,6 @@ public class OracleDialect implements SqlDialect
    {
       String qfield = fromAlias + "." + columnMetadata.getName();
       return "coalesce(json_arrayagg(" + qfield + " returning clob), to_clob('[]'))";
-   }
-
-   /// Replace empty clob returned by json_arrayagg() when aggregating over no
-   /// source rows with empty json array.
-   /* NOTE
-   Oracle unfortunately has json_arrayagg() return an empty clob when aggregating
-   over no rows, whereas we need an empty json array value in that case. Since an
-   empty clob is non-null, it's not easy to replace at the level of the aggregate
-   select expression, without introducing a new function in the schema which is
-   to be avoided. So we resort to wrapping the aggregate query in another query
-   here, which can replace the faulty empty aggregate representation.
-   */
-   @Override
-   public String getAggregatedObjectsFinalQuery(String simpleAggregatedObjectsQuery, String jsonValueColumnName)
-   {
-      String origAggVal = "q." + jsonValueColumnName;
-
-      return
-         "select case when dbms_lob.getlength(" + origAggVal + ") = 0 then to_clob('[]') " +
-         "else " + origAggVal + " end " +
-         "from (\n" +
-            indentLines(simpleAggregatedObjectsQuery, 2) + "\n" +
-         ") q";
    }
 
    @Override
@@ -110,8 +85,14 @@ public class OracleDialect implements SqlDialect
 
       if ( sql != null )
          return sql;
-      else
-         throw new RuntimeException("Sql dialect does not support operator " + fpcond.getOp() + ".");
+
+      switch ( fpcond.getOp() )
+      {
+         // TODO
+         case JSON_CONTAINS: throw new RuntimeException("Operator not recognized.");
+         // (Add other dialect specific operators here.)
+         default: throw new RuntimeException("Operator not recognized.");
+      }
    }
 }
 
