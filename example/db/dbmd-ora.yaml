@@ -276,6 +276,15 @@ relationMetadatas:
     length: null
     precision: 38
     fractionalDigits: 0
+  - name: "ENTERED"
+    databaseType: "TIMESTAMP WITH TIME ZONE"
+    nullable: true
+    primaryKeyPartNumber: null
+    comment: null
+    jdbcTypeCode: 93
+    length: null
+    precision: null
+    fractionalDigits: null
   - name: "MOL_FILE"
     databaseType: "CLOB"
     nullable: true
@@ -399,6 +408,15 @@ relationMetadatas:
     length: 4000
     precision: null
     fractionalDigits: null
+  - name: "REGISTERED"
+    databaseType: "TIMESTAMP WITH TIME ZONE"
+    nullable: true
+    primaryKeyPartNumber: null
+    comment: null
+    jdbcTypeCode: 93
+    length: null
+    precision: null
+    fractionalDigits: null
   - name: "REGISTERED_BY"
     databaseType: "NUMBER"
     nullable: false
@@ -408,6 +426,15 @@ relationMetadatas:
     length: null
     precision: 38
     fractionalDigits: 0
+  - name: "MARKET_ENTRY_DATE"
+    databaseType: "date"
+    nullable: true
+    primaryKeyPartNumber: null
+    comment: null
+    jdbcTypeCode: 91
+    length: null
+    precision: null
+    fractionalDigits: null
 - relationId:
     schema: "DRUGS"
     name: "DRUG_FUNCTIONAL_CATEGORY"
