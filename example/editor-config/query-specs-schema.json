@@ -98,14 +98,20 @@
                       "type" : "object",
                       "id" : "urn:jsonschema:org:sqljson:specs:queries:CustomJoinCondition",
                       "properties" : {
-                        "withParentAliasAs" : {
-                          "type" : "string"
-                        },
-                        "withChildAliasAs" : {
-                          "type" : "string"
-                        },
-                        "joinExpression" : {
-                          "type" : "string"
+                        "equatedFields" : {
+                          "type" : "array",
+                          "items" : {
+                            "type" : "object",
+                            "id" : "urn:jsonschema:org:sqljson:specs:queries:CustomJoinCondition:FieldPair",
+                            "properties" : {
+                              "childField" : {
+                                "type" : "string"
+                              },
+                              "parentPrimaryKeyField" : {
+                                "type" : "string"
+                              }
+                            }
+                          }
                         }
                       }
                     }

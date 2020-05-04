@@ -39,6 +39,8 @@ public final class InlineParentSpec implements ParentSpec
       this.customJoinCondition = customJoinCondition;
    }
 
+   public @Nullable List<String> getViaForeignKeyFields() { return viaForeignKeyFields; }
+
    public TableJsonSpec getTableJson() { return getParentTableJsonSpec(); }
 
    @JsonIgnore

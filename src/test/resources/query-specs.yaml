@@ -90,9 +90,9 @@ querySpecs:
       childTableCollections:
         - collectionName: brands
           customJoinCondition:
-            withChildAliasAs: $b
-            withParentAliasAs: $d
-            joinExpression: $b.drug_id = $d.id
+            equatedFields:
+              - childField: drug_id
+                parentPrimaryKeyField: id
           tableJson:
             table: brand
             fieldExpressions:
@@ -232,10 +232,9 @@ querySpecs:
                   - language: Java
                     typeDeclaration: long
           customJoinCondition:
-            withChildAliasAs: $a
-            withParentAliasAs: $at
-             # parent pk fields need leading "_" for custom joins of inline parent tables
-            joinExpression: "$a.advisory_type_id = $at._id"
+            equatedFields:
+              - childField: advisory_type_id
+                parentPrimaryKeyField: id
       fieldParamConditions:
         - field: id
 
@@ -277,9 +276,9 @@ querySpecs:
               - field: id
               - field: short_name
           customJoinCondition:
-            withChildAliasAs: $d
-            withParentAliasAs: $a
-            joinExpression: "$d.registered_by = $a.id"
+            equatedFields:
+              - childField: registered_by
+                parentPrimaryKeyField: id
       fieldParamConditions:
         - field: id
 

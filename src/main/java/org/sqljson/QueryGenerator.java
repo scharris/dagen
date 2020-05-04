@@ -78,6 +78,8 @@ public class QueryGenerator
    {
       String queryName = querySpec.getQueryName();
 
+      // TODO: Check that referenced schema objects exist here.
+
       // This query spec may customize the default output field name making function.
       Function<String,String> outputFieldNameDefaultFn =
          applyOr(querySpec.getOutputFieldNameDefault(), OutputFieldNameDefault::toFunctionOfFieldName, this.outputFieldNameDefaultFn);
@@ -289,22 +291,23 @@ public class QueryGenerator
    private ParentChildCondition getChildCollectionJoinCondition
       (
          ChildCollectionSpec childCollectionSpec,
-         RelId childRelId, RelId parentRelId,
+         RelId childRelId,
+         RelId parentRelId,
          String parentAlias
       )
    {
       @Nullable CustomJoinCondition customJoinCond = childCollectionSpec.getCustomJoinCondition();
-
       if ( customJoinCond != null ) // custom join condition specified
       {
          if ( childCollectionSpec.getForeignKeyFields() != null )
             throw new RuntimeException("Child collection specifies both customJoinCondition and foreignKeyFields.");
 
-         return customJoinCond.asConditionOnChildForParentAlias(parentAlias);
+         return customJoinCond.asChildFkCondition(parentAlias);
       }
       else // foreign key join condition
       {
          ForeignKey fk = getForeignKey(childRelId, parentRelId, childCollectionSpec.getForeignKeyFieldsSet());
+
          return new ChildFkCondition(parentAlias, fk.getForeignKeyComponents());
       }
    }
@@ -322,7 +325,7 @@ public class QueryGenerator
 
       TableJsonSpec tjs = inlineParentTableSpec.getTableJson();
       String table = tjs.getTable();
-      RelId relId = dbmd.identifyTable(table, defaultSchema);
+      RelId parentRelId = dbmd.identifyTable(table, defaultSchema);
 
       BaseQuery fromClauseQuery = makeBaseQuery(tjs, null, true, outputFieldNameDefaultFn);
 
@@ -337,24 +340,22 @@ public class QueryGenerator
             parentCol.getFieldTypeOverrides()
          );
 
-      String joinCond;
+      ParentPkCondition parentPkCond;
       @Nullable CustomJoinCondition customJoinCond = inlineParentTableSpec.getCustomJoinCondition();
       if ( customJoinCond != null )
       {
-         // NOTE: Currently this requires underscore prefixes on the parent's primary key fields to be manually
-         //  entered in the custom join condition sql. Maybe should just accept paired matched fields instead
-         //  of sql text condition for inline parent tables.
-         ParentChildCondition pcCond = customJoinCond.asConditionOnParentForChildAlias(childAlias);
-         joinCond = pcCond.asEquationConditionOn(fromClauseQueryAlias, dbmd);
          if ( inlineParentTableSpec.getChildForeignKeyFieldsSet() != null )
             throw new RuntimeException("Inline parent table specifies both custom join and foreign key fields.");
+
+         parentPkCond = customJoinCond.asParentPkCondition(childAlias);
       }
       else
       {
-         ForeignKey fk = getForeignKey(childRelId, relId, inlineParentTableSpec.getChildForeignKeyFieldsSet());
-         ParentPkCondition parentPkCond = new ParentPkCondition(childAlias, fk.getForeignKeyComponents());
-         joinCond = parentPkCond.asEquationConditionOn(fromClauseQueryAlias, dbmd, HIDDEN_PK_PREFIX);
+         ForeignKey fk = getForeignKey(childRelId, parentRelId, inlineParentTableSpec.getChildForeignKeyFieldsSet());
+         parentPkCond = new ParentPkCondition(childAlias, fk.getForeignKeyComponents());
       }
+
+      String joinCond = parentPkCond.asEquationConditionOn(fromClauseQueryAlias, dbmd, HIDDEN_PK_PREFIX);
 
       q.addFromClauseEntry(
          "left join (\n" +
@@ -403,9 +404,10 @@ public class QueryGenerator
       @Nullable CustomJoinCondition customJoinCond = refdParentSpec.getCustomJoinCondition();
       if ( customJoinCond != null )
       {
-         childCondOnParent = customJoinCond.asConditionOnParentForChildAlias(childAlias);
          if ( refdParentSpec.getChildForeignKeyFieldsSet() != null )
             throw new RuntimeException("Referenced parent table specifies both custom join and foreign key fields.");
+
+         childCondOnParent = customJoinCond.asParentPkCondition(childAlias);
       }
       else
       {
