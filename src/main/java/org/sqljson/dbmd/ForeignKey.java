@@ -9,11 +9,11 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 
 public class ForeignKey implements Serializable {
 
-   private RelId sourceRelationId;
+   private final RelId sourceRelationId;
 
-   private RelId targetRelationId;
+   private final RelId targetRelationId;
 
-   private List<Component> foreignKeyComponents;
+   private final List<Component> foreignKeyComponents;
 
    public enum EquationStyle { SOURCE_ON_LEFTHAND_SIDE, TARGET_ON_LEFTHAND_SIDE }
 
@@ -130,9 +130,9 @@ public class ForeignKey implements Serializable {
 
    public static class Component
    {
-      private String foreignKeyFieldName;
+      private final String foreignKeyFieldName;
 
-      private String primaryKeyFieldName;
+      private final String primaryKeyFieldName;
 
       public Component(String fkName, String pkName)
       {
