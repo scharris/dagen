@@ -103,14 +103,27 @@ public class QueryGenerator
       )
    {
       TableJsonSpec tjs = querySpec.getTableJson();
-      switch (resultsRepr)
+      switch ( resultsRepr )
       {
          case MULTI_COLUMN_ROWS:
-            return makeBaseQuery(tjs, null, false, outputFieldNameDefaultFn).getSql();
+         {
+            String query =
+               makeBaseQuery(tjs, null, false, outputFieldNameDefaultFn)
+               .getSql();
+            return querySpec.getForUpdate() ? query + "\nfor update" : query;
+         }
          case JSON_OBJECT_ROWS:
+         {
+            if ( querySpec.getForUpdate() )
+               throw new RuntimeException("FOR UPDATE queries are only allowed with MULTI_COLUMN_ROWS results.");
             return makeJsonObjectRowsSql(tjs, null, outputFieldNameDefaultFn);
+         }
          case JSON_ARRAY_ROW:
+         {
+            if ( querySpec.getForUpdate() )
+               throw new RuntimeException("FOR UPDATE queries are only allowed with MULTI_COLUMN_ROWS results.");
             return makeAggregatedJsonResultSql(tjs, null, outputFieldNameDefaultFn, false);
+         }
          default:
             throw new RuntimeException("unrecognized results representation: " + resultsRepr);
       }

@@ -94,6 +94,12 @@
                       "type" : "object",
                       "$ref" : "urn:jsonschema:org:sqljson:specs:queries:TableJsonSpec"
                     },
+                    "viaForeignKeyFields" : {
+                      "type" : "array",
+                      "items" : {
+                        "type" : "string"
+                      }
+                    },
                     "customJoinCondition" : {
                       "type" : "object",
                       "id" : "urn:jsonschema:org:sqljson:specs:queries:CustomJoinCondition",
@@ -214,6 +220,9 @@
                 }
               }
             }
+          },
+          "forUpdate" : {
+            "type" : "boolean"
           }
         }
       }
