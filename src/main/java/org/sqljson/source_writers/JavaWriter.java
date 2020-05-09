@@ -18,6 +18,8 @@ import org.sqljson.specs.queries.FieldTypeOverride;
 import org.sqljson.specs.queries.ResultsRepr;
 import org.sqljson.GeneratedQuery;
 import org.sqljson.WrittenQueryReprPath;
+
+import static org.sqljson.TypesLanguage.Java;
 import static org.sqljson.WrittenQueryReprPath.writtenPathsForQuery;
 import static org.sqljson.util.Files.newFileOrStdoutWriter;
 import static org.sqljson.util.Nullables.*;
@@ -110,7 +112,12 @@ public class JavaWriter implements SourceCodeWriter
             );
             bw.write("import com.fasterxml.jackson.databind.JsonNode;\n");
 
-            if ( filesHeader != null ) bw.write(filesHeader);
+            // Write additional headers if any.
+            if ( filesHeader != null )
+               bw.write(filesHeader + "\n");
+            q.getTypesFileHeaders().stream().filter(h -> h.getLanguage() == Java ).forEach(h -> {
+                try { bw.write(h.getText() + "\n"); } catch(IOException e) { throw new RuntimeException(e); }
+            });
 
             bw.write("\n\n");
             bw.write("public class " + queryClassName + "\n");

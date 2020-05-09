@@ -96,7 +96,7 @@ class QueryGeneratorTests extends TestsBase
       doQuery(sql, params, rs -> {
          DrugFieldsCustomizedTypeQuery.Drug res = readJson(rs.getString(1), DrugFieldsCustomizedTypeQuery.Drug.class);
          assertEquals(res.id, 2);
-         assertTrue((res.cid instanceof Integer));
+         assertTrue((res.cid instanceof java.math.BigDecimal));
       });
    }
 

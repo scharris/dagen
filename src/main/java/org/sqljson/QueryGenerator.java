@@ -92,7 +92,15 @@ public class QueryGenerator
             queryTypesGenerator.generateTypes(querySpec.getTableJson(), emptyMap())
             : emptyList();
 
-      return new GeneratedQuery(queryName, querySqls, generatedTypes, querySpec.getGenerateSource(), getAllParamNames(querySpec));
+      return new
+         GeneratedQuery(
+            queryName,
+            querySqls,
+            generatedTypes,
+            querySpec.getGenerateSource(),
+            querySpec.getTypesFileHeaders(),
+            getAllParamNames(querySpec)
+      );
    }
 
    private String makeSqlForResultsRepr

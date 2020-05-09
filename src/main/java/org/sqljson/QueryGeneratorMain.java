@@ -149,7 +149,7 @@ public class QueryGeneratorMain
          @Nullable Path srcOutputBaseDir
       )
    {
-      String language = "";
+      String langStr = "";
       String targetPackage = "";
       String sqlResourceNamePrefix = "";
       JavaWriter.NullableFieldRepr nullableFieldRepr = JavaWriter.NullableFieldRepr.ANNOTATED;
@@ -159,7 +159,7 @@ public class QueryGeneratorMain
          if ( opt.startsWith(sqlResourcePathInGeneratedSourceOptPrefix) )
             sqlResourceNamePrefix = opt.substring(sqlResourcePathInGeneratedSourceOptPrefix.length());
          else if ( opt.startsWith(langOptPrefix) )
-            language = opt.substring(langOptPrefix.length());
+            langStr = opt.substring(langOptPrefix.length());
          else if ( opt.startsWith(pkgOptPrefix) )
             targetPackage = opt.substring(pkgOptPrefix.length());
          else if ( opt.startsWith(javaNullabilityOptPrefix) )
@@ -170,11 +170,13 @@ public class QueryGeneratorMain
             throw new RuntimeException("Unrecognized option \"" + opt + "\".");
       }
 
-      switch ( language )
+      TypesLanguage typesLanguage = TypesLanguage.valueOf(langStr);
+
+      switch ( typesLanguage )
       {
-         case "Java":
+         case Java:
             return new JavaWriter(targetPackage, srcOutputBaseDir, nullableFieldRepr, typeFilesHeader, sqlResourceNamePrefix);
-         case "Typescript":
+         case Typescript:
             return new TypescriptWriter(srcOutputBaseDir, typeFilesHeader, sqlResourceNamePrefix);
          default:
             throw new RuntimeException("target language not supported");

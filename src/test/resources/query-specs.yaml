@@ -32,6 +32,9 @@ querySpecs:
   - queryName: drug fields customized type query
     resultsRepresentations: [JSON_OBJECT_ROWS]
     generateResultTypes: true
+    typesFileHeaders:
+      - language: Java
+        text: "import java.math.BigDecimal;"
     tableJson:
       table: drug
       fieldExpressions:
@@ -39,7 +42,7 @@ querySpecs:
         - field: cid
           generateTypes:
             - language: Java
-              typeDeclaration: "@Nullable Integer"
+              typeDeclaration: "@Nullable BigDecimal"
       fieldParamConditions:
         - field: id
 

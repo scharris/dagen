@@ -7,6 +7,7 @@ import static java.util.Objects.requireNonNull;
 
 import org.sqljson.result_types.GeneratedType;
 import org.sqljson.specs.queries.ResultsRepr;
+import org.sqljson.specs.queries.TypesFileHeader;
 
 
 public class GeneratedQuery
@@ -15,6 +16,7 @@ public class GeneratedQuery
    private final Map<ResultsRepr,String> generatedSqls;
    private final List<GeneratedType> generatedResultTypes;
    private final boolean generateSourceEnabled;
+   private final List<TypesFileHeader> typesFileHeaders;
    private final List<String> paramNames;
 
    public GeneratedQuery
@@ -23,6 +25,7 @@ public class GeneratedQuery
          Map<ResultsRepr,String> generatedSqls,
          List<GeneratedType> generatedResultTypes,
          boolean generateSourceEnabled,
+         List<TypesFileHeader> typesFileHeaders,
          List<String> paramNames
       )
    {
@@ -30,6 +33,7 @@ public class GeneratedQuery
       this.generatedSqls = unmodifiableMap(new HashMap<>(generatedSqls));
       this.generatedResultTypes = unmodifiableList(new ArrayList<>(generatedResultTypes));
       this.generateSourceEnabled = generateSourceEnabled;
+      this.typesFileHeaders = unmodifiableList(new ArrayList<>(typesFileHeaders));
       this.paramNames = unmodifiableList(new ArrayList<>(paramNames));
    }
 
@@ -44,6 +48,8 @@ public class GeneratedQuery
    public List<GeneratedType> getGeneratedResultTypes() { return generatedResultTypes; }
 
    public boolean getGenerateSourceEnabled() { return generateSourceEnabled; }
+
+   public List<TypesFileHeader> getTypesFileHeaders() { return typesFileHeaders; }
 
    public List<String> getParamNames() { return paramNames; }
 }
