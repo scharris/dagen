@@ -1,0 +1,25 @@
+defaultSchema: drugs
+generateUnqualifiedNamesForSchemas: ["drugs"]
+querySpecs:
+   # drug with brands via custom join condition
+   - queryName: drug with brands custom join query
+     resultsRepresentations: [JSON_OBJECT_ROWS]
+     generateResultTypes: true
+     tableJson:
+        table: drug
+        fieldExpressions:
+           - field: id
+           - field: name
+        childTableCollections:
+           - collectionName: brands
+             customJoinCondition:
+                equatedFields:
+                   - childField: drug_id
+                     parentPrimaryKeyField: idx
+             tableJson:
+                table: brand
+                fieldExpressions:
+                   - field: brand_name
+                   - field: manufacturer_id
+        fieldParamConditions:
+           - field: id

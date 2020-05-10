@@ -1,0 +1,21 @@
+defaultSchema: drugs
+generateUnqualifiedNamesForSchemas: ["drugs"]
+querySpecs:
+   # Drug with brands child collection.
+   - queryName: drug with with bad field in child query
+     resultsRepresentations: [JSON_OBJECT_ROWS]
+     generateResultTypes: true
+     tableJson:
+        table: drug
+        fieldExpressions:
+           - field: id
+           - field: name
+        childTableCollections:
+           - collectionName: brands
+             tableJson:
+                table: brand
+                fieldExpressions:
+                   - field: brand_namex
+                   - field: manufacturer_id
+        fieldParamConditions:
+           - field: id

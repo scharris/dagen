@@ -14,15 +14,15 @@ import org.sqljson.dbmd.RelId;
 import org.sqljson.dbmd.RelMetadata;
 import org.sqljson.specs.FieldParamCondition;
 import org.sqljson.sql.dialect.SqlDialect;
-import org.sqljson.util.AppUtils;
 import org.sqljson.specs.mod_stmts.ModSpec;
 import org.sqljson.specs.mod_stmts.TargetField;
 import org.sqljson.util.StringFuns;
 
 import static org.sqljson.specs.mod_stmts.ParametersType.NAMED;
 import static org.sqljson.specs.mod_stmts.ParametersType.NUMBERED;
-import static org.sqljson.util.DatabaseUtils.verifyTableFieldsExist;
 import static org.sqljson.util.Nullables.*;
+import static org.sqljson.util.StatementValidations.identifySpecificationTable;
+import static org.sqljson.util.StatementValidations.verifyTableFieldsExist;
 import static org.sqljson.util.StringFuns.*;
 
 
@@ -33,6 +33,7 @@ public class ModStatementGenerator
    private final @Nullable String defaultSchema;
    private final Set<String> unqualifiedNamesSchemas;
    private final int indentSpaces;
+   private final String statementsSource;
 
    private static final Pattern simpleNamedParamValueRegex = Pattern.compile("^:[A-Za-z][A-Za-z0-9_]*$");
 
@@ -42,7 +43,8 @@ public class ModStatementGenerator
       (
          DatabaseMetadata dbmd,
          @Nullable String defaultSchema,
-         Set<String> unqualifiedNamesSchemas
+         Set<String> unqualifiedNamesSchemas,
+         String statementsSource // the source of the statements for error reporting
       )
    {
       this.dbmd = dbmd;
@@ -50,14 +52,13 @@ public class ModStatementGenerator
       this.sqlDialect = SqlDialect.fromDatabaseMetadata(this.dbmd, this.indentSpaces);
       this.defaultSchema = defaultSchema;
       this.unqualifiedNamesSchemas = unqualifiedNamesSchemas.stream().map(dbmd::normalizeName).collect(toSet());
+      this.statementsSource = statementsSource;
    }
 
-   public List<GeneratedModStatement> generateModStatements(List<ModSpec> modSpecs)
-   {
-      return modSpecs.stream().map(this::generateModStatement).collect(toList());
-   }
-
-   private GeneratedModStatement generateModStatement(ModSpec mod)
+   public GeneratedModStatement generateModStatement
+      (
+         ModSpec mod
+      )
    {
       switch ( mod.getCommand() )
       {
@@ -68,12 +69,20 @@ public class ModStatementGenerator
       }
    }
 
-   private GeneratedModStatement generateInsertStatement(ModSpec modSpec)
+   private GeneratedModStatement generateInsertStatement
+      (
+         ModSpec modSpec
+      )
    {
       if ( modSpec.getTableAlias() != null )
-         AppUtils.throwError("A table alias is not allowed in an INSERT command.");
-      if ( !modSpec.getFieldParamConditions().isEmpty() || modSpec.getRecordCondition() != null )
-         AppUtils.throwError("Conditions are not allowed for INSERT commands.");
+         throw specError(modSpec.getStatementName(), "tableAlias",
+                        "A table alias is not allowed in an INSERT command.");
+      if ( !modSpec.getFieldParamConditions().isEmpty() )
+         throw specError(modSpec.getStatementName(), "fieldParamConditions",
+                        "fieldParamConditions are not allowed for INSERT commands.");
+      if ( modSpec.getRecordCondition() != null )
+         throw specError(modSpec.getStatementName(), "recordCondition",
+                        "A record condition is not allowed for INSERT commands.");
 
       String sql = makeInsertSql(modSpec);
 
@@ -82,9 +91,12 @@ public class ModStatementGenerator
       return new GeneratedModStatement(modSpec, sql, targetFieldParams, emptyList());
    }
 
-   private String makeInsertSql(ModSpec modSpec)
+   private String makeInsertSql
+      (
+         ModSpec modSpec
+      )
    {
-      RelId relId = dbmd.identifyTable(modSpec.getTable(), defaultSchema);
+      RelId relId = identifyTable(modSpec.getTable(), modSpec.getStatementName(), "insert table name");
 
       verifyReferencedTableFields(modSpec, relId);
 
@@ -102,7 +114,10 @@ public class ModStatementGenerator
             "  )";
    }
 
-   private GeneratedModStatement generateUpdateStatement(ModSpec modSpec)
+   private GeneratedModStatement generateUpdateStatement
+      (
+         ModSpec modSpec
+      )
    {
       String sql = makeUpdateSql(modSpec);
 
@@ -113,12 +128,16 @@ public class ModStatementGenerator
       return new GeneratedModStatement(modSpec, sql, targetFieldParams, conditionParams);
    }
 
-   private String makeUpdateSql(ModSpec modSpec)
+   private String makeUpdateSql
+      (
+         ModSpec modSpec
+      )
    {
-      RelId relId = dbmd.identifyTable(modSpec.getTable(), defaultSchema);
+      RelId relId = identifyTable(modSpec.getTable(), modSpec.getStatementName(), "update table name");
 
       if ( modSpec.getTargetFields().isEmpty() )
-         throw new RuntimeException("At least one field is required in an update modification command.");
+         throw specError(modSpec.getStatementName(), "target fields",
+                        "At least one field is required in an update modification command.");
 
       verifyReferencedTableFields(modSpec, relId);
 
@@ -135,10 +154,14 @@ public class ModStatementGenerator
             applyOr(whereCond, cond -> "\nwhere (\n" + indentLines(cond, indentSpaces) + "\n" + ")", "");
    }
 
-   private GeneratedModStatement generateDeleteStatement(ModSpec modSpec)
+   private GeneratedModStatement generateDeleteStatement
+      (
+         ModSpec modSpec
+      )
    {
       if ( !modSpec.getTargetFields().isEmpty() )
-         AppUtils.throwError("Fields are not allowed in a delete command.");
+         throw specError(modSpec.getStatementName(), "target fields",
+                        "Fields are not allowed in a delete command.");
 
       String sql = makeDeleteSql(modSpec);
 
@@ -147,9 +170,12 @@ public class ModStatementGenerator
       return new GeneratedModStatement(modSpec, sql, emptyList(), conditionParams);
    }
 
-   private String makeDeleteSql(ModSpec modSpec)
+   private String makeDeleteSql
+      (
+         ModSpec modSpec
+      )
    {
-      RelId relId = dbmd.identifyTable(modSpec.getTable(), defaultSchema);
+      RelId relId = identifyTable(modSpec.getTable(), modSpec.getStatementName(), "delete table name");
 
       verifyReferencedTableFields(modSpec, relId);
 
@@ -200,17 +226,18 @@ public class ModStatementGenerator
       {
          for ( String exprValParam : targetField.getParamNames() )
             if ( !targetField.getValue().contains(":" + exprValParam) )
-               throw new RuntimeException(
-                   "Param \"" + exprValParam + "\" not detected in value expresion for input field " +
-                       "\"" + targetField.getField() + "\" of statement \"" + modSpec.getStatementName() + "\"."
-               );
+               throw specError(modSpec.getStatementName(),
+                  "field values list",
+                  "Param \"" + exprValParam + "\" was not detected in value expresion for " +
+                     "input field \"" + targetField.getField() + "\".");
       }
       else if ( modSpec.getParametersType() == NUMBERED )
       {
          if ( StringFuns.countOccurrences(targetField.getValue(), '?') < targetField.getParamNames().size() )
-            throw new RuntimeException(
-               "Not enough ? params detected in value expresion vs specified param names for input field " +
-               "\"" + targetField.getField() + "\" of statement \"" + modSpec.getStatementName() + "\"."
+            throw specError(modSpec.getStatementName(),
+               "field values list",
+               "Not enough '?' parameters detected in value expresion vs specified param names for " +
+                  "input field \"" + targetField.getField() + "\"."
             );
       }
    }
@@ -282,17 +309,46 @@ public class ModStatementGenerator
          ModSpec modSpec,
          RelId relId
       )
-      throws DatabaseObjectsNotFoundException
+      throws StatementSpecificationException
    {
       RelMetadata relMetadata = valueOrThrow(dbmd.getRelationMetadata(relId), () ->
-         new DatabaseObjectsNotFoundException("Table " + relId.toString() + " not found.")
+         new RuntimeException("Table " + relId.toString() + " not found.")
       );
 
+      String stmtName = modSpec.getStatementName();
+
       List<String> targetFields = modSpec.getTargetFields().stream().map(TargetField::getField).collect(toList());
-      verifyTableFieldsExist(targetFields, relMetadata, dbmd);
+      verifyTableFieldsExist(targetFields, relMetadata, dbmd, statementsSource, stmtName, "target fields");
 
       List<String> whereCondFields = modSpec.getFieldParamConditions().stream().map(FieldParamCondition::getField).collect(toList());
-      verifyTableFieldsExist(whereCondFields, relMetadata, dbmd);
+      verifyTableFieldsExist(whereCondFields, relMetadata, dbmd, statementsSource, stmtName, "where condition");
+   }
+
+   private StatementSpecificationException specError
+      (
+         String statementName,
+         String statementPart,
+         String problem
+      )
+   {
+      return new
+         StatementSpecificationException(
+            statementsSource,
+            statementName,
+            statementPart,
+            problem
+         );
+   }
+
+   private RelId identifyTable
+      (
+         String table,
+         String statementName,
+         String statementPart
+      )
+      throws StatementSpecificationException
+   {
+      return identifySpecificationTable(table, defaultSchema, dbmd, statementsSource, statementName, statementPart);
    }
 }
 

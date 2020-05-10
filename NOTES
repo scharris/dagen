@@ -1,10 +1,5 @@
-
 Improve error reporting
-  - Before query processing, check that all referenced schema objects exist, give precise location of problems.
-    Also check that mutually exclusive properties are not set,
-      such as viaForeignKeyFields/customJoinCondition in InlineParentSpec.
-  - Introduce exception type for invalid spec file content.
-  - Identify statement name and statement part in error text.
+  Any exceptions caused by problems in the specifications should be SpecificationExceptions.
 
 
 Docs Outline

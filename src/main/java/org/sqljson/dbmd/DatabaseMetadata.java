@@ -294,6 +294,7 @@ public class DatabaseMetadata
          if ( normdFkFieldNames == null || fk.sourceFieldNamesSetEqualsNormalizedNamesSet(normdFkFieldNames) )
          {
             if ( soughtFk != null ) // already found an fk satisfying requirements?
+               // TODO
                throw new IllegalArgumentException(
                   "Child table " + fromRelId + " has multiple foreign keys to parent table " + toRelId +
                   (fieldNames != null ?
@@ -479,9 +480,6 @@ public class DatabaseMetadata
    // Derived data accessor methods
    /////////////////////////////////////////////////////////
 
-   ////////////////////////////////////////////////////////
-   // Database object name manipulations
-
    /// Quote a database identifier only if it would be interpreted differently if quoted.
    public String quoteIfNeeded(String id)
    {
@@ -565,25 +563,19 @@ public class DatabaseMetadata
 
    /// Make a relation id from a given qualified or unqualified table identifier
    /// and an optional default schema for interpreting unqualified table names.
-   public RelId identifyTable(String table, @Nullable String defaultSchema)
+   /// The table is not verified to exist in the metadata.
+   public RelId toRelId(String table, @Nullable String defaultSchema)
    {
-      if ( table.contains("\"") )
-         throw new RuntimeException("quoted table names are not supported currently");
-
       int dotIx = table.indexOf('.');
 
       if ( dotIx != -1 ) // already qualified, split it
-         return
-            new RelId(
+         return new
+            RelId(
                normalizeName(table.substring(dotIx+1)),
                normalizeName(table.substring(0, dotIx))
             );
       else // not qualified, qualify it if there is a default schema
          return new RelId(defaultSchema != null ? normalizeName(defaultSchema) : null, normalizeName(table));
    }
-
-
-   // Database object name manipulations
-   ////////////////////////////////////////////////////////
 }
 

@@ -46,7 +46,7 @@ class QueryTypesGenerator
       GeneratedTypeBuilder typeBuilder = new GeneratedTypeBuilder();
       List<GeneratedType> generatedTypes = new ArrayList<>();
 
-      RelId relId = dbmd.identifyTable(tjs.getTable(), defaultSchema);
+      RelId relId = dbmd.toRelId(tjs.getTable(), defaultSchema);
       Map<String, Field> dbFieldsByName = getTableFieldsByName(relId);
 
       // Add this table's own directly contained database fields to the generated type.
@@ -252,7 +252,7 @@ class QueryTypesGenerator
 
    private boolean noFkFieldKnownNotNullable(RelId childRelId, ParentSpec parentSpec)
    {
-      RelId parentRelId = dbmd.identifyTable(parentSpec.getParentTableJsonSpec().getTable(), defaultSchema);
+      RelId parentRelId = dbmd.toRelId(parentSpec.getParentTableJsonSpec().getTable(), defaultSchema);
       @Nullable Set<String> specFkFields = parentSpec.getChildForeignKeyFieldsSet();
       ForeignKey fk = valueOrThrow(dbmd.getForeignKeyFromTo(childRelId, parentRelId, specFkFields, ForeignKeyScope.REGISTERED_TABLES_ONLY), () ->
          new RuntimeException("foreign key to parent not found")

@@ -321,9 +321,12 @@ class QueryGeneratorTests extends TestsBase
             dbmd,
             queryGroupSpec.getDefaultSchema(),
             new HashSet<>(queryGroupSpec.getGenerateUnqualifiedNamesForSchemas()),
-            queryGroupSpec.getOutputFieldNameDefault().toFunctionOfFieldName()
+            queryGroupSpec.getOutputFieldNameDefault().toFunctionOfFieldName(),
+            "<test spec>"
          );
-      Throwable t = assertThrows(RuntimeException.class, () -> queryGenerator.generateQueries(queryGroupSpec.getQuerySpecs()));
+      Throwable t = assertThrows(RuntimeException.class, () ->
+         queryGenerator.generateQuery(queryGroupSpec.getQuerySpecs().get(0))
+      );
       String msg = t.getMessage().toLowerCase();
       assertTrue(msg.contains("foreign key not found") && msg.contains("x_compound_id"));
    }
@@ -337,11 +340,14 @@ class QueryGeneratorTests extends TestsBase
             dbmd,
             queryGroupSpec.getDefaultSchema(),
             new HashSet<>(queryGroupSpec.getGenerateUnqualifiedNamesForSchemas()),
-            queryGroupSpec.getOutputFieldNameDefault().toFunctionOfFieldName()
+            queryGroupSpec.getOutputFieldNameDefault().toFunctionOfFieldName(),
+            "<test spec>"
          );
-      Throwable t = assertThrows(RuntimeException.class, () -> queryGenerator.generateQueries(queryGroupSpec.getQuerySpecs()));
+      Throwable t = assertThrows(RuntimeException.class, () ->
+         queryGenerator.generateQuery(queryGroupSpec.getQuerySpecs().get(0))
+      );
       String msg = t.getMessage().toLowerCase();
-      assertTrue(msg.contains("drug.xname"));
+      assertTrue(msg.contains("[xname]"));
    }
 
    @Test
@@ -353,10 +359,92 @@ class QueryGeneratorTests extends TestsBase
             dbmd,
             queryGroupSpec.getDefaultSchema(),
             new HashSet<>(queryGroupSpec.getGenerateUnqualifiedNamesForSchemas()),
-            queryGroupSpec.getOutputFieldNameDefault().toFunctionOfFieldName()
+            queryGroupSpec.getOutputFieldNameDefault().toFunctionOfFieldName(),
+            "<test spec>"
          );
-      Throwable t = assertThrows(RuntimeException.class, () -> queryGenerator.generateQueries(queryGroupSpec.getQuerySpecs()));
+      Throwable t = assertThrows(RuntimeException.class, () ->
+         queryGenerator.generateQuery(queryGroupSpec.getQuerySpecs().get(0))
+      );
       String msg = t.getMessage().toLowerCase();
-      assertTrue(msg.contains("table drugs.xdrug not found"));
+      assertTrue(msg.contains("'xdrug'"));
    }
+
+
+   @Test
+   void rejectBadFieldInChildInQuerySpec()
+   {
+      QueryGroupSpec queryGroupSpec = readBadQuerySpec("drug-with-bad-field-in-child.yaml");
+      QueryGenerator queryGenerator =
+         new QueryGenerator(
+            dbmd,
+            queryGroupSpec.getDefaultSchema(),
+            new HashSet<>(queryGroupSpec.getGenerateUnqualifiedNamesForSchemas()),
+            queryGroupSpec.getOutputFieldNameDefault().toFunctionOfFieldName(),
+            "<test spec>"
+         );
+      Throwable t = assertThrows(RuntimeException.class, () ->
+         queryGenerator.generateQuery(queryGroupSpec.getQuerySpecs().get(0))
+      );
+      String msg = t.getMessage().toLowerCase();
+      assertTrue(msg.contains("[brand_namex]"));
+   }
+
+
+   @Test
+   void rejectBadFieldInChildsInlineParentInQuerySpec()
+   {
+      QueryGroupSpec queryGroupSpec = readBadQuerySpec("drug-with-bad-field-in-childs-inline-parent.yaml");
+      QueryGenerator queryGenerator =
+         new QueryGenerator(
+            dbmd,
+            queryGroupSpec.getDefaultSchema(),
+            new HashSet<>(queryGroupSpec.getGenerateUnqualifiedNamesForSchemas()),
+            queryGroupSpec.getOutputFieldNameDefault().toFunctionOfFieldName(),
+            "<test spec>"
+         );
+      Throwable t = assertThrows(RuntimeException.class, () ->
+         queryGenerator.generateQuery(queryGroupSpec.getQuerySpecs().get(0))
+      );
+      String msg = t.getMessage().toLowerCase();
+      assertTrue(msg.contains("[namex]"));
+   }
+
+   @Test
+   void rejectBadParentFieldInCustomJoinInQuerySpec()
+   {
+      QueryGroupSpec queryGroupSpec = readBadQuerySpec("drug-with-bad-parent-field-in-custom-join.yaml");
+      QueryGenerator queryGenerator =
+         new QueryGenerator(
+            dbmd,
+            queryGroupSpec.getDefaultSchema(),
+            new HashSet<>(queryGroupSpec.getGenerateUnqualifiedNamesForSchemas()),
+            queryGroupSpec.getOutputFieldNameDefault().toFunctionOfFieldName(),
+            "<test spec>"
+         );
+      Throwable t = assertThrows(RuntimeException.class, () ->
+         queryGenerator.generateQuery(queryGroupSpec.getQuerySpecs().get(0))
+      );
+      String msg = t.getMessage().toLowerCase();
+      assertTrue(msg.contains("[idx]"));
+   }
+
+   @Test
+   void rejectBadChildFieldInCustomJoinInQuerySpec()
+   {
+      QueryGroupSpec queryGroupSpec = readBadQuerySpec("drug-with-bad-child-field-in-custom-join.yaml");
+      QueryGenerator queryGenerator =
+         new QueryGenerator(
+            dbmd,
+            queryGroupSpec.getDefaultSchema(),
+            new HashSet<>(queryGroupSpec.getGenerateUnqualifiedNamesForSchemas()),
+            queryGroupSpec.getOutputFieldNameDefault().toFunctionOfFieldName(),
+            "<test spec>"
+         );
+      Throwable t = assertThrows(RuntimeException.class, () ->
+         queryGenerator.generateQuery(queryGroupSpec.getQuerySpecs().get(0))
+      );
+      String msg = t.getMessage().toLowerCase();
+      assertTrue(msg.contains("[drug_idx]"));
+   }
+
 }

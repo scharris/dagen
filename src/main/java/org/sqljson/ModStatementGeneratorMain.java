@@ -15,6 +15,8 @@ import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 
 import org.sqljson.util.*;
 import org.sqljson.util.AppUtils.SplitArgs;
+
+import static java.util.stream.Collectors.toList;
 import static org.sqljson.util.AppUtils.splitOptionsAndRequiredArgs;
 import static org.sqljson.util.AppUtils.throwError;
 import static org.sqljson.util.Files.newFileOrStdoutWriter;
@@ -98,11 +100,14 @@ public class ModStatementGeneratorMain
             new ModStatementGenerator(
                dbmd,
                modGroupSpec.getDefaultSchema(),
-               new HashSet<>(modGroupSpec.getGenerateUnqualifiedNamesForSchemas())
+               new HashSet<>(modGroupSpec.getGenerateUnqualifiedNamesForSchemas()),
+               modsSpecFilePath.getFileName().toString()
             );
 
          List<GeneratedModStatement> generatedModStmts =
-            gen.generateModStatements(modGroupSpec.getModificationStatementSpecs());
+            modGroupSpec.getModificationStatementSpecs().stream()
+            .map(gen::generateModStatement)
+            .collect(toList());
 
          Map<String,Path> writtenPathsByModName = writeModSqls(generatedModStmts, modStmtsOutputDirPath);
 

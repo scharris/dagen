@@ -12,4 +12,4 @@ querySpecs:
         - field: xname
         - field: mesh_id
       recordCondition:
-        sql: '$d : $d.id = 2'
+        sql: '$$.id = 2'

@@ -5,6 +5,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import javax.swing.plaf.nimbus.State;
+
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 
@@ -116,10 +118,14 @@ public class QueryGeneratorMain
                dbmd,
                queryGroupSpec.getDefaultSchema(),
                new HashSet<>(queryGroupSpec.getGenerateUnqualifiedNamesForSchemas()),
-               queryGroupSpec.getOutputFieldNameDefault().toFunctionOfFieldName()
+               queryGroupSpec.getOutputFieldNameDefault().toFunctionOfFieldName(),
+               queriesSpecFilePath.getFileName().toString()
             );
 
-         List<GeneratedQuery> generatedQueries = gen.generateQueries(queryGroupSpec.getQuerySpecs());
+         List<GeneratedQuery> generatedQueries =
+            queryGroupSpec.getQuerySpecs().stream()
+            .map(gen::generateQuery)
+            .collect(toList());
 
          List<WrittenQueryReprPath> writtenQueryPaths = writeQueries(generatedQueries, queriesOutputDirPath);
 
@@ -134,6 +140,19 @@ public class QueryGeneratorMain
             boolean includeTimestamp = args.optional.contains(includeSourceGenerationTimestamp);
             srcWriter.writeQueries(queriesWithSourceCodeEnabled, writtenQueryPaths, includeTimestamp);
          }
+      }
+      catch( StatementSpecificationException sse )
+      {
+         System.err.println();
+         System.err.println();
+         System.err.println("----------------------------------------------------------------------");
+         System.err.println("Error in specification: " + sse.getStatementsSource());
+         System.err.println("  in query: " + sse.getStatementName());
+         System.err.println("  at part: " + sse.getStatementPart());
+         System.err.println("  problem: " + sse.getProblem());
+         System.err.println("----------------------------------------------------------------------");
+         System.err.println();
+         System.err.println();
       }
       catch(Exception e)
       {
