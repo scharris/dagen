@@ -18,7 +18,6 @@ import org.sqljson.specs.queries.FieldTypeOverride;
 import org.sqljson.specs.queries.ResultsRepr;
 import org.sqljson.GeneratedQuery;
 import org.sqljson.WrittenQueryReprPath;
-
 import static org.sqljson.TypesLanguage.Java;
 import static org.sqljson.WrittenQueryReprPath.writtenPathsForQuery;
 import static org.sqljson.util.Files.newFileOrStdoutWriter;
@@ -33,6 +32,8 @@ public class JavaWriter implements SourceCodeWriter
    private NullableFieldRepr nullableFieldRepr;
    private @Nullable String filesHeader;
    private String sqlResourceNamePrefix;
+   private boolean generateGetters;
+   private boolean generateSetters;
 
    public enum NullableFieldRepr { OPTWRAPPED, ANNOTATED, BARETYPE }
 
@@ -56,7 +57,9 @@ public class JavaWriter implements SourceCodeWriter
          @Nullable Path srcOutputBaseDir,
          NullableFieldRepr nullableFieldRepr,
          @Nullable String filesHeader,
-         String sqlResourceNamePrefix
+         String sqlResourceNamePrefix,
+         boolean generateGetters,
+         boolean generateSetters
       )
    {
       this.targetPackage = targetPackage;
@@ -64,6 +67,8 @@ public class JavaWriter implements SourceCodeWriter
       this.nullableFieldRepr = nullableFieldRepr;
       this.filesHeader = filesHeader;
       this.sqlResourceNamePrefix = sqlResourceNamePrefix;
+      this.generateGetters = generateGetters;
+      this.generateSetters = generateSetters;
    }
 
    @Override
@@ -230,11 +235,11 @@ public class JavaWriter implements SourceCodeWriter
       }
    }
 
-   private String makeGeneratedTypeSource(GeneratedType generatedType)
+   private String makeGeneratedTypeSource(GeneratedType genType)
    {
       StringBuilder sb = new StringBuilder();
 
-      String typeName = generatedType.getTypeName();
+      String typeName = genType.getTypeName();
 
       if ( nullableFieldRepr == NullableFieldRepr.ANNOTATED ) sb.append(
          "@DefaultQualifier(value=NonNull.class)\n" +
@@ -244,40 +249,60 @@ public class JavaWriter implements SourceCodeWriter
       sb.append(typeName);
       sb.append("\n{\n");
 
-      for ( DatabaseField f : generatedType.getDatabaseFields() )
+      List<FieldInfo> fields = new ArrayList<>();
+      genType.getDatabaseFields().forEach(f ->
+         fields.add(new FieldInfo(f.getName(), getJavaTypeNameForDatabaseField(f)))
+      );
+      genType.getExpressionFields().forEach(f ->
+         fields.add(new FieldInfo(f.getName(), getJavaTypeNameForExpressionField(f)))
+      );
+      genType.getChildCollectionFields().forEach(f ->
+         fields.add(new FieldInfo(f.getName(), getChildCollectionDeclaredType(f)))
+      );
+      genType.getParentReferenceFields().forEach(f ->
+         fields.add(new FieldInfo(f.getName(), getParentRefDeclaredType(f)))
+      );
+
+      // field declarations
+      for ( FieldInfo f : fields )
       {
          sb.append("   public ");
-         sb.append(getJavaTypeNameForDatabaseField(f));
+         sb.append(f.typeDeclaration);
          sb.append(" ");
-         sb.append(f.getName());
+         sb.append(f.name);
          sb.append(";\n");
       }
 
-      for ( ExpressionField f : generatedType.getExpressionFields() )
+      if ( generateGetters || generateSetters )
       {
-         sb.append("   public ");
-         sb.append(getJavaTypeNameForExpressionField(f));
-         sb.append(" ");
-         sb.append(f.getName());
-         sb.append(";\n");
-      }
+         sb.append("\n");
 
-      for ( ChildCollectionField childCollField : generatedType.getChildCollectionFields() )
-      {
-         sb.append("   public ");
-         sb.append(getChildCollectionDeclaredType(childCollField));
-         sb.append(" ");
-         sb.append(childCollField.getName());
-         sb.append(";\n");
-      }
+         // getters and setters
+         for ( FieldInfo f : fields )
+         {
+            if ( generateGetters )
+            {
+               sb.append("   public ");
+               sb.append(f.typeDeclaration);
+               sb.append(" get");
+               sb.append(capitalize(f.name));
+               sb.append("() { return ");
+               sb.append(f.name);
+               sb.append("; }\n");
+            }
 
-      for ( ParentReferenceField parentRefField : generatedType.getParentReferenceFields() )
-      {
-         sb.append("   public ");
-         sb.append(getParentRefDeclaredType(parentRefField));
-         sb.append(" ");
-         sb.append(parentRefField.getName());
-         sb.append(";\n");
+            if ( generateSetters )
+            {
+               sb.append("   public void ");
+               sb.append(" set");
+               sb.append(capitalize(f.name));
+               sb.append("(");
+               sb.append(f.typeDeclaration);
+               sb.append(" v) { ");
+               sb.append(f.name);
+               sb.append(" = v; }\n");
+            }
+         }
       }
 
       sb.append("}\n");
@@ -454,3 +479,14 @@ public class JavaWriter implements SourceCodeWriter
    }
 }
 
+class FieldInfo
+{
+   String name;
+   String typeDeclaration;
+
+   public FieldInfo(String name, String typeDeclaration)
+   {
+      this.name = name;
+      this.typeDeclaration = typeDeclaration;
+   }
+}

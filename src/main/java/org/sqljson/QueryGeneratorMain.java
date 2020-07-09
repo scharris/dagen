@@ -5,8 +5,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
-import javax.swing.plaf.nimbus.State;
-
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 
@@ -40,6 +38,8 @@ public class QueryGeneratorMain
    private static final String javaNullabilityOptPrefix = "--java-nullability:";
    private static final String generatedTypesHeaderFileOptPrefix = "--types-file-header:";
    private static final String includeSourceGenerationTimestamp = "--include-source-gen-timestamp";
+   private static final String javaGenerateGetters = "--java-generate-getters";
+   private static final String javaGenerateSetters = "--java-generate-setters";
 
    private static void printUsage()
    {
@@ -57,6 +57,8 @@ public class QueryGeneratorMain
       ps.println("         annotated  : annotate nullable fields with with @Nullable.");
       ps.println("         optwrapped : wrap the type with Optional<>");
       ps.println("         baretype   : leave as bare type (Object variant for native types)");
+      ps.println("   " + javaGenerateGetters + "  Include getters in generated Java types.");
+      ps.println("   " + javaGenerateSetters + "  Include setters in generated Java types.");
       ps.println("   " + generatedTypesHeaderFileOptPrefix + "<file>  Contents of this file will be included at the " +
          "top of each generated type's source file (e.g. additional imports for overridden field types).");
       ps.println("    --print-spec-json-schema: Print a json schema for the query group spec, to " +
@@ -171,6 +173,9 @@ public class QueryGeneratorMain
       String langStr = "";
       String targetPackage = "";
       String sqlResourceNamePrefix = "";
+      boolean generateJavaGetters = false;
+      boolean generateJavaSetters = false;
+
       JavaWriter.NullableFieldRepr nullableFieldRepr = JavaWriter.NullableFieldRepr.ANNOTATED;
       @Nullable String typeFilesHeader = null;
       for ( String opt : args.optional )
@@ -185,6 +190,10 @@ public class QueryGeneratorMain
             nullableFieldRepr = JavaWriter.NullableFieldRepr.valueOf(opt.substring(javaNullabilityOptPrefix.length()).toUpperCase());
          else if ( opt.startsWith(generatedTypesHeaderFileOptPrefix) )
             typeFilesHeader = readString(Paths.get(opt.substring(generatedTypesHeaderFileOptPrefix.length())));
+         else if ( opt.equals(javaGenerateGetters) )
+            generateJavaGetters = true;
+         else if ( opt.equals(javaGenerateSetters) )
+            generateJavaSetters = true;
          else
             throw new RuntimeException("Unrecognized option \"" + opt + "\".");
       }
@@ -194,7 +203,15 @@ public class QueryGeneratorMain
       switch ( typesLanguage )
       {
          case Java:
-            return new JavaWriter(targetPackage, srcOutputBaseDir, nullableFieldRepr, typeFilesHeader, sqlResourceNamePrefix);
+            return new JavaWriter(
+               targetPackage,
+               srcOutputBaseDir,
+               nullableFieldRepr,
+               typeFilesHeader,
+               sqlResourceNamePrefix,
+               generateJavaGetters,
+               generateJavaSetters
+            );
          case Typescript:
             return new TypescriptWriter(srcOutputBaseDir, typeFilesHeader, sqlResourceNamePrefix);
          default:

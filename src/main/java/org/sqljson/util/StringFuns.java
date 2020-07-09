@@ -5,6 +5,8 @@ import java.util.regex.Pattern;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
 
+import static java.util.Locale.ENGLISH;
+
 
 public final class StringFuns
 {
@@ -93,6 +95,12 @@ public final class StringFuns
          }
       }
       return res.toString();
+   }
+
+   public static String capitalize(String name)
+   {
+      if ( name.isEmpty() ) return name;
+      else return name.substring(0, 1).toUpperCase(ENGLISH) + name.substring(1);
    }
 
    public static String indentLines

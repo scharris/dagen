@@ -13,7 +13,7 @@ public final class QuerySpec
 {
    private String queryName;
    private List<ResultsRepr> resultsRepresentations = singletonList(JSON_OBJECT_ROWS);
-   private boolean generateResultTypes;
+   private boolean generateResultTypes = true;
    private boolean generateSource = true; // Contains at least the resource name for generated SQL, if not result types.
    private @Nullable OutputFieldNameDefault outputFieldNameDefault = null; // inherited from query group spec if empty
    private TableJsonSpec tableJson;
