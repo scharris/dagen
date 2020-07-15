@@ -7,6 +7,8 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.sql.Types;
+import java.util.regex.Pattern;
+
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toList;
 
@@ -27,14 +29,15 @@ import static org.sqljson.util.StringFuns.*;
 
 public class JavaWriter implements SourceCodeWriter
 {
-   private String targetPackage;
-   private @Nullable Path srcOutputBaseDir;
-   private NullableFieldRepr nullableFieldRepr;
-   private @Nullable String filesHeader;
-   private String sqlResourceNamePrefix;
-   private boolean generateGetters;
-   private boolean generateSetters;
+   private final String targetPackage;
+   private final @Nullable Path srcOutputBaseDir;
+   private final NullableFieldRepr nullableFieldRepr;
+   private final @Nullable String filesHeader;
+   private final String sqlResourceNamePrefix;
+   private final boolean generateGetters;
+   private final boolean generateSetters;
 
+   private final Pattern TIMESTAMPTZ_REGEX = Pattern.compile("^timestamp(\\([0-9]+\\))? with time zone$");
    public enum NullableFieldRepr { OPTWRAPPED, ANNOTATED, BARETYPE }
 
    public JavaWriter
@@ -44,11 +47,15 @@ public class JavaWriter implements SourceCodeWriter
          String sqlResourceNamePrefix
       )
    {
-      this.targetPackage = targetPackage;
-      this.srcOutputBaseDir = srcOutputBaseDir;
-      this.nullableFieldRepr = NullableFieldRepr.OPTWRAPPED;
-      this.filesHeader = null;
-      this.sqlResourceNamePrefix = sqlResourceNamePrefix;
+      this(
+         targetPackage,
+         srcOutputBaseDir,
+         NullableFieldRepr.OPTWRAPPED,
+         null,
+         sqlResourceNamePrefix,
+         false,
+         false
+      );
    }
 
    public JavaWriter
@@ -411,12 +418,13 @@ public class JavaWriter implements SourceCodeWriter
          case Types.TIMESTAMP:
          case Types.TIMESTAMP_WITH_TIMEZONE:
             return notNull ? "OffsetDateTime" : nullableType("OffsetDateTime");
-         case Types.OTHER:
+         default:
             if ( f.getDatabaseType().toLowerCase().startsWith("json") )
                return notNull ? "JsonNode" : nullableType("JsonNode");
-            else
-               throw new RuntimeException("unsupported type for database field " + f);
-         default:
+            // Another entry for timezones, this entry is for Oracle drivers that don't
+            // declare timestamps with timezone with the proper java.sql.Types constant.
+            else if ( TIMESTAMPTZ_REGEX.matcher(f.getDatabaseType().toLowerCase()).matches() )
+               return notNull ? "OffsetDateTime" : nullableType("OffsetDateTime");
             throw new RuntimeException("unsupported type for database field " + f);
       }
    }

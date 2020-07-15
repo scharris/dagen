@@ -16,8 +16,8 @@ public class StatementSpecificationException extends RuntimeException
          String problem
       )
     {
-       super("In specification \"" + statementsSource + "\" in  statement \"" + statementName + "\" " +
-          "at " + statementPart + ": " + problem + ".");
+       super("In specification \"" + statementsSource + "\" in statement \"" + statementName + "\" " +
+          "at " + statementPart + ": " + problem);
 
        this.statementsSource = statementsSource;
        this.statementName = statementName;
