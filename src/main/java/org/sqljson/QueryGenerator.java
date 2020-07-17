@@ -221,10 +221,10 @@ public class QueryGenerator
       // Add child record collections to the select clause.
       for ( ChildCollectionSpec childSpec : tableJsonSpec.getChildTableCollections() )
       {
-         String childPart =  joinParts(queryPart, "child collection '" + childSpec.getCollectionName() + "'");
+         String childPart =  joinPartDescriptions(queryPart, "child collection '" + childSpec.getCollectionName() + "'");
          String childQuery = makeChildRecordsQuery(childSpec, relId, alias, propNameDefaultFn, queryName, childPart);
          q.addSelectClauseEntry(
-            "(\n" + indent(childQuery) + "\n)",
+            sqlDialect.getChildCollectionSelectClauseExpression(indent(childQuery)),
             dbmd.quoteIfNeeded(childSpec.getCollectionName()),
             SelectClauseEntry.Source.CHILD_COLLECTION
          );
@@ -233,7 +233,7 @@ public class QueryGenerator
       // Add query parts for inline parents.
       for ( InlineParentSpec parentSpec : tableJsonSpec.getInlineParentTables() )
       {
-         String parentPart = joinParts(queryPart, "inline parent '" + parentSpec.getTableJson().getTable() + "'");
+         String parentPart = joinPartDescriptions(queryPart, "inline parent '" + parentSpec.getTableJson().getTable() + "'");
          Set<String> aliases = q.getAliasesInScope();
          q.addParts(
             getInlineParentBaseQueryParts(parentSpec, relId, alias, aliases, propNameDefaultFn, queryName, parentPart)
@@ -243,7 +243,7 @@ public class QueryGenerator
       // Add parts for referenced parents.
       for ( ReferencedParentSpec parentSpec : tableJsonSpec.getReferencedParentTables() )
       {
-         String parentPart = joinParts(queryPart, "parent '" + parentSpec.getTableJson().getTable() + "'");
+         String parentPart = joinPartDescriptions(queryPart, "parent '" + parentSpec.getTableJson().getTable() + "'");
          q.addParts(
             getReferencedParentBaseQueryParts(parentSpec, relId, alias, propNameDefaultFn, queryName, parentPart)
          );
@@ -255,7 +255,7 @@ public class QueryGenerator
       );
 
       @Nullable String whereCond =
-         getWhereCondition(tableJsonSpec, alias, queryName, joinParts(queryPart, "where clause"));
+         getWhereCondition(tableJsonSpec, alias, queryName, joinPartDescriptions(queryPart, "where clause"));
       ifPresent(whereCond, q::addWhereClauseEntry);
 
       String sql = makeSqlFromParts(q);
@@ -394,10 +394,10 @@ public class QueryGenerator
                "Child collection cannot specify both customJoinCondition and foreignKeyFields."
             );
 
-         String customJoinPart = joinParts(queryPart, "custom join condition");
+         String customJoinPart = joinPartDescriptions(queryPart, "custom join condition");
          validateCustomJoinCondition(parentRelId, childRelId, customJoinCond, queryName, customJoinPart);
 
-         return customJoinCond.asChildFkCondition(parentAlias);
+         return customJoinCond.asChildFkCondition(parentAlias, dbmd);
       }
       else // foreign key join condition
       {
@@ -451,7 +451,7 @@ public class QueryGenerator
                 "and foreign key fields."
             );
 
-         parentPkCond = customJoinCond.asParentPkCondition(childAlias);
+         parentPkCond = customJoinCond.asParentPkCondition(childAlias, dbmd);
       }
       else
       {
@@ -522,7 +522,7 @@ public class QueryGenerator
                   "and foreign key fields."
             );
 
-         childCondOnParent = customJoinCond.asParentPkCondition(childAlias);
+         childCondOnParent = customJoinCond.asParentPkCondition(childAlias, dbmd);
       }
       else
       {
@@ -715,8 +715,8 @@ public class QueryGenerator
 
       List<String> childMatchFields =
          customJoinCond.getEquatedFields().stream()
-            .map(CustomJoinCondition.FieldPair::getChildField)
-            .collect(toList());
+         .map(CustomJoinCondition.FieldPair::getChildField)
+         .collect(toList());
 
       verifyTableFieldsExist(childMatchFields, childMd, dbmd, queriesSource, queryName, queryPart);
    }
@@ -763,7 +763,7 @@ public class QueryGenerator
       BaseQuery(String sql, List<ColumnMetadata> resultColumnMetadatas)
       {
          this.sql = sql;
-         this.resultColumnMetadatas = unmodifiableList(new ArrayList<>(resultColumnMetadatas));
+         this.resultColumnMetadatas = List.copyOf(resultColumnMetadatas);
       }
 
       String getSql() { return sql; }
@@ -829,7 +829,7 @@ public class QueryGenerator
       );
    }
 
-   String joinParts(String part1, String part2)
+   String joinPartDescriptions(String part1, String part2)
    {
       return part1.isEmpty() ? part2 : part1 + " / " + part2;
    }

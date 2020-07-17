@@ -498,16 +498,7 @@ public class DatabaseMetadata
    public String normalizeName(String id)
    {
       if ( id.startsWith("\"") && id.endsWith("\"") )
-      {
-         // If the quotes can be removed without changing the final identifier
-         // as  interpreted by the database, then return the unquoted form.
-         String unquotedId = id.substring(1, id.length()-1);
-         if ( caseSensitivity == INSENSITIVE_STORED_LOWER && lc_.test(unquotedId) )
-            return unquotedId;
-         if ( caseSensitivity == INSENSITIVE_STORED_UPPER && uc_.test(unquotedId) )
-            return unquotedId;
          return id;
-      }
       else if ( caseSensitivity == INSENSITIVE_STORED_LOWER )
          return id.toLowerCase();
       else if ( caseSensitivity == INSENSITIVE_STORED_UPPER )

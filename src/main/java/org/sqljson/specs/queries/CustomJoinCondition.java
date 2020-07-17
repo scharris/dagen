@@ -4,6 +4,7 @@ import java.util.Collections;
 import java.util.List;
 import static java.util.stream.Collectors.toList;
 
+import org.sqljson.dbmd.DatabaseMetadata;
 import org.sqljson.dbmd.ForeignKey;
 import org.sqljson.sql.ChildFkCondition;
 import org.sqljson.sql.ParentPkCondition;
@@ -26,22 +27,28 @@ public class CustomJoinCondition
    public List<FieldPair> getEquatedFields() { return equatedFields; }
 
 
-   public ParentPkCondition asParentPkCondition(String childAlias)
+   public ParentPkCondition asParentPkCondition(String childAlias, DatabaseMetadata dbmd)
    {
       List<ForeignKey.Component> virtualForeignKeyComponents =
          equatedFields.stream()
-         .map(ef -> new ForeignKey.Component(ef.childField, ef.parentPrimaryKeyField))
+         .map(ef -> new ForeignKey.Component(
+            dbmd.normalizeName(ef.childField),
+            dbmd.normalizeName(ef.parentPrimaryKeyField)
+         ))
          .collect(toList());
 
       return new ParentPkCondition(childAlias, virtualForeignKeyComponents);
    }
 
-   public ChildFkCondition asChildFkCondition(String parentAlias)
+   public ChildFkCondition asChildFkCondition(String parentAlias, DatabaseMetadata dbmd)
    {
       List<ForeignKey.Component> virtualForeignKeyComponents =
          equatedFields.stream()
-            .map(ef -> new ForeignKey.Component(ef.childField, ef.parentPrimaryKeyField))
-            .collect(toList());
+         .map(ef -> new ForeignKey.Component(
+            dbmd.normalizeName(ef.childField),
+            dbmd.normalizeName(ef.parentPrimaryKeyField)
+         ))
+         .collect(toList());
 
       return new ChildFkCondition(parentAlias, virtualForeignKeyComponents);
    }
@@ -67,5 +74,22 @@ public class CustomJoinCondition
       public String getChildField() { return childField; }
 
       public String getParentPrimaryKeyField() { return parentPrimaryKeyField; }
+
+      @Override
+      public String toString()
+      {
+         return "FieldPair{" +
+            "childField='" + childField + '\'' +
+            ", parentPrimaryKeyField='" + parentPrimaryKeyField + '\'' +
+            '}';
+      }
+   }
+
+   @Override
+   public String toString()
+   {
+      return "CustomJoinCondition{" +
+         "equatedFields=" + equatedFields +
+         '}';
    }
 }

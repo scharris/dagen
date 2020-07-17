@@ -11,7 +11,6 @@ import org.sqljson.specs.mod_stmts.ParametersType;
 import org.sqljson.sql.ColumnMetadata;
 
 import static org.sqljson.specs.mod_stmts.ParametersType.NUMBERED;
-import static org.sqljson.sql.SelectClauseEntry.Source.CHILD_COLLECTION;
 import static org.sqljson.util.Nullables.valueOr;
 import static org.sqljson.util.StringFuns.*;
 
@@ -34,11 +33,7 @@ public class OracleDialect implements SqlDialect
    {
       String objectFieldDecls =
          columnMetadatas.stream()
-         .map(col -> "'" + unDoubleQuote(col.getName()) + "' value " +
-            (col.getSource() == CHILD_COLLECTION ?
-               "treat(" + fromAlias + "." + col.getName() + " as json)"
-               :  fromAlias + "." + col.getName())
-         )
+         .map(col -> "'" + unDoubleQuote(col.getName()) + "' value " + fromAlias + "." + col.getName())
          .collect(joining(",\n"));
 
       return
@@ -70,6 +65,15 @@ public class OracleDialect implements SqlDialect
    }
 
    @Override
+   public String getChildCollectionSelectClauseExpression
+      (
+         String childCollectionQuery
+      )
+   {
+      return "treat((\n" + childCollectionQuery + "\n) as json)";
+   }
+
+   @Override
    public String getFieldParamConditionSql
       (
          FieldParamCondition fpcond,
@@ -88,7 +92,7 @@ public class OracleDialect implements SqlDialect
 
       switch ( fpcond.getOp() )
       {
-         // TODO
+         // NOTE: It's intended to eventually add more operators here.
          case JSON_CONTAINS: throw new RuntimeException("Operator not recognized.");
          // (Add other dialect specific operators here.)
          default: throw new RuntimeException("Operator not recognized.");

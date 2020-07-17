@@ -34,6 +34,11 @@ public interface SqlDialect
          String fromAlias
       );
 
+   String getChildCollectionSelectClauseExpression
+      (
+         String childCollectionQuery
+      );
+
    String getFieldParamConditionSql
       (
          FieldParamCondition fieldParamCondition,
