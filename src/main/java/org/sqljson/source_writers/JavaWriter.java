@@ -123,6 +123,7 @@ public class JavaWriter implements SourceCodeWriter
                "import org.checkerframework.framework.qual.TypeUseLocation;\n"
             );
             bw.write("import com.fasterxml.jackson.databind.JsonNode;\n");
+            bw.write("import com.fasterxml.jackson.databind.node.*;\n");
 
             // Write additional headers if any.
             if ( filesHeader != null )
