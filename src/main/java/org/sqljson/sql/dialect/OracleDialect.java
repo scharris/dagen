@@ -39,6 +39,7 @@ public class OracleDialect implements SqlDialect
       return
          "json_object(\n" +
             indentLines(objectFieldDecls, indentSpaces) + "\n" +
+            "  returning clob\n" +
          ")";
    }
 
