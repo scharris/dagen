@@ -66,15 +66,6 @@ public class PostgresDialect implements SqlDialect
    }
 
    @Override
-   public String getChildCollectionSelectClauseExpression
-      (
-         String childCollectionQuery
-      )
-   {
-      return "(\n" + childCollectionQuery + "\n)";
-   }
-
-   @Override
    public String getFieldParamConditionSql
       (
          FieldParamCondition fpcond,

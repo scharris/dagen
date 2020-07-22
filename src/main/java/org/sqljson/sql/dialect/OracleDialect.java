@@ -51,7 +51,7 @@ public class OracleDialect implements SqlDialect
       )
    {
       String rowObjExpr = getRowObjectExpression(columnMetadatas, fromAlias);
-      return "coalesce(json_arrayagg(" + rowObjExpr + " returning clob), to_clob('[]'))";
+      return "treat(coalesce(json_arrayagg(" + rowObjExpr + " returning clob), to_clob('[]')) as json)";
    }
 
    @Override
@@ -62,16 +62,7 @@ public class OracleDialect implements SqlDialect
       )
    {
       String qfield = fromAlias + "." + columnMetadata.getName();
-      return "coalesce(json_arrayagg(" + qfield + " returning clob), to_clob('[]'))";
-   }
-
-   @Override
-   public String getChildCollectionSelectClauseExpression
-      (
-         String childCollectionQuery
-      )
-   {
-      return "treat((\n" + childCollectionQuery + "\n) as json)";
+      return "treat(coalesce(json_arrayagg(" + qfield + " returning clob), to_clob('[]')) as json)";
    }
 
    @Override

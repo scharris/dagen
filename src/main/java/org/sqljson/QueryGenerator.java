@@ -224,7 +224,7 @@ public class QueryGenerator
          String childPart =  joinPartDescriptions(queryPart, "child collection '" + childSpec.getCollectionName() + "'");
          String childQuery = makeChildRecordsQuery(childSpec, relId, alias, propNameDefaultFn, queryName, childPart);
          q.addSelectClauseEntry(
-            sqlDialect.getChildCollectionSelectClauseExpression(indent(childQuery)),
+            "(\n" + indent(childQuery) + "\n)",
             dbmd.quoteIfNeeded(childSpec.getCollectionName()),
             SelectClauseEntry.Source.CHILD_COLLECTION
          );
