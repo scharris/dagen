@@ -13,7 +13,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 
-import org.sqljson.util.Files;
+import org.sqljson.util.IO;
 import org.sqljson.dbmd.DatabaseMetadata;
 import org.sqljson.dbmd.DatabaseMetadataFetcher;
 import static org.sqljson.util.Nullables.*;
@@ -76,8 +76,8 @@ public class DatabaseMetadataMain
 
       Properties props = new Properties();
 
-      try ( OutputStream os = Files.outputStream(outputFilePath);
-            InputStream propsIS = new FileInputStream(jdbcPropsFilePath) )
+      try (OutputStream os = IO.outputStream(outputFilePath);
+           InputStream propsIS = new FileInputStream(jdbcPropsFilePath) )
       {
          props.load(propsIS);
 

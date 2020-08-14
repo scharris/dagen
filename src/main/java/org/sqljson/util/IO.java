@@ -5,7 +5,7 @@ import java.nio.file.Path;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
 
-public final class Files
+public final class IO
 {
    public static BufferedWriter newFileOrStdoutWriter(@Nullable Path outputFilePath) throws IOException
    {
@@ -22,6 +22,18 @@ public final class Files
          return new FileOutputStream(pathOrDash);
    }
 
+   public static void writeString(BufferedWriter bw, String s)
+   {
+      try
+      {
+         bw.write(s);
+      }
+      catch (IOException e)
+      {
+         throw new RuntimeException(e);
+      }
+   }
+
    public static String readString(Path p)
    {
       try
@@ -34,6 +46,6 @@ public final class Files
       }
    }
 
-   private Files() {}
+   private IO() {}
 }
 

@@ -36,7 +36,7 @@ public class WrittenQueryReprPath
    public @Nullable Path getOutputFilePath() { return outputFilePath; }
 
 
-   public static Map<ResultsRepr, Path> writtenPathsForQuery
+   public static Map<ResultsRepr, Path> getWrittenSqlPathsForQuery
       (
          String queryName,
          List<WrittenQueryReprPath> writtenPathsAllQueries

@@ -19,7 +19,7 @@ import org.sqljson.util.AppUtils.SplitArgs;
 import static java.util.stream.Collectors.toList;
 import static org.sqljson.util.AppUtils.splitOptionsAndRequiredArgs;
 import static org.sqljson.util.AppUtils.throwError;
-import static org.sqljson.util.Files.newFileOrStdoutWriter;
+import static org.sqljson.util.IO.newFileOrStdoutWriter;
 import static org.sqljson.util.Nullables.ifPresent;
 import static org.sqljson.util.Nullables.applyIfPresent;
 import static org.sqljson.util.Serialization.writeJsonSchema;

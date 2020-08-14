@@ -1,12 +1,14 @@
 package org.sqljson;
 
-import java.io.*;
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.PrintStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.*;
-import static java.util.Collections.emptyList;
-import static java.util.stream.Collectors.toList;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
 
@@ -14,29 +16,24 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 
-import org.sqljson.specs.queries.QueryGroupSpec;
+import org.sqljson.dbmd.DatabaseMetadata;
+import org.sqljson.source_writers.JavaWriter;
+import org.sqljson.source_writers.SourceCodeWriter;
+import org.sqljson.source_writers.TypescriptWriter;
 import org.sqljson.specs.queries.ResultsRepr;
 import org.sqljson.util.AppUtils.SplitArgs;
-import org.sqljson.dbmd.DatabaseMetadata;
-import org.sqljson.source_writers.SourceCodeWriter;
-import org.sqljson.source_writers.JavaWriter;
-import org.sqljson.source_writers.TypescriptWriter;
 import static org.sqljson.util.AppUtils.splitOptionsAndRequiredArgs;
 import static org.sqljson.util.AppUtils.throwError;
 import static org.sqljson.util.IO.newFileOrStdoutWriter;
-import static org.sqljson.util.IO.readString;
-import static org.sqljson.util.Nullables.ifPresent;
 import static org.sqljson.util.Nullables.applyIfPresent;
-import static org.sqljson.util.Serialization.writeJsonSchema;
+import static org.sqljson.util.Nullables.ifPresent;
 
 
-public class QueryGeneratorMain
+public class DatabaseRelationClassesGeneratorMain
 {
-   private static final String sqlResourcePathInGeneratedSourceOptPrefix = "--sql-resource-path-in-generated-src:";
    private static final String langOptPrefix = "--types-language:";
    private static final String pkgOptPrefix = "--package:";
    private static final String javaNullabilityOptPrefix = "--java-nullability:";
-   private static final String generatedTypesHeaderFileOptPrefix = "--types-file-header:";
    private static final String includeSourceGenerationTimestamp = "--include-source-gen-timestamp";
    private static final String javaGenerateGetters = "--java-generate-getters";
    private static final String javaGenerateSetters = "--java-generate-setters";
@@ -44,13 +41,11 @@ public class QueryGeneratorMain
    private static void printUsage()
    {
       PrintStream ps = System.out;
-      ps.println("Expected arguments: [options] <db-metadata-file> <queries-spec-file> " +
-                 "[<types-output-base-dir> <sql-output-dir>]");
-      ps.println("If output directories are not provided, then all output is written to standard out.");
+      ps.println("Expected arguments: [options] <db-metadata-file> [<src-output-base-dir>");
+      ps.println("If output directory is not provided, then all output is written to standard out.");
       ps.println("Options:");
-      ps.println("   " + sqlResourcePathInGeneratedSourceOptPrefix + "<path>: a prefix to the SQL file name written into source code.");
       ps.println("   " + langOptPrefix + "<language>  Output language, \"Java\"|\"Typescript\".");
-      ps.println("   " + pkgOptPrefix + "<java-package>  The Java package for the generated query classes.");
+      ps.println("   " + pkgOptPrefix + "<java-package>  The Java package for the generated source class(es).");
       ps.println("   " + javaNullabilityOptPrefix + "<nullable-fields-option>  How nullable fields should be" +
                  "represented in Java.");
       ps.println("       Valid options are:");
@@ -59,10 +54,6 @@ public class QueryGeneratorMain
       ps.println("         baretype   : leave as bare type (Object variant for native types)");
       ps.println("   " + javaGenerateGetters + "  Include getters in generated Java types.");
       ps.println("   " + javaGenerateSetters + "  Include setters in generated Java types.");
-      ps.println("   " + generatedTypesHeaderFileOptPrefix + "<file>  Contents of this file will be included at the " +
-         "top of each generated type's source file (e.g. additional imports for overridden field types).");
-      ps.println("    --print-spec-json-schema: Print a json schema for the query group spec, to " +
-         "facilitate editing.");
    }
 
    public static void main(String[] allArgs)
@@ -72,89 +63,32 @@ public class QueryGeneratorMain
          printUsage();
          return;
       }
-      if ( allArgs.length == 1 && allArgs[0].equals("--print-spec-json-schema") )
-      {
-         writeJsonSchema(QueryGroupSpec.class, System.out);
-         return;
-      }
 
       SplitArgs args = splitOptionsAndRequiredArgs(allArgs);
 
-      if ( args.required.size() != 2 && args.required.size() != 4 )
-         throw new RuntimeException("expected 2 or 4 non-option arguments");
+      if ( args.required.size() != 1 && args.required.size() != 2 )
+         throw new RuntimeException("expected 1 or 2 non-option arguments");
 
       Path dbmdPath = Paths.get(args.required.get(0));
       if ( !Files.isRegularFile(dbmdPath) )
-         throwError("Database metdata file not found.");
+         throwError("Database metadata file not found.");
 
-      Path queriesSpecFilePath = Paths.get(args.required.get(1));
-      if ( !Files.isRegularFile(queriesSpecFilePath) )
-         throwError("Queries specification file not found.");
+      @Nullable Path outputDir = args.required.size() > 1 ? Paths.get(args.required.get(1)) : null;
 
-
-      List<Path> outputDirs = args.required.size() > 2 ?
-          Arrays.asList(Paths.get(args.required.get(2)), Paths.get(args.required.get(3)))
-          : emptyList();
-
-      try ( InputStream dbmdIS = Files.newInputStream(dbmdPath);
-            InputStream queriesSpecIS = Files.newInputStream(queriesSpecFilePath) )
+      try ( InputStream dbmdIS = Files.newInputStream(dbmdPath) )
       {
          ObjectMapper yamlMapper = new ObjectMapper(new YAMLFactory());
          yamlMapper.registerModule(new Jdk8Module());
 
          DatabaseMetadata dbmd = yamlMapper.readValue(dbmdIS, DatabaseMetadata.class);
-         QueryGroupSpec queryGroupSpec = yamlMapper.readValue(queriesSpecIS, QueryGroupSpec.class);
 
-         @Nullable Path srcOutputBaseDirPath = outputDirs.size() > 0 ? outputDirs.get(0) : null;
-         ifPresent(srcOutputBaseDirPath, path ->  {
+         ifPresent(outputDir, path ->  {
             if ( !Files.isDirectory(path) ) throwError("Source output base directory not found.");
          });
 
-         @Nullable Path queriesOutputDirPath = outputDirs.size() > 1 ? outputDirs.get(1) : null;
-         ifPresent(queriesOutputDirPath, path ->  {
-            if ( !Files.isDirectory(path) ) throwError("Queries output directory not found.");
-         });
-
-         QueryGenerator gen =
-            new QueryGenerator(
-               dbmd,
-               queryGroupSpec.getDefaultSchema(),
-               new HashSet<>(queryGroupSpec.getGenerateUnqualifiedNamesForSchemas()),
-               queryGroupSpec.getOutputFieldNameDefault().toFunctionOfFieldName(),
-               queriesSpecFilePath.getFileName().toString()
-            );
-
-         List<GeneratedQuery> generatedQueries =
-            queryGroupSpec.getQuerySpecs().stream()
-            .map(gen::generateQuery)
-            .collect(toList());
-
-         List<WrittenQueryReprPath> writtenQueryPaths = writeQueries(generatedQueries, queriesOutputDirPath);
-
-         List<GeneratedQuery> queriesWithSourceCodeEnabled =
-            generatedQueries.stream()
-            .filter(GeneratedQuery::getGenerateSourceEnabled)
-            .collect(toList());
-
-         if ( !queriesWithSourceCodeEnabled.isEmpty() )
-         {
-            SourceCodeWriter srcWriter = getSourceCodeWriter(args, srcOutputBaseDirPath);
-            boolean includeTimestamp = args.optional.contains(includeSourceGenerationTimestamp);
-            srcWriter.writeQueries(queriesWithSourceCodeEnabled, writtenQueryPaths, includeTimestamp);
-         }
-      }
-      catch( StatementSpecificationException sse )
-      {
-         System.err.println();
-         System.err.println();
-         System.err.println("----------------------------------------------------------------------");
-         System.err.println("Error in specification: " + sse.getStatementsSource());
-         System.err.println("  in query: " + sse.getStatementName());
-         System.err.println("  at part: " + sse.getStatementPart());
-         System.err.println("  problem: " + sse.getProblem());
-         System.err.println("----------------------------------------------------------------------");
-         System.err.println();
-         System.err.println();
+         SourceCodeWriter srcWriter = getSourceCodeWriter(args, outputDir);
+         boolean includeTimestamp = args.optional.contains(includeSourceGenerationTimestamp);
+         srcWriter.writeRelationDefinitions(dbmd, includeTimestamp);
       }
       catch(Exception e)
       {
@@ -172,24 +106,18 @@ public class QueryGeneratorMain
    {
       String langStr = "";
       String targetPackage = "";
-      String sqlResourceNamePrefix = "";
       boolean generateJavaGetters = false;
       boolean generateJavaSetters = false;
 
       JavaWriter.NullableFieldRepr nullableFieldRepr = JavaWriter.NullableFieldRepr.ANNOTATED;
-      @Nullable String typeFilesHeader = null;
       for ( String opt : args.optional )
       {
-         if ( opt.startsWith(sqlResourcePathInGeneratedSourceOptPrefix) )
-            sqlResourceNamePrefix = opt.substring(sqlResourcePathInGeneratedSourceOptPrefix.length());
-         else if ( opt.startsWith(langOptPrefix) )
+         if ( opt.startsWith(langOptPrefix) )
             langStr = opt.substring(langOptPrefix.length());
          else if ( opt.startsWith(pkgOptPrefix) )
             targetPackage = opt.substring(pkgOptPrefix.length());
          else if ( opt.startsWith(javaNullabilityOptPrefix) )
             nullableFieldRepr = JavaWriter.NullableFieldRepr.valueOf(opt.substring(javaNullabilityOptPrefix.length()).toUpperCase());
-         else if ( opt.startsWith(generatedTypesHeaderFileOptPrefix) )
-            typeFilesHeader = readString(Paths.get(opt.substring(generatedTypesHeaderFileOptPrefix.length())));
          else if ( opt.equals(javaGenerateGetters) )
             generateJavaGetters = true;
          else if ( opt.equals(javaGenerateSetters) )
@@ -207,13 +135,11 @@ public class QueryGeneratorMain
                targetPackage,
                srcOutputBaseDir,
                nullableFieldRepr,
-               typeFilesHeader,
-               sqlResourceNamePrefix,
                generateJavaGetters,
                generateJavaSetters
             );
          case Typescript:
-            return new TypescriptWriter(srcOutputBaseDir, typeFilesHeader, sqlResourceNamePrefix);
+            return new TypescriptWriter(srcOutputBaseDir, null, "");
          default:
             throw new RuntimeException("target language not supported");
       }

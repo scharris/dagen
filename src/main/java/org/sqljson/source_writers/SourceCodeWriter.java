@@ -8,6 +8,7 @@ import java.util.Map;
 import org.sqljson.GeneratedModStatement;
 import org.sqljson.GeneratedQuery;
 import org.sqljson.WrittenQueryReprPath;
+import org.sqljson.dbmd.DatabaseMetadata;
 
 
 public interface SourceCodeWriter
@@ -24,6 +25,13 @@ public interface SourceCodeWriter
       (
          List<GeneratedModStatement> generatedModStatements,
          Map<String,Path> writtenPathsByModName,
+         boolean includeTimestamp
+      )
+      throws IOException;
+
+   void writeRelationDefinitions
+      (
+         DatabaseMetadata dbmd,
          boolean includeTimestamp
       )
       throws IOException;

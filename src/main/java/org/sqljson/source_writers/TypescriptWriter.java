@@ -11,9 +11,11 @@ import java.sql.Types;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.sqljson.GeneratedModStatement;
 import org.sqljson.GeneratedQuery;
+import org.sqljson.dbmd.DatabaseMetadata;
 import org.sqljson.result_types.*;
 import org.sqljson.specs.queries.FieldTypeOverride;
 import org.sqljson.specs.queries.ResultsRepr;
+import org.sqljson.util.IO;
 import org.sqljson.util.StringFuns;
 import org.sqljson.WrittenQueryReprPath;
 
@@ -55,10 +57,10 @@ public class TypescriptWriter implements SourceCodeWriter
          String moduleName = StringFuns.upperCamelCase(q.getQueryName());
          @Nullable Path outputFilePath = applyIfPresent(srcOutputDir, d -> d.resolve(moduleName + ".ts"));
 
-         BufferedWriter bw = org.sqljson.util.Files.newFileOrStdoutWriter(outputFilePath);
+         BufferedWriter bw = IO.newFileOrStdoutWriter(outputFilePath);
 
          Map<ResultsRepr,Path> writtenQueryPathsByRepr =
-            WrittenQueryReprPath.writtenPathsForQuery(q.getQueryName(), writtenQueryPaths);
+            WrittenQueryReprPath.getWrittenSqlPathsForQuery(q.getQueryName(), writtenQueryPaths);
 
          try
          {
@@ -125,6 +127,18 @@ public class TypescriptWriter implements SourceCodeWriter
    {
       // TODO
       throw new RuntimeException("Typescript source generation for mod statements is not yet implemented.");
+   }
+
+   @Override
+   public void writeRelationDefinitions
+      (
+         DatabaseMetadata dbmd,
+         boolean includeTimestamp
+      )
+      throws IOException
+   {
+      // TODO
+      throw new RuntimeException("Generation of relation definitions is not yet implemented for Typescript.");
    }
 
    public String makeGeneratedTypeSource(GeneratedType generatedType)

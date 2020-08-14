@@ -1,5 +1,6 @@
 package org.sqljson.source_writers;
 
+import java.io.StringWriter;
 import java.nio.file.Files;
 import java.util.*;
 import java.io.BufferedWriter;
@@ -8,21 +9,26 @@ import java.nio.file.Path;
 import java.time.Instant;
 import java.sql.Types;
 import java.util.regex.Pattern;
-
 import static java.util.Objects.requireNonNull;
+import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
 
 import org.sqljson.GeneratedModStatement;
+import org.sqljson.dbmd.DatabaseMetadata;
+import org.sqljson.dbmd.Field;
+import org.sqljson.dbmd.RelMetadata;
+import org.sqljson.dbmd.RelId;
 import org.sqljson.result_types.*;
 import org.sqljson.specs.queries.FieldTypeOverride;
 import org.sqljson.specs.queries.ResultsRepr;
 import org.sqljson.GeneratedQuery;
 import org.sqljson.WrittenQueryReprPath;
 import static org.sqljson.TypesLanguage.Java;
-import static org.sqljson.WrittenQueryReprPath.writtenPathsForQuery;
-import static org.sqljson.util.Files.newFileOrStdoutWriter;
+import static org.sqljson.WrittenQueryReprPath.getWrittenSqlPathsForQuery;
+import static org.sqljson.util.IO.newFileOrStdoutWriter;
+import static org.sqljson.util.IO.writeString;
 import static org.sqljson.util.Nullables.*;
 import static org.sqljson.util.StringFuns.*;
 
@@ -30,7 +36,7 @@ import static org.sqljson.util.StringFuns.*;
 public class JavaWriter implements SourceCodeWriter
 {
    private final String targetPackage;
-   private final @Nullable Path srcOutputBaseDir;
+   private final @Nullable Path packageOutputDir;
    private final NullableFieldRepr nullableFieldRepr;
    private final @Nullable String filesHeader;
    private final String sqlResourceNamePrefix;
@@ -44,7 +50,7 @@ public class JavaWriter implements SourceCodeWriter
       (
          String targetPackage,
          @Nullable Path srcOutputBaseDir,
-         String sqlResourceNamePrefix
+         @Nullable String sqlResourceNamePrefix
       )
    {
       this(
@@ -63,23 +69,45 @@ public class JavaWriter implements SourceCodeWriter
          String targetPackage,
          @Nullable Path srcOutputBaseDir,
          NullableFieldRepr nullableFieldRepr,
-         @Nullable String filesHeader,
-         String sqlResourceNamePrefix,
          boolean generateGetters,
          boolean generateSetters
       )
    {
+      this(
+         targetPackage,
+         srcOutputBaseDir,
+         nullableFieldRepr,
+         null,
+         null,
+         generateGetters,
+         generateSetters
+      );
+   }
+
+   public JavaWriter
+      (
+         String targetPackage,
+         @Nullable Path srcOutputBaseDir,
+         NullableFieldRepr nullableFieldRepr,
+         @Nullable String filesHeader,
+         @Nullable String sqlResourceNamePrefix,
+         boolean generateGetters,
+         boolean generateSetters
+      )
+   {
+      this.packageOutputDir = !targetPackage.isEmpty() ?
+         applyIfPresent(srcOutputBaseDir, d -> d.resolve(targetPackage.replace('.','/')))
+         : srcOutputBaseDir;
       this.targetPackage = targetPackage;
-      this.srcOutputBaseDir = srcOutputBaseDir;
       this.nullableFieldRepr = nullableFieldRepr;
       this.filesHeader = filesHeader;
-      this.sqlResourceNamePrefix = sqlResourceNamePrefix;
+      this.sqlResourceNamePrefix = valueOr(sqlResourceNamePrefix, "");
       this.generateGetters = generateGetters;
       this.generateSetters = generateSetters;
+
    }
 
    @Override
-   @SuppressWarnings("keyfor")
    public void writeQueries
       (
          List<GeneratedQuery> generatedQueries,
@@ -88,100 +116,130 @@ public class JavaWriter implements SourceCodeWriter
       )
       throws IOException
    {
-      @Nullable Path outputDir = !targetPackage.isEmpty() ?
-         applyIfPresent(srcOutputBaseDir, d -> d.resolve(targetPackage.replace('.','/')))
-         : srcOutputBaseDir;
-
-      if ( outputDir != null )
-         Files.createDirectories(outputDir);
+      if ( packageOutputDir != null )
+         Files.createDirectories(packageOutputDir);
 
       for ( GeneratedQuery q : generatedQueries )
       {
          String queryClassName = upperCamelCase(q.getQueryName());
-         @Nullable Path outputFilePath = applyIfPresent(outputDir, d -> d.resolve(queryClassName + ".java"));
 
-         BufferedWriter bw = newFileOrStdoutWriter(outputFilePath);
+         @Nullable Path outputPath = getOutputFilePath(queryClassName);
 
-         Map<ResultsRepr,Path> writtenQueryPathsByRepr = writtenPathsForQuery(q.getQueryName(), writtenQueryPaths);
+         BufferedWriter bw = newFileOrStdoutWriter(outputPath);
 
          try
          {
-            bw.write("// --------------------------------------------------------------------------\n");
-            bw.write("// [ THIS SOURCE CODE WAS AUTO-GENERATED, ANY CHANGES MADE HERE MAY BE LOST. ]\n");
-            if ( includeTimestamp )
-               bw.write("//   " + Instant.now().toString().replace('T',' ') + "\n");
-            bw.write("// --------------------------------------------------------------------------\n");
-            if ( !targetPackage.isEmpty() )
-               bw.write("package " + targetPackage + ";\n\n");
-            bw.write("import java.util.*;\n");
-            bw.write("import java.math.*;\n");
-            bw.write("import java.time.*;\n");
-            if ( nullableFieldRepr == NullableFieldRepr.ANNOTATED ) bw.write(
-                "import org.checkerframework.checker.nullness.qual.Nullable;\n" +
-               "import org.checkerframework.checker.nullness.qual.NonNull;\n" +
-               "import org.checkerframework.framework.qual.DefaultQualifier;\n" +
-               "import org.checkerframework.framework.qual.TypeUseLocation;\n"
-            );
-            bw.write("import com.fasterxml.jackson.databind.JsonNode;\n");
-            bw.write("import com.fasterxml.jackson.databind.node.*;\n");
+            writeCommonHeaderAndPackageDeclaration(bw, includeTimestamp);
 
-            // Write additional headers if any.
-            if ( filesHeader != null )
-               bw.write(filesHeader + "\n");
-            q.getTypesFileHeaders().stream().filter(h -> h.getLanguage() == Java ).forEach(h -> {
-                try { bw.write(h.getText() + "\n"); } catch(IOException e) { throw new RuntimeException(e); }
-            });
+            writeQueryFileImportsAndHeaders(bw, q);
 
             bw.write("\n\n");
-            bw.write("public class " + queryClassName + "\n");
-            bw.write("{\n");
 
-            // Write members holding resource/file names for the result representations that were written for this query.
-            for ( ResultsRepr resultsRepr : sorted(writtenQueryPathsByRepr.keySet()) )
-            {
-               String memberName = writtenQueryPathsByRepr.size() == 1 ? "sqlResource" :
-                  "sqlResource" + upperCamelCase(resultsRepr.toString());
-               String resourceName = sqlResourceNamePrefix + requireNonNull(writtenQueryPathsByRepr.get(resultsRepr)).getFileName();
-               bw.write("   public static final String " + memberName + " = \"" + resourceName + "\";\n");
-            }
-            bw.write("\n");
-
-            writeParamMembers(q.getParamNames(), bw, true);
-
-            if ( !q.getGeneratedResultTypes().isEmpty() )
-            {
-               String topClass = q.getGeneratedResultTypes().get(0).getTypeName();
-
-               bw.write("   public static final Class<" + topClass + "> principalResultClass = " +
-                        topClass + ".class;\n\n");
-
-               Set<String> writtenTypeNames = new HashSet<>();
-
-               for ( GeneratedType generatedType: q.getGeneratedResultTypes() )
-               {
-                  if ( !writtenTypeNames.contains(generatedType.getTypeName()) &&
-                       !generatedType.isUnwrapped() )
-                  {
-                     String srcCode = makeGeneratedTypeSource(generatedType);
-
-                     bw.write('\n');
-                     bw.write(indentLines(srcCode, 3));
-                     bw.write('\n');
-
-                     writtenTypeNames.add(generatedType.getTypeName());
-                  }
-               }
-            }
-
-            bw.write("}\n");
+            writeQueryClass(bw, queryClassName, q, writtenQueryPaths);
          }
          finally
          {
-            if ( outputFilePath != null ) bw.close();
+            if ( outputPath != null ) bw.close();
             else bw.flush();
          }
       }
    }
+
+   private void writeQueryFileImportsAndHeaders
+      (
+         BufferedWriter bw,
+         GeneratedQuery q
+      )
+      throws IOException
+   {
+      bw.write("import java.util.*;\n");
+      bw.write("import java.math.*;\n");
+      bw.write("import java.time.*;\n");
+      if ( nullableFieldRepr == NullableFieldRepr.ANNOTATED ) bw.write(
+          "import org.checkerframework.checker.nullness.qual.Nullable;\n" +
+         "import org.checkerframework.checker.nullness.qual.NonNull;\n" +
+         "import org.checkerframework.framework.qual.DefaultQualifier;\n" +
+         "import org.checkerframework.framework.qual.TypeUseLocation;\n"
+      );
+      bw.write("import com.fasterxml.jackson.databind.JsonNode;\n");
+      bw.write("import com.fasterxml.jackson.databind.node.*;\n");
+
+      // Write common headers if any.
+      if ( filesHeader != null )
+         bw.write(filesHeader + "\n");
+
+      // Write any additional headers specified in the query.
+      q.getTypesFileHeaders().stream()
+      .filter(h -> h.getLanguage() == Java )
+      .forEach(h -> writeString(bw, h.getText() + "\n"));
+   }
+
+   private void writeQueryClass
+      (
+         BufferedWriter bw,
+         String queryClassName,
+         GeneratedQuery q,
+         List<WrittenQueryReprPath> writtenQueryPaths
+      )
+      throws IOException
+   {
+      bw.write("public class " + queryClassName + "\n");
+      bw.write("{\n");
+
+      writeQuerySqlFileReferenceMembers(bw, q, writtenQueryPaths);
+
+      writeParamMembers(q.getParamNames(), bw, true);
+
+      if ( !q.getGeneratedResultTypes().isEmpty() )
+      {
+         String topClass = q.getGeneratedResultTypes().get(0).getTypeName();
+
+         bw.write("   public static final Class<" + topClass + "> principalResultClass = " +
+                  topClass + ".class;\n\n");
+
+         Set<String> writtenTypeNames = new HashSet<>();
+
+         for ( GeneratedType generatedType: q.getGeneratedResultTypes() )
+         {
+            if ( !writtenTypeNames.contains(generatedType.getTypeName()) &&
+                 !generatedType.isUnwrapped() )
+            {
+               String srcCode = makeGeneratedTypeSource(generatedType);
+
+               bw.write('\n');
+               bw.write(indentLines(srcCode, 3));
+               bw.write('\n');
+
+               writtenTypeNames.add(generatedType.getTypeName());
+            }
+         }
+      }
+
+      bw.write("}\n");
+   }
+
+   @SuppressWarnings("keyfor")
+   private void writeQuerySqlFileReferenceMembers
+      (
+         BufferedWriter bw,
+         GeneratedQuery q,
+         List<WrittenQueryReprPath> writtenQueryPaths
+      )
+      throws IOException
+   {
+      Map<ResultsRepr,Path> sqlPathsByRepr = getWrittenSqlPathsForQuery(q.getQueryName(), writtenQueryPaths);
+
+      // Write members holding resource/file names for the result representations that were written for this query.
+      for ( ResultsRepr resultsRepr : sorted(sqlPathsByRepr.keySet()) )
+      {
+         String memberName = sqlPathsByRepr.size() == 1 ? "sqlResource" :
+            "sqlResource" + upperCamelCase(resultsRepr.toString());
+         String resourceName = sqlResourceNamePrefix + requireNonNull(sqlPathsByRepr.get(resultsRepr)).getFileName();
+         bw.write("   public static final String " + memberName + " = \"" + resourceName + "\";\n");
+      }
+      bw.write("\n");
+   }
+
 
    @Override
    public void writeModStatements
@@ -192,54 +250,211 @@ public class JavaWriter implements SourceCodeWriter
       )
       throws IOException
    {
-      @Nullable Path outputDir = !targetPackage.isEmpty() ?
-         applyIfPresent(srcOutputBaseDir, d -> d.resolve(targetPackage.replace('.','/')))
-         : srcOutputBaseDir;
-
-      if ( outputDir != null )
-         Files.createDirectories(outputDir);
+      if ( packageOutputDir != null )
+         Files.createDirectories(packageOutputDir);
 
       for ( GeneratedModStatement modStmt : generatedModStatements )
       {
          if ( !modStmt.getGenerateSource() ) continue;
 
          String className = upperCamelCase(modStmt.getStatementName());
-         @Nullable Path outputFilePath = applyIfPresent(outputDir, d -> d.resolve(className + ".java"));
+
+         @Nullable Path outputFilePath = getOutputFilePath(className);
 
          BufferedWriter bw = newFileOrStdoutWriter(outputFilePath);
 
          try
          {
-            bw.write("// --------------------------------------------------------------------------\n");
-            bw.write("// [ THIS SOURCE CODE WAS AUTO-GENERATED, ANY CHANGES MADE HERE MAY BE LOST. ]\n");
-            if ( includeTimestamp )
-               bw.write("//   " + Instant.now().toString().replace('T',' ') + "\n");
-            bw.write("// --------------------------------------------------------------------------\n");
-            bw.write("package " + targetPackage + ";\n\n");
+            writeCommonHeaderAndPackageDeclaration(bw, includeTimestamp);
 
             bw.write("\n\n");
-            bw.write("public class " + className + "\n");
-            bw.write("{\n");
 
-            @Nullable Path writtenPath = writtenPathsByModName.get(modStmt.getStatementName());
-
-            if ( writtenPath != null )
-            {
-               String resourceName = sqlResourceNamePrefix + writtenPath.getFileName().toString();
-               bw.write("   public static final String sqlResource = \"" + resourceName + "\";\n");
-            }
-
-            bw.write("\n");
-
-            writeParamMembers(modStmt.getAllParameterNames(), bw, modStmt.hasNamedParameters());
-
-            bw.write("}\n");
+            writeModStatementClass(bw, className, modStmt, writtenPathsByModName);
          }
          finally
          {
             if ( outputFilePath != null ) bw.close();
             else bw.flush();
          }
+      }
+   }
+
+   private void writeModStatementClass
+      (
+         BufferedWriter bw,
+         String className,
+         GeneratedModStatement modStmt,
+         Map<String,Path> sqlPathsByStatementName
+      )
+      throws IOException
+   {
+      bw.write("public class " + className + "\n");
+      bw.write("{\n");
+
+      // Write reference to SQL file if one was written.
+      @Nullable Path writtenPath = sqlPathsByStatementName.get(modStmt.getStatementName());
+      if ( writtenPath != null )
+      {
+         String resourceName = sqlResourceNamePrefix + writtenPath.getFileName().toString();
+         bw.write("   public static final String sqlResource = \"" + resourceName + "\";\n");
+      }
+
+      bw.write("\n");
+
+      writeParamMembers(modStmt.getAllParameterNames(), bw, modStmt.hasNamedParameters());
+
+      bw.write("}\n");
+   }
+
+   @Override
+   public void writeRelationDefinitions
+      (
+         DatabaseMetadata dbmd,
+         boolean includeTimestamp
+      )
+      throws IOException
+   {
+      if ( packageOutputDir != null )
+         Files.createDirectories(packageOutputDir);
+
+      writeCommonFieldMetadataClass(includeTimestamp);
+
+      String topClassName = "Relations";
+
+      @Nullable Path outputPath = getOutputFilePath(topClassName);
+
+      BufferedWriter bw = newFileOrStdoutWriter(outputPath);
+
+      try
+      {
+         writeCommonHeaderAndPackageDeclaration(bw, includeTimestamp);
+
+         writeRelationsClass(bw, topClassName, dbmd);
+      }
+      finally
+      {
+         if ( outputPath != null ) bw.close();
+         else bw.flush();
+      }
+   }
+
+   private void writeRelationsClass
+      (
+         BufferedWriter bw,
+         String relationsClassName,
+         DatabaseMetadata dbmd
+      )
+      throws IOException
+   {
+      bw.write("public class " + relationsClassName + "\n {\n\n");
+
+      Map<String, List<RelMetadata>> relMdsBySchema =
+         dbmd.getRelationMetadatas().stream()
+         .collect(groupingBy(rmd -> valueOr(rmd.getRelationId().getSchema(), "DEFAULT")));
+
+      for ( String schema : relMdsBySchema.keySet() )
+      {
+         bw.write("   public static class " + schema + "\n");
+         bw.write("   {\n\n");
+
+         for ( RelMetadata relMd : relMdsBySchema.get(schema) )
+            bw.write(indentLines(getRelationClassSource(relMd), 6));
+
+         bw.write("   }\n\n"); // close schema class
+      }
+
+      bw.write("}\n"); // close top relations class
+   }
+
+   private String getRelationClassSource(RelMetadata relMd)
+   {
+      StringWriter sw = new StringWriter();
+
+      RelId relId = relMd.getRelationId();
+
+      sw.write("public static class ");
+      sw.write(relId.getName() + "\n");
+      sw.write("{\n");
+      sw.write("   public static String id() { return " + asStringLiteral(relId.getIdString()) + "; }\n");
+
+      for ( Field f : relMd.getFields() )
+      {
+         sw.write("   public static final Field ");
+         sw.write(f.getName());
+         sw.write(" = new Field(");
+         sw.write(asStringLiteral(f.getName()) + ",");
+         sw.write(f.getJdbcTypeCode() + ",");
+         sw.write(asStringLiteral(f.getDatabaseType()) + ",");
+         sw.write(f.getLength() + ",");
+         sw.write(f.getPrecision() + ",");
+         sw.write(f.getFractionalDigits() + ",");
+         sw.write(f.getNullable() + ",");
+         @Nullable Integer pkPartNum = f.getPrimaryKeyPartNumber();
+         sw.write(pkPartNum != null ? pkPartNum.toString() : "null");
+         sw.write(");\n");
+      }
+
+      sw.write("}\n\n"); // close relation class
+
+      return sw.toString();
+   }
+
+   private void writeCommonFieldMetadataClass(boolean includeTimestamp)
+      throws IOException
+   {
+      String className = "Field";
+      @Nullable Path outputFilePath = getOutputFilePath(className);
+
+      BufferedWriter bw = newFileOrStdoutWriter(outputFilePath);
+
+      try
+      {
+         writeCommonHeaderAndPackageDeclaration(bw, includeTimestamp);
+
+         bw.write("import org.checkerframework.checker.nullness.qual.Nullable;\n\n");
+
+         bw.write("\n\n");
+         bw.write("public class " + className + "\n");
+         bw.write("{\n");
+
+         bw.write(
+            "   public String name;\n" +
+            "   public int jdbcTypeCode;\n" +
+            "   public String databaseType;\n" +
+            "   public @Nullable Integer length;\n" +
+            "   public @Nullable Integer precision;\n" +
+            "   public @Nullable Integer fractionalDigits;\n" +
+            "   public @Nullable Boolean nullable;\n" +
+            "   public @Nullable Integer primaryKeyPartNumber;\n" +
+            "   public Field\n" +
+            "      (\n" +
+            "         String name,\n" +
+            "         int jdbcTypeCode,\n" +
+            "         String databaseType,\n" +
+            "         @Nullable Integer length,\n" +
+            "         @Nullable Integer precision,\n" +
+            "         @Nullable Integer fractionalDigits,\n" +
+            "         @Nullable Boolean nullable,\n" +
+            "         @Nullable Integer primaryKeyPartNumber\n" +
+            "      )\n" +
+            "   {\n" +
+            "      this.name = name;\n" +
+            "      this.jdbcTypeCode = jdbcTypeCode;\n" +
+            "      this.databaseType = databaseType;\n" +
+            "      this.length = length;\n" +
+            "      this.precision = precision;\n" +
+            "      this.fractionalDigits = fractionalDigits;\n" +
+            "      this.nullable = nullable;\n" +
+            "      this.primaryKeyPartNumber = primaryKeyPartNumber;\n" +
+            "   }\n" +
+            "\n");
+
+         bw.write("}\n");
+      }
+      finally
+      {
+         if ( outputFilePath != null ) bw.close();
+         else bw.flush();
       }
    }
 
@@ -351,6 +566,17 @@ public class JavaWriter implements SourceCodeWriter
             bw.write(";\n\n");
          }
       }
+   }
+
+   private void writeCommonHeaderAndPackageDeclaration(BufferedWriter bw, boolean includeTimestamp) throws IOException
+   {
+      bw.write("// --------------------------------------------------------------------------\n");
+      bw.write("// [ THIS SOURCE CODE WAS AUTO-GENERATED, ANY CHANGES MADE HERE MAY BE LOST. ]\n");
+      if (includeTimestamp)
+         bw.write("//   " + Instant.now().toString().replace('T', ' ') + "\n");
+      bw.write("// --------------------------------------------------------------------------\n");
+      if ( !targetPackage.isEmpty() )
+         bw.write("package " + targetPackage + ";\n\n");
    }
 
    private String getJavaTypeNameForExpressionField(ExpressionField f)
@@ -482,9 +708,19 @@ public class JavaWriter implements SourceCodeWriter
       return sb.toString();
    }
 
+   private @Nullable Path getOutputFilePath(String className)
+   {
+      return applyIfPresent(packageOutputDir, d -> d.resolve(className + ".java"));
+   }
+
    private List<ResultsRepr> sorted(Collection<ResultsRepr> xs)
    {
       return xs.stream().sorted().collect(toList());
+   }
+
+   private static String asStringLiteral(String s)
+   {
+      return "\"" + s.replace("\"", "\\\"") + "\"";
    }
 }
 
