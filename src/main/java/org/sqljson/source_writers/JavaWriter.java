@@ -346,7 +346,7 @@ public class JavaWriter implements SourceCodeWriter
       )
       throws IOException
    {
-      bw.write("public class " + relationsClassName + "\n {\n\n");
+      bw.write("public class " + relationsClassName + "\n{\n\n");
 
       Map<String, List<RelMetadata>> relMdsBySchema =
          dbmd.getRelationMetadatas().stream()
@@ -358,7 +358,10 @@ public class JavaWriter implements SourceCodeWriter
          bw.write("   {\n\n");
 
          for ( RelMetadata relMd : relMdsBySchema.get(schema) )
+         {
             bw.write(indentLines(getRelationClassSource(relMd), 6));
+            bw.write("\n\n");
+         }
 
          bw.write("   }\n\n"); // close schema class
       }
@@ -394,7 +397,7 @@ public class JavaWriter implements SourceCodeWriter
          sw.write(");\n");
       }
 
-      sw.write("}\n\n"); // close relation class
+      sw.write("}\n"); // close relation class
 
       return sw.toString();
    }
@@ -570,11 +573,11 @@ public class JavaWriter implements SourceCodeWriter
 
    private void writeCommonHeaderAndPackageDeclaration(BufferedWriter bw, boolean includeTimestamp) throws IOException
    {
-      bw.write("// --------------------------------------------------------------------------\n");
+      bw.write("// ---------------------------------------------------------------------------\n");
       bw.write("// [ THIS SOURCE CODE WAS AUTO-GENERATED, ANY CHANGES MADE HERE MAY BE LOST. ]\n");
       if (includeTimestamp)
          bw.write("//   " + Instant.now().toString().replace('T', ' ') + "\n");
-      bw.write("// --------------------------------------------------------------------------\n");
+      bw.write("// ---------------------------------------------------------------------------\n");
       if ( !targetPackage.isEmpty() )
          bw.write("package " + targetPackage + ";\n\n");
    }
