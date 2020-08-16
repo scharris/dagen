@@ -1,30 +1,29 @@
 package org.sqljson.result_types;
 
 import java.util.*;
-import static java.util.Collections.unmodifiableList;
+
 import org.checkerframework.checker.nullness.qual.Nullable;
 
 import org.sqljson.dbmd.Field;
-import org.sqljson.specs.queries.FieldTypeOverride;
 
 
 /// A field to be included as part of a generated type whose data source is a database column.
 public class DatabaseField
 {
-   private String name;
-   private int jdbcTypeCode;
-   private String databaseType;
-   private @Nullable Integer length;
-   private @Nullable Integer precision;
-   private @Nullable Integer fractionalDigits;
-   private @Nullable Boolean nullable;
-   private List<FieldTypeOverride> typeOverrides;
+   private final String name;
+   private final int jdbcTypeCode;
+   private final String databaseType;
+   private final @Nullable Integer length;
+   private final @Nullable Integer precision;
+   private final @Nullable Integer fractionalDigits;
+   private final @Nullable Boolean nullable;
+   private final @Nullable String generatedFieldType;
 
    DatabaseField
       (
          String name,
          Field dbField,
-         List<FieldTypeOverride> typeOverrides
+         @Nullable String generatedFieldType
       )
    {
       this.name = name;
@@ -34,7 +33,7 @@ public class DatabaseField
       this.precision = dbField.getPrecision();
       this.fractionalDigits = dbField.getFractionalDigits();
       this.nullable = dbField.getNullable();
-      this.typeOverrides = unmodifiableList(new ArrayList<>(typeOverrides));
+      this.generatedFieldType = generatedFieldType;
    }
 
    private DatabaseField
@@ -46,7 +45,7 @@ public class DatabaseField
          @Nullable Integer precision,
          @Nullable Integer fractionalDigits,
          @Nullable Boolean nullable,
-         List<FieldTypeOverride> typeOverrides
+         @Nullable String generatedFieldType
       )
    {
       this.name = name;
@@ -56,7 +55,7 @@ public class DatabaseField
       this.precision = precision;
       this.fractionalDigits = fractionalDigits;
       this.nullable = nullable;
-      this.typeOverrides = typeOverrides;
+      this.generatedFieldType = generatedFieldType;
    }
 
    public String getName() { return name; }
@@ -66,16 +65,7 @@ public class DatabaseField
    public @Nullable Integer getPrecision() { return precision; }
    public @Nullable Integer getFractionalDigits() { return fractionalDigits; }
    public @Nullable Boolean getNullable() { return nullable; }
-   public List<FieldTypeOverride> getTypeOverrides() { return typeOverrides; }
-
-   public @Nullable FieldTypeOverride getTypeOverride(String language)
-   {
-      return
-         typeOverrides.stream()
-         .filter(to -> to.getLanguage().equals(language))
-         .findAny()
-         .orElse(null);
-   }
+   public @Nullable String getGeneratedFieldType() { return generatedFieldType; }
 
    DatabaseField toNullable()
    {
@@ -83,7 +73,7 @@ public class DatabaseField
          return this;
       else
          return new DatabaseField(
-            name, jdbcTypeCode, databaseType, length, precision, fractionalDigits, true, typeOverrides
+            name, jdbcTypeCode, databaseType, length, precision, fractionalDigits, true, generatedFieldType
          );
    }
 
@@ -101,13 +91,13 @@ public class DatabaseField
          Objects.equals(precision, that.precision) &&
          Objects.equals(fractionalDigits, that.fractionalDigits) &&
          Objects.equals(nullable, that.nullable) &&
-         typeOverrides.equals(that.typeOverrides);
+         Objects.equals(generatedFieldType, that.generatedFieldType);
    }
 
    @Override
    public int hashCode()
    {
-      return Objects.hash(name, jdbcTypeCode, databaseType, length, precision, fractionalDigits, nullable, typeOverrides);
+      return Objects.hash(name, jdbcTypeCode, databaseType, length, precision, fractionalDigits, nullable, generatedFieldType);
    }
 
    @Override
@@ -121,7 +111,7 @@ public class DatabaseField
          ", precision=" + precision +
          ", fractionalDigits=" + fractionalDigits +
          ", nullable=" + nullable +
-         ", typeOverrides=" + typeOverrides +
+         ", generatedFieldType=" + generatedFieldType +
          '}';
    }
 }

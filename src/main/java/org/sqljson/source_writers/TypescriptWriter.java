@@ -13,7 +13,6 @@ import org.sqljson.GeneratedModStatement;
 import org.sqljson.GeneratedQuery;
 import org.sqljson.dbmd.DatabaseMetadata;
 import org.sqljson.result_types.*;
-import org.sqljson.specs.queries.FieldTypeOverride;
 import org.sqljson.specs.queries.ResultsRepr;
 import org.sqljson.util.IO;
 import org.sqljson.util.StringFuns;
@@ -24,9 +23,9 @@ import static org.sqljson.util.Nullables.*;
 
 public class TypescriptWriter implements SourceCodeWriter
 {
-   private @Nullable Path srcOutputDir;
-   private @Nullable String filesHeader;
-   private String sqlResourceNamePrefix;
+   private final @Nullable Path srcOutputDir;
+   private final @Nullable String filesHeader;
+   private final String sqlResourceNamePrefix;
 
    public TypescriptWriter
       (
@@ -123,7 +122,6 @@ public class TypescriptWriter implements SourceCodeWriter
          Map<String,Path> writtenPathsByModName,
          boolean includeTimestamp
       )
-      throws IOException
    {
       // TODO
       throw new RuntimeException("Typescript source generation for mod statements is not yet implemented.");
@@ -135,7 +133,6 @@ public class TypescriptWriter implements SourceCodeWriter
          DatabaseMetadata dbmd,
          boolean includeTimestamp
       )
-      throws IOException
    {
       // TODO
       throw new RuntimeException("Generation of relation definitions is not yet implemented for Typescript.");
@@ -196,9 +193,9 @@ public class TypescriptWriter implements SourceCodeWriter
    {
       boolean notNull = !valueOr(f.getNullable(), true);
 
-      @Nullable FieldTypeOverride typeOverride = f.getTypeOverride("Typescript");
+      @Nullable String typeOverride = f.getGeneratedFieldType();
       if ( typeOverride != null )
-         return typeOverride.getTypeDeclaration();
+         return typeOverride;
 
       switch ( f.getJdbcTypeCode() )
       {
@@ -235,10 +232,9 @@ public class TypescriptWriter implements SourceCodeWriter
 
    private String getTSTypeNameForExpressionField(ExpressionField f)
    {
-      FieldTypeOverride typeOverride = valueOrThrow(f.getTypeOverride("Typescript"), () ->
+      return valueOrThrow(f.getTypeDeclaration(), () ->
           new RuntimeException("Field type override is required for expression field " + f.getFieldExpression())
       );
-      return typeOverride.getTypeDeclaration();
    }
 
 

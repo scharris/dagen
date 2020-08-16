@@ -1,7 +1,5 @@
 package org.sqljson.specs.queries;
 
-import java.util.List;
-import static java.util.Collections.emptyList;
 import static java.util.Objects.requireNonNull;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -15,7 +13,7 @@ public final class TableFieldExpr
    private @Nullable String expression;
    private @Nullable String withTableAliasAs;
    private @Nullable String jsonProperty;
-   private List<FieldTypeOverride> generateTypes = emptyList();
+   private @Nullable String generatedFieldType;
 
    private TableFieldExpr() {}
 
@@ -25,14 +23,14 @@ public final class TableFieldExpr
          @Nullable String expression,
          @Nullable String withTableAliasAs,
          @Nullable String jsonProperty,
-         List<FieldTypeOverride> fieldTypeOverrides
+         @Nullable String generatedFieldType
       )
    {
       this.field = field;
       this.expression = expression;
       this.withTableAliasAs = withTableAliasAs;
       this.jsonProperty = jsonProperty;
-      this.generateTypes = fieldTypeOverrides;
+      this.generatedFieldType = generatedFieldType;
 
       if ( (field != null) == (expression != null) )
          throw new RuntimeException("Exactly one of database field name and value expression should be specified.");
@@ -48,12 +46,7 @@ public final class TableFieldExpr
 
    public @Nullable String getJsonProperty() { return jsonProperty; }
 
-   public List<FieldTypeOverride> getGenerateTypes() { return generateTypes; }
-
-   public @Nullable FieldTypeOverride getTypeOverride(String language)
-   {
-      return generateTypes.stream().filter(to -> to.getLanguage().equals(language)).findAny().orElse(null);
-   }
+   public @Nullable String getGeneratedFieldType() { return generatedFieldType; }
 
    @JsonIgnore
    public boolean isSimpleField()
@@ -64,4 +57,3 @@ public final class TableFieldExpr
       return field != null;
    }
 }
-

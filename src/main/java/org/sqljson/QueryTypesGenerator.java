@@ -104,14 +104,14 @@ class QueryTypesGenerator
          {
             Field dbField = requireNonNull(dbFieldsByName.get(dbmd.normalizeName(tfe.getField())),
                            "no metadata for field " + relId + "." + tfe.getField());
-            typeBuilder.addDatabaseField(getOutputFieldName(tfe, dbField), dbField, tfe.getGenerateTypes());
+            typeBuilder.addDatabaseField(getOutputFieldName(tfe, dbField), dbField, tfe.getGeneratedFieldType());
          }
          else
          {
             String jsonProperty = valueOrThrow(tfe.getJsonProperty(), () ->
                 new RuntimeException("Expression field " + relId + "." + tfe + " requires a json property.")
             );
-            typeBuilder.addExpressionField(jsonProperty, tfe.getExpression(), tfe.getGenerateTypes());
+            typeBuilder.addExpressionField(jsonProperty, tfe.getExpression(), tfe.getGeneratedFieldType());
          }
       }
 

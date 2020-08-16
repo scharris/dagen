@@ -10,17 +10,13 @@ querySpecs:
         - field: name
         - field: mesh_id
         - field: cid
-          generateTypes:
-            - language: Java
-              typeDeclaration: "@Nullable Integer"
+          generatedFieldType: "@Nullable Integer"
         - field: registered
         - field: market_entry_date
         - field: therapeutic_indications
         - expression: "$$.cid + 1000"
           jsonProperty: cidPlus1000
-          generateTypes:
-            - language: Java
-              typeDeclaration: "@Nullable Integer"
+          generatedFieldType: "@Nullable Integer"
       childTableCollections:
         - collectionName: references
           tableJson:
@@ -55,9 +51,7 @@ querySpecs:
                       jsonProperty: advisoryType
                     - expression: "(1 + 1)"
                       jsonProperty: exprYieldingTwo
-                      generateTypes:
-                        - language: Java
-                          typeDeclaration: long
+                      generatedFieldType: long
                   inlineParentTables:
                     - tableJson:
                         table: authority

@@ -5,7 +5,6 @@ import java.util.List;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
 import org.sqljson.dbmd.Field;
-import org.sqljson.specs.queries.FieldTypeOverride;
 
 public class GeneratedTypeBuilder
 {
@@ -27,10 +26,10 @@ public class GeneratedTypeBuilder
       (
          String fieldName,
          Field f,
-         List<FieldTypeOverride> typeOverrides
+         @Nullable String generatedFieldType
       )
    {
-      databaseFields.add(new DatabaseField(fieldName, f, typeOverrides));
+      databaseFields.add(new DatabaseField(fieldName, f, generatedFieldType));
    }
 
    public void addDatabaseFields(List<DatabaseField> tfs) { databaseFields.addAll(tfs); }
@@ -39,9 +38,14 @@ public class GeneratedTypeBuilder
    {
       expressionFields.add(tof);
    }
-   public void addExpressionField(String name, @Nullable String fieldExpr, List<FieldTypeOverride> typeOverrides)
+   public void addExpressionField
+      (
+         String name,
+         @Nullable String fieldExpr,
+         @Nullable String generatedFieldType
+      )
    {
-      addExpressionField(new ExpressionField(name, fieldExpr, typeOverrides));
+      addExpressionField(new ExpressionField(name, fieldExpr, generatedFieldType));
    }
 
    public void addExpressionFields(List<ExpressionField> tofs) { expressionFields.addAll(tofs); }

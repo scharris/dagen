@@ -6,7 +6,8 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import static java.util.Collections.*;
 
-import org.sqljson.specs.queries.FieldTypeOverride;
+import org.checkerframework.checker.nullness.qual.Nullable;
+
 import org.sqljson.util.StringFuns;
 
 
@@ -53,10 +54,10 @@ public class SqlQueryParts
          String expr,
          String name,
          SelectClauseEntry.Source src,
-         List<FieldTypeOverride> typeOverrides
+         @Nullable String generatedFieldType
       )
    {
-      selectEntries.add(new SelectClauseEntry(expr, name, src, typeOverrides));
+      selectEntries.add(new SelectClauseEntry(expr, name, src, generatedFieldType));
    }
 
    public void addSelectClauseEntries(List<SelectClauseEntry> entries) { selectEntries.addAll(entries); }

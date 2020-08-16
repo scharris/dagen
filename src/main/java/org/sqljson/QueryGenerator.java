@@ -100,7 +100,7 @@ public class QueryGenerator
             querySqls,
             generatedTypes,
             querySpec.getGenerateSource(),
-            querySpec.getTypesFileHeaders(),
+            querySpec.getTypesFileHeader(),
             getAllParamNames(querySpec)
       );
    }
@@ -215,7 +215,7 @@ public class QueryGenerator
             getTableFieldExpressionForAlias(tfe, alias),
             dbmd.quoteIfNeeded(getJsonPropertyName(tfe, propNameDefaultFn, tableJsonSpec.getTable())),
             SelectClauseEntry.Source.NATIVE_FIELD,
-            tfe.getGenerateTypes()
+            tfe.getGeneratedFieldType()
          );
 
       // Add child record collections to the select clause.
@@ -431,12 +431,12 @@ public class QueryGenerator
       String fromClauseQueryAlias = StringFuns.makeNameNotInSet("q", avoidAliases);
       q.addAliasToScope(fromClauseQueryAlias);
 
-      for ( ColumnMetadata parentCol : fromClauseQuery.getResultColumnMetadatas() )
+      for ( ColumnMetadata parentColumn : fromClauseQuery.getResultColumnMetadatas() )
          q.addSelectClauseEntry(
-            fromClauseQueryAlias + "." + parentCol.getName(),
-             parentCol.getName(),
+            fromClauseQueryAlias + "." + parentColumn.getName(),
+             parentColumn.getName(),
             SelectClauseEntry.Source.INLINE_PARENT,
-            parentCol.getFieldTypeOverrides()
+            parentColumn.getGeneratedFieldType()
          );
 
       ParentPkCondition parentPkCond;

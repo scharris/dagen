@@ -18,7 +18,7 @@ public final class QuerySpec
    private @Nullable OutputFieldNameDefault outputFieldNameDefault = null; // inherited from query group spec if empty
    private TableJsonSpec tableJson;
    private boolean forUpdate = false;
-   private List<TypesFileHeader> typesFileHeaders = emptyList();
+   private @Nullable String typesFileHeader = null;
 
    private QuerySpec()
    {
@@ -35,7 +35,7 @@ public final class QuerySpec
          @Nullable OutputFieldNameDefault outputFieldNameDefault,
          TableJsonSpec tableJson,
          boolean forUpdate,
-         List<TypesFileHeader> typesFileHeaders
+         @Nullable String typesFileHeader
       )
    {
       this.queryName = queryName;
@@ -45,7 +45,7 @@ public final class QuerySpec
       this.outputFieldNameDefault = outputFieldNameDefault;
       this.tableJson = tableJson;
       this.forUpdate = forUpdate;
-      this.typesFileHeaders = unmodifiableList(new ArrayList<>(typesFileHeaders));
+      this.typesFileHeader = typesFileHeader;
       if ( generateResultTypes && !generateSource )
          throw new RuntimeException(
             "In query \"" + queryName + "\", cannot generate result types without generateSource option enabled."
@@ -67,5 +67,5 @@ public final class QuerySpec
 
    public boolean getForUpdate() { return forUpdate; }
 
-   public List<TypesFileHeader> getTypesFileHeaders() { return typesFileHeaders; }
+   public @Nullable String getTypesFileHeader() { return typesFileHeader; }
 }

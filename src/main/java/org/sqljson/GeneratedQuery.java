@@ -5,9 +5,10 @@ import static java.util.Collections.unmodifiableList;
 import static java.util.Collections.unmodifiableMap;
 import static java.util.Objects.requireNonNull;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
+
 import org.sqljson.result_types.GeneratedType;
 import org.sqljson.specs.queries.ResultsRepr;
-import org.sqljson.specs.queries.TypesFileHeader;
 
 
 public class GeneratedQuery
@@ -16,7 +17,7 @@ public class GeneratedQuery
    private final Map<ResultsRepr,String> generatedSqls;
    private final List<GeneratedType> generatedResultTypes;
    private final boolean generateSourceEnabled;
-   private final List<TypesFileHeader> typesFileHeaders;
+   private final @Nullable String typesFileHeader;
    private final List<String> paramNames;
 
    public GeneratedQuery
@@ -25,7 +26,7 @@ public class GeneratedQuery
          Map<ResultsRepr,String> generatedSqls,
          List<GeneratedType> generatedResultTypes,
          boolean generateSourceEnabled,
-         List<TypesFileHeader> typesFileHeaders,
+         @Nullable String typesFileHeader,
          List<String> paramNames
       )
    {
@@ -33,7 +34,7 @@ public class GeneratedQuery
       this.generatedSqls = unmodifiableMap(new HashMap<>(generatedSqls));
       this.generatedResultTypes = unmodifiableList(new ArrayList<>(generatedResultTypes));
       this.generateSourceEnabled = generateSourceEnabled;
-      this.typesFileHeaders = unmodifiableList(new ArrayList<>(typesFileHeaders));
+      this.typesFileHeader = typesFileHeader;
       this.paramNames = unmodifiableList(new ArrayList<>(paramNames));
    }
 
@@ -49,7 +50,7 @@ public class GeneratedQuery
 
    public boolean getGenerateSourceEnabled() { return generateSourceEnabled; }
 
-   public List<TypesFileHeader> getTypesFileHeaders() { return typesFileHeaders; }
+   public @Nullable String getTypesFileHeader() { return typesFileHeader; }
 
    public List<String> getParamNames() { return paramNames; }
 }

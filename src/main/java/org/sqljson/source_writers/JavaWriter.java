@@ -21,7 +21,6 @@ import org.sqljson.dbmd.Field;
 import org.sqljson.dbmd.RelMetadata;
 import org.sqljson.dbmd.RelId;
 import org.sqljson.result_types.*;
-import org.sqljson.specs.queries.FieldTypeOverride;
 import org.sqljson.specs.queries.ResultsRepr;
 import org.sqljson.GeneratedQuery;
 import org.sqljson.WrittenQueryReprPath;
@@ -169,9 +168,7 @@ public class JavaWriter implements SourceCodeWriter
          bw.write(filesHeader + "\n");
 
       // Write any additional headers specified in the query.
-      q.getTypesFileHeaders().stream()
-      .filter(h -> h.getLanguage() == Java )
-      .forEach(h -> writeString(bw, h.getText() + "\n"));
+      ifPresent(q.getTypesFileHeader(), hdr -> writeString(bw, hdr + "\n"));
    }
 
    private void writeQueryClass
@@ -584,10 +581,9 @@ public class JavaWriter implements SourceCodeWriter
 
    private String getJavaTypeNameForExpressionField(ExpressionField f)
    {
-      FieldTypeOverride typeOverride = valueOrThrow(f.getTypeOverride("Java"), () ->
+      return valueOrThrow(f.getTypeDeclaration(), () ->
           new RuntimeException("Field type override is required for expression field " + f.getFieldExpression())
       );
-      return typeOverride.getTypeDeclaration();
    }
 
    private String getJavaTypeNameForDatabaseField(DatabaseField f)
@@ -603,9 +599,9 @@ public class JavaWriter implements SourceCodeWriter
    {
       boolean notNull = !valueOr(f.getNullable(), true);
 
-      @Nullable FieldTypeOverride typeOverride = f.getTypeOverride("Java");
-      if ( typeOverride != null )
-         return typeOverride.getTypeDeclaration();
+      @Nullable String typeDecl = f.getGeneratedFieldType();
+      if ( typeDecl != null )
+         return typeDecl;
 
       switch ( f.getJdbcTypeCode() )
       {

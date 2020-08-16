@@ -32,17 +32,13 @@ querySpecs:
   - queryName: drug fields customized type query
     resultsRepresentations: [JSON_OBJECT_ROWS]
     generateResultTypes: true
-    typesFileHeaders:
-      - language: Java
-        text: "import java.math.BigDecimal;"
+    typesFileHeader: "import java.math.BigDecimal;"
     tableJson:
       table: drug
       fieldExpressions:
         - field: id
         - field: cid
-          generateTypes:
-            - language: Java
-              typeDeclaration: "@Nullable BigDecimal"
+          generatedFieldType: "@Nullable BigDecimal"
       fieldParamConditions:
         - field: id
 
@@ -56,9 +52,7 @@ querySpecs:
         - expression: "$d.cid + 1000"
           withTableAliasAs: $d # custom table alias used in expression
           jsonProperty: cidPlus1000
-          generateTypes:
-            - language: Java
-              typeDeclaration: "@Nullable Integer"
+          generatedFieldType: "@Nullable Integer"
       fieldParamConditions:
         - field: id
 
@@ -207,9 +201,7 @@ querySpecs:
                 jsonProperty: advisoryType
               - expression: "(select 1 + 1)"
                 jsonProperty: exprYieldingTwo
-                generateTypes:
-                  - language: Java
-                    typeDeclaration: long
+                generatedFieldType: long
       fieldParamConditions:
         - field: id
 
@@ -231,9 +223,7 @@ querySpecs:
                 jsonProperty: advisoryType
               - expression: "(select 1 + 1)"
                 jsonProperty: exprYieldingTwo
-                generateTypes:
-                  - language: Java
-                    typeDeclaration: long
+                generatedFieldType: long
           customJoinCondition:
             equatedFields:
               - childField: advisory_type_id

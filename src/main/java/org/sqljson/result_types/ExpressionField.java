@@ -1,42 +1,33 @@
 package org.sqljson.result_types;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Objects;
-import static java.util.Collections.unmodifiableList;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
 
-import org.sqljson.specs.queries.FieldTypeOverride;
 
 public class ExpressionField
 {
-   private String name;
-   private @Nullable String fieldExpression;
-   private List<FieldTypeOverride> fieldTypeOverrides;
+   private final String name;
+   private final @Nullable String fieldExpression;
+   private final @Nullable String typeDeclaration;
 
    public ExpressionField
       (
          String name,
          @Nullable String fieldExpression,
-         List<FieldTypeOverride> typeOverrides
+         @Nullable String typeDeclaration
       )
    {
       this.name = name;
       this.fieldExpression = fieldExpression;
-      this.fieldTypeOverrides = unmodifiableList(new ArrayList<>(typeOverrides));
+      this.typeDeclaration = typeDeclaration;
    }
 
    public String getName() { return name; }
 
    public @Nullable String getFieldExpression() { return fieldExpression; }
 
-   public List<FieldTypeOverride> getFieldTypeOverrides() { return fieldTypeOverrides; }
-
-   public @Nullable FieldTypeOverride getTypeOverride(String language)
-   {
-      return fieldTypeOverrides.stream().filter(to -> to.getLanguage().equals(language)).findAny().orElse(null);
-   }
+   public @Nullable String getTypeDeclaration() { return typeDeclaration; }
 
    @Override
    public boolean equals(@Nullable Object o)
@@ -47,13 +38,13 @@ public class ExpressionField
       return
          Objects.equals(fieldExpression, that.fieldExpression) &&
          Objects.equals(name, that.name) &&
-         Objects.equals(fieldTypeOverrides, that.fieldTypeOverrides);
+         Objects.equals(typeDeclaration, that.typeDeclaration);
    }
 
    @Override
    public int hashCode()
    {
-      return Objects.hash(fieldExpression, name, fieldTypeOverrides);
+      return Objects.hash(fieldExpression, name, typeDeclaration);
    }
 
    @Override
@@ -62,7 +53,7 @@ public class ExpressionField
       return "ExpressionField{" +
          "fieldExpression=" + fieldExpression +
          ", name=" + name +
-         ", fieldTypeOverrides=" + fieldTypeOverrides +
+         ", typeDeclaration=" + typeDeclaration +
          '}';
    }
 }

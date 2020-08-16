@@ -66,20 +66,8 @@
                     "jsonProperty" : {
                       "type" : "string"
                     },
-                    "generateTypes" : {
-                      "type" : "array",
-                      "items" : {
-                        "type" : "object",
-                        "id" : "urn:jsonschema:org:sqljson:specs:queries:FieldTypeOverride",
-                        "properties" : {
-                          "language" : {
-                            "type" : "string"
-                          },
-                          "typeDeclaration" : {
-                            "type" : "string"
-                          }
-                        }
-                      }
+                    "generatedFieldType" : {
+                      "type" : "string"
                     }
                   }
                 }

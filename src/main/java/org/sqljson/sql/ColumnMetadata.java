@@ -1,18 +1,13 @@
 package org.sqljson.sql;
 
-import java.util.ArrayList;
-import java.util.List;
-import static java.util.Collections.emptyList;
-import static java.util.Collections.unmodifiableList;
-
-import org.sqljson.specs.queries.FieldTypeOverride;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 
 public class ColumnMetadata
 {
    private final String name;
    private final SelectClauseEntry.Source source;
-   private final List<FieldTypeOverride> fieldTypeOverrides;
+   private final @Nullable String generatedFieldType;
 
    public ColumnMetadata
       (
@@ -20,25 +15,25 @@ public class ColumnMetadata
          SelectClauseEntry.Source source
       )
    {
-      this(name, source, emptyList());
+      this(name, source, null);
    }
 
    public ColumnMetadata
       (
          String name,
          SelectClauseEntry.Source source,
-         List<FieldTypeOverride> fieldTypeOverrides
+         @Nullable String generatedFieldType
       )
    {
       this.name = name;
       this.source = source;
-      this.fieldTypeOverrides = unmodifiableList(new ArrayList<>(fieldTypeOverrides));
+      this.generatedFieldType = generatedFieldType;
    }
 
    public String getName() { return name; }
 
    public SelectClauseEntry.Source getSource() { return source; }
 
-   public List<FieldTypeOverride> getFieldTypeOverrides() { return fieldTypeOverrides; }
+   public @Nullable String getGeneratedFieldType() { return generatedFieldType; }
 }
 

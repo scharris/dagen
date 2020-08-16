@@ -1,6 +1,10 @@
 
-Docs Outline
-------------
+Docs
+----
+Make sequence of yaml examples, with only core elements included.
+Progressively add details.
+Then reference current docs which list explanations for all fields.
+
 Query generator
   - Spec describes tree of tables, generates sql/json query to pull all related
     data via single query operation. Traditional joins have problems pulling
