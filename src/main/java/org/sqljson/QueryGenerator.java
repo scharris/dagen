@@ -214,8 +214,7 @@ public class QueryGenerator
          q.addSelectClauseEntry(
             getTableFieldExpressionForAlias(tfe, alias),
             dbmd.quoteIfNeeded(getJsonPropertyName(tfe, propNameDefaultFn, tableJsonSpec.getTable())),
-            SelectClauseEntry.Source.NATIVE_FIELD,
-            tfe.getGeneratedFieldType()
+            SelectClauseEntry.Source.NATIVE_FIELD
          );
 
       // Add child record collections to the select clause.
@@ -263,7 +262,7 @@ public class QueryGenerator
       List<ColumnMetadata> columnMetadatas =
          q.getSelectClauseEntries().stream()
          .filter(e -> e.getSource() != SelectClauseEntry.Source.HIDDEN_PK)
-         .map(e -> new ColumnMetadata(e.getName(), e.getSource()))
+         .map(e -> new ColumnMetadata(e.getName()))
          .collect(toList());
 
       return new BaseQuery(sql, columnMetadatas);
@@ -435,8 +434,7 @@ public class QueryGenerator
          q.addSelectClauseEntry(
             fromClauseQueryAlias + "." + parentColumn.getName(),
              parentColumn.getName(),
-            SelectClauseEntry.Source.INLINE_PARENT,
-            parentColumn.getGeneratedFieldType()
+            SelectClauseEntry.Source.INLINE_PARENT
          );
 
       ParentPkCondition parentPkCond;

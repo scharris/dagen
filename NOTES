@@ -1,8 +1,4 @@
 
-
-Add to docs that test database needs to be started prior to testing:
-  sudo example/db/init-pg.sh
-
 Github Pages Setup
 ------------------
 https://scharris.github.io/sqljson-query/

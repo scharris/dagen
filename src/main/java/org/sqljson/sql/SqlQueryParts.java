@@ -6,8 +6,6 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import static java.util.Collections.*;
 
-import org.checkerframework.checker.nullness.qual.Nullable;
-
 import org.sqljson.util.StringFuns;
 
 
@@ -48,16 +46,6 @@ public class SqlQueryParts
       )
    {
       selectEntries.add(new SelectClauseEntry(expr, name, src));
-   }
-   public void addSelectClauseEntry
-      (
-         String expr,
-         String name,
-         SelectClauseEntry.Source src,
-         @Nullable String generatedFieldType
-      )
-   {
-      selectEntries.add(new SelectClauseEntry(expr, name, src, generatedFieldType));
    }
 
    public void addSelectClauseEntries(List<SelectClauseEntry> entries) { selectEntries.addAll(entries); }
