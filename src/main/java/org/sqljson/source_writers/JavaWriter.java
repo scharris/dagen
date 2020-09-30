@@ -24,7 +24,6 @@ import org.sqljson.result_types.*;
 import org.sqljson.specs.queries.ResultsRepr;
 import org.sqljson.GeneratedQuery;
 import org.sqljson.WrittenQueryReprPath;
-import static org.sqljson.TypesLanguage.Java;
 import static org.sqljson.WrittenQueryReprPath.getWrittenSqlPathsForQuery;
 import static org.sqljson.util.IO.newFileOrStdoutWriter;
 import static org.sqljson.util.IO.writeString;
