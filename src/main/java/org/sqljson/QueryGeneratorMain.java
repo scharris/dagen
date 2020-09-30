@@ -20,7 +20,7 @@ import org.sqljson.util.AppUtils.SplitArgs;
 import org.sqljson.dbmd.DatabaseMetadata;
 import org.sqljson.source_writers.SourceCodeWriter;
 import org.sqljson.source_writers.JavaWriter;
-import org.sqljson.source_writers.TypescriptWriter;
+import org.sqljson.source_writers.TypeScriptWriter;
 import static org.sqljson.util.AppUtils.splitOptionsAndRequiredArgs;
 import static org.sqljson.util.AppUtils.throwError;
 import static org.sqljson.util.IO.newFileOrStdoutWriter;
@@ -49,7 +49,7 @@ public class QueryGeneratorMain
       ps.println("If output directories are not provided, then all output is written to standard out.");
       ps.println("Options:");
       ps.println("   " + sqlResourcePathInGeneratedSourceOptPrefix + "<path>: a prefix to the SQL file name written into source code.");
-      ps.println("   " + langOptPrefix + "<language>  Output language, \"Java\"|\"Typescript\".");
+      ps.println("   " + langOptPrefix + "<language>  Output language, \"Java\"|\"TypeScript\".");
       ps.println("   " + pkgOptPrefix + "<java-package>  The Java package for the generated query classes.");
       ps.println("   " + javaNullabilityOptPrefix + "<nullable-fields-option>  How nullable fields should be" +
                  "represented in Java.");
@@ -212,8 +212,8 @@ public class QueryGeneratorMain
                generateJavaGetters,
                generateJavaSetters
             );
-         case Typescript:
-            return new TypescriptWriter(srcOutputBaseDir, typeFilesHeader, sqlResourceNamePrefix);
+         case TypeScript:
+            return new TypeScriptWriter(srcOutputBaseDir, typeFilesHeader, sqlResourceNamePrefix);
          default:
             throw new RuntimeException("target language not supported");
       }

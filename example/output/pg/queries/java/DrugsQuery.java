@@ -1,6 +1,6 @@
-// --------------------------------------------------------------------------
+// ---------------------------------------------------------------------------
 // [ THIS SOURCE CODE WAS AUTO-GENERATED, ANY CHANGES MADE HERE MAY BE LOST. ]
-// --------------------------------------------------------------------------
+// ---------------------------------------------------------------------------
 import java.util.*;
 import java.math.*;
 import java.time.*;
@@ -9,7 +9,9 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.framework.qual.DefaultQualifier;
 import org.checkerframework.framework.qual.TypeUseLocation;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.*;
 // Can add more imports or other items via via "--types-file-header" option here.
+
 
 public class DrugsQuery
 {

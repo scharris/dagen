@@ -1,9 +1,9 @@
 ---
 schemaName: "drugs"
 dbmsName: "PostgreSQL"
-dbmsVersion: "12.1 (Debian 12.1-1.pgdg100+1)"
+dbmsVersion: "12.4 (Debian 12.4-1.pgdg100+1)"
 dbmsMajorVersion: 12
-dbmsMinorVersion: 1
+dbmsMinorVersion: 4
 caseSensitivity: "INSENSITIVE_STORED_LOWER"
 relationMetadatas:
 - relationId:

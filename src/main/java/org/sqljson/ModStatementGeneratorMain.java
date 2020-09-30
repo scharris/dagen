@@ -42,7 +42,7 @@ public class ModStatementGeneratorMain
       ps.println("If the output directory is not provided, then output is written to standard out.");
       ps.println("Options:");
       ps.println("   " + sqlResourcePathInGeneratedSourceOptPrefix + "<path>: a prefix to the SQL file name written into source code.");
-      ps.println("   " + langOptPrefix + "<language>  Output language, \"Java\"|\"Typescript\".");
+      ps.println("   " + langOptPrefix + "<language>  Output language, \"Java\"|\"TypeScript\".");
       ps.println("   " + pkgOptPrefix + "<java-package>  The Java package for the generated query classes.");
       ps.println("    --print-spec-json-schema: Print a json schema for the mod group spec, to facilitate editing.");
    }
@@ -177,25 +177,28 @@ public class ModStatementGeneratorMain
          @Nullable Path srcOutputBaseDir
       )
    {
-      String sqlResourceNamePrefix = "";
-      String language = "";
+      String langStr = "";
       String targetPackage = "";
+      String sqlResourceNamePrefix = "";
       for ( String opt : args.optional )
       {
          if ( opt.startsWith(sqlResourcePathInGeneratedSourceOptPrefix) )
             sqlResourceNamePrefix = opt.substring(sqlResourcePathInGeneratedSourceOptPrefix.length());
-         else if ( opt.startsWith(langOptPrefix) ) language = opt.substring(langOptPrefix.length());
+         else if ( opt.startsWith(langOptPrefix) )
+            langStr = opt.substring(langOptPrefix.length());
          else if ( opt.startsWith(pkgOptPrefix) ) targetPackage = opt.substring(pkgOptPrefix.length());
          else
             throw new RuntimeException("Unrecognized option \"" + opt + "\".");
       }
 
-      switch ( language )
+      TypesLanguage typesLanguage = TypesLanguage.valueOf(langStr);
+
+      switch ( typesLanguage )
       {
-         case "Java":
+         case Java:
             return new JavaWriter(targetPackage, srcOutputBaseDir, sqlResourceNamePrefix);
-         case "Typescript":
-            return new TypescriptWriter(srcOutputBaseDir, null, sqlResourceNamePrefix);
+         case TypeScript:
+            return new TypeScriptWriter(srcOutputBaseDir, null, sqlResourceNamePrefix);
          default:
             throw new RuntimeException("target language not supported");
       }

@@ -212,21 +212,8 @@
           "forUpdate" : {
             "type" : "boolean"
           },
-          "typesFileHeaders" : {
-            "type" : "array",
-            "items" : {
-              "type" : "object",
-              "id" : "urn:jsonschema:org:sqljson:specs:queries:TypesFileHeader",
-              "properties" : {
-                "language" : {
-                  "type" : "string",
-                  "enum" : [ "Java", "Typescript" ]
-                },
-                "text" : {
-                  "type" : "string"
-                }
-              }
-            }
+          "typesFileHeader" : {
+            "type" : "string"
           }
         }
       }

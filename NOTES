@@ -1,27 +1,4 @@
 
-Docs
-----
-Make sequence of yaml examples, with only core elements included.
-Progressively add details.
-Then reference current docs which list explanations for all fields.
-
-Query generator
-  - Spec describes tree of tables, generates sql/json query to pull all related
-    data via single query operation. Traditional joins have problems pulling
-    data from independent child tables with a parent table.
-  - Preamble about query group and options applying to all queries.
-  - Top table and list of fields to include, without any field options, default
-    json field naming.  Always introduced with "tableJson" (bold), same rules/
-    format wherever it appears in the tree.
-  - Field options
-    - Customize json field name
-    - Using expression values
-      - alias syntax
-        - simple calculation
-        - subselect
-  - Including fields from parent tables (inline parent tables)
-  - Including parent tables as objects references (wrapped parent values)
-  - Including child collections
 
 Add to docs that test database needs to be started prior to testing:
   sudo example/db/init-pg.sh

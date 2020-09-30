@@ -19,7 +19,7 @@ import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import org.sqljson.dbmd.DatabaseMetadata;
 import org.sqljson.source_writers.JavaWriter;
 import org.sqljson.source_writers.SourceCodeWriter;
-import org.sqljson.source_writers.TypescriptWriter;
+import org.sqljson.source_writers.TypeScriptWriter;
 import org.sqljson.specs.queries.ResultsRepr;
 import org.sqljson.util.AppUtils.SplitArgs;
 import static org.sqljson.util.AppUtils.splitOptionsAndRequiredArgs;
@@ -44,7 +44,7 @@ public class DatabaseRelationClassesGeneratorMain
       ps.println("Expected arguments: [options] <db-metadata-file> [<src-output-base-dir>");
       ps.println("If output directory is not provided, then all output is written to standard out.");
       ps.println("Options:");
-      ps.println("   " + langOptPrefix + "<language>  Output language, \"Java\"|\"Typescript\".");
+      ps.println("   " + langOptPrefix + "<language>  Output language, \"Java\"|\"TypeScript\".");
       ps.println("   " + pkgOptPrefix + "<java-package>  The Java package for the generated source class(es).");
       ps.println("   " + javaNullabilityOptPrefix + "<nullable-fields-option>  How nullable fields should be" +
                  "represented in Java.");
@@ -138,8 +138,8 @@ public class DatabaseRelationClassesGeneratorMain
                generateJavaGetters,
                generateJavaSetters
             );
-         case Typescript:
-            return new TypescriptWriter(srcOutputBaseDir, null, "");
+         case TypeScript:
+            return new TypeScriptWriter(srcOutputBaseDir, null, "");
          default:
             throw new RuntimeException("target language not supported");
       }

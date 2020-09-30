@@ -111,7 +111,7 @@ structure precisely, including only the fields actually selected from source
 tables in each specific part of the query. Field nullability is also
 represented in generated types, as derived from database metadata. The query
 results can be directly serialized to the top result type using common
-libraries, such as Jackson in Java, or via direct cast in Typescript.
+libraries, such as Jackson in Java, or via direct cast in TypeScript.
 
 ## Find errors in data access code at build time
 
