@@ -67,7 +67,7 @@ public class ModStatementGeneratorMain
 
       Path dbmdPath = Paths.get(args.required.get(0));
       if ( !Files.isRegularFile(dbmdPath) )
-         AppUtils.throwError("Database metdata file not found.");
+         AppUtils.throwError("Database metadata file not found.");
 
       Path modsSpecFilePath = Paths.get(args.required.get(1));
       if ( !Files.isRegularFile(modsSpecFilePath) )

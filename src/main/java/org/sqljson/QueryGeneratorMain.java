@@ -85,7 +85,7 @@ public class QueryGeneratorMain
 
       Path dbmdPath = Paths.get(args.required.get(0));
       if ( !Files.isRegularFile(dbmdPath) )
-         throwError("Database metdata file not found.");
+         throwError("Database metadata file not found.");
 
       Path queriesSpecFilePath = Paths.get(args.required.get(1));
       if ( !Files.isRegularFile(queriesSpecFilePath) )
