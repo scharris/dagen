@@ -204,6 +204,16 @@
             <version>1.6.0</version>
             <executions>
                <execution>
+                  <id>dbmd</id>
+                  <configuration>
+                     <mainClass>org.sqljson.DatabaseMetadataMain</mainClass>
+                     <arguments>
+                        <argument>${propsFile}</argument>
+                        <argument>${outputFile}</argument>
+                     </arguments>
+                  </configuration>
+               </execution>
+               <execution>
                   <id>queries</id>
                   <configuration>
                      <mainClass>org.sqljson.QueryGeneratorMain</mainClass>
