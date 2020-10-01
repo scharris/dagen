@@ -1,3 +1,12 @@
+# Generate queries with Java types.
+./mvn exec:java@queries -Dlang=Java -Dpkg="gov.fda.nctr.myapp" -Ddbmd="example/output/pg/dbmd-pg.yaml" -Dspecs="example/query-specs-java.yaml" -DtypesDir="../../tmp" -DsqlDir="../../tmp"
+
+# Generate queries with TypeScript types.
+./mvn exec:java@queries -Dlang=TypeScript -Ddbmd="example/output/pg/dbmd-pg.yaml" -Dspecs="example/query-specs-java.yaml" -DtypesDir="../../tmp" -DsqlDir="../../tmp"
+
+# Generate mod statements with TypeScript types.
+./mvn exec:java@mod-stmts -Dlang=TypeScript -Ddbmd="example/output/pg/dbmd-pg.yaml" -Dspecs="example/mod-specs.yaml" -DtypesDir="../../tmp" -DsqlDir="../../tmp"
+
 
 Github Pages Setup
 ------------------
