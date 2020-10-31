@@ -5,6 +5,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import static java.util.stream.Collectors.toList;
 import static java.util.Collections.emptyList;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -13,19 +14,21 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 
+import org.sqljson.mod_stmts.GeneratedModStatement;
+import org.sqljson.mod_stmts.ModStatementGenerator;
+import org.sqljson.mod_stmts.source_writers.JavaWriter;
+import org.sqljson.mod_stmts.source_writers.SourceCodeWriter;
+import org.sqljson.mod_stmts.source_writers.TypeScriptWriter;
 import org.sqljson.util.*;
 import org.sqljson.util.AppUtils.SplitArgs;
-
-import static java.util.stream.Collectors.toList;
+import org.sqljson.dbmd.DatabaseMetadata;
+import org.sqljson.mod_stmts.specs.ModGroupSpec;
 import static org.sqljson.util.AppUtils.splitOptionsAndRequiredArgs;
 import static org.sqljson.util.AppUtils.throwError;
 import static org.sqljson.util.IO.newFileOrStdoutWriter;
 import static org.sqljson.util.Nullables.ifPresent;
 import static org.sqljson.util.Nullables.applyIfPresent;
 import static org.sqljson.util.Serialization.writeJsonSchema;
-import org.sqljson.dbmd.DatabaseMetadata;
-import org.sqljson.specs.mod_stmts.ModGroupSpec;
-import org.sqljson.source_writers.*;
 
 
 public class ModStatementGeneratorMain
@@ -191,14 +194,14 @@ public class ModStatementGeneratorMain
             throw new RuntimeException("Unrecognized option \"" + opt + "\".");
       }
 
-      TypesLanguage typesLanguage = TypesLanguage.valueOf(langStr);
+      SourcesLanguage sourcesLanguage = SourcesLanguage.valueOf(langStr);
 
-      switch ( typesLanguage )
+      switch (sourcesLanguage)
       {
          case Java:
             return new JavaWriter(targetPackage, srcOutputBaseDir, sqlResourceNamePrefix);
          case TypeScript:
-            return new TypeScriptWriter(srcOutputBaseDir, null, sqlResourceNamePrefix);
+            return new TypeScriptWriter(srcOutputBaseDir, sqlResourceNamePrefix);
          default:
             throw new RuntimeException("target language not supported");
       }

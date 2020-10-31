@@ -25,7 +25,7 @@ import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 
 import org.springframework.jdbc.datasource.SingleConnectionDataSource;
 import org.sqljson.dbmd.DatabaseMetadata;
-import org.sqljson.specs.queries.QueryGroupSpec;
+import org.sqljson.queries.specs.QueryGroupSpec;
 
 
 public class TestsBase

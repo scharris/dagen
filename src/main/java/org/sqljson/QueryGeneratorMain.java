@@ -14,13 +14,17 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 
-import org.sqljson.specs.queries.QueryGroupSpec;
-import org.sqljson.specs.queries.ResultsRepr;
+import org.sqljson.queries.GeneratedQuery;
+import org.sqljson.queries.QueryGenerator;
+import org.sqljson.queries.source_writers.SourceCodeWriter;
+import org.sqljson.queries.source_writers.JavaWriter;
+import org.sqljson.queries.source_writers.TypeScriptWriter;
+import org.sqljson.queries.WrittenQueryReprPath;
+import org.sqljson.queries.specs.QueryGroupSpec;
+import org.sqljson.queries.specs.ResultsRepr;
+import org.sqljson.specs_common.StatementSpecificationException;
 import org.sqljson.util.AppUtils.SplitArgs;
 import org.sqljson.dbmd.DatabaseMetadata;
-import org.sqljson.source_writers.SourceCodeWriter;
-import org.sqljson.source_writers.JavaWriter;
-import org.sqljson.source_writers.TypeScriptWriter;
 import static org.sqljson.util.AppUtils.splitOptionsAndRequiredArgs;
 import static org.sqljson.util.AppUtils.throwError;
 import static org.sqljson.util.IO.newFileOrStdoutWriter;
@@ -198,9 +202,9 @@ public class QueryGeneratorMain
             throw new RuntimeException("Unrecognized option \"" + opt + "\".");
       }
 
-      TypesLanguage typesLanguage = TypesLanguage.valueOf(langStr);
+      SourcesLanguage sourcesLanguage = SourcesLanguage.valueOf(langStr);
 
-      switch ( typesLanguage )
+      switch ( sourcesLanguage )
       {
          case Java:
             return new JavaWriter(
@@ -213,7 +217,11 @@ public class QueryGeneratorMain
                generateJavaSetters
             );
          case TypeScript:
-            return new TypeScriptWriter(srcOutputBaseDir, typeFilesHeader, sqlResourceNamePrefix);
+            return new TypeScriptWriter(
+               srcOutputBaseDir,
+               typeFilesHeader,
+               sqlResourceNamePrefix
+            );
          default:
             throw new RuntimeException("target language not supported");
       }

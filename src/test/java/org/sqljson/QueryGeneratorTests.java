@@ -15,7 +15,8 @@ import static org.sqljson.TestsBase.Params.params;
 
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.sqljson.dbmd.DatabaseMetadata;
-import org.sqljson.specs.queries.QueryGroupSpec;
+import org.sqljson.queries.QueryGenerator;
+import org.sqljson.queries.specs.QueryGroupSpec;
 
 import generated.query.*;
 

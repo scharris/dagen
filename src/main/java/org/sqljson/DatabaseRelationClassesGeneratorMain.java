@@ -1,14 +1,10 @@
 package org.sqljson;
 
-import java.io.BufferedWriter;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
 
@@ -17,15 +13,12 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 
 import org.sqljson.dbmd.DatabaseMetadata;
-import org.sqljson.source_writers.JavaWriter;
-import org.sqljson.source_writers.SourceCodeWriter;
-import org.sqljson.source_writers.TypeScriptWriter;
-import org.sqljson.specs.queries.ResultsRepr;
+import org.sqljson.dbmd.source_writers.JavaWriter;
+import org.sqljson.dbmd.source_writers.SourceCodeWriter;
+import org.sqljson.dbmd.source_writers.TypeScriptWriter;
 import org.sqljson.util.AppUtils.SplitArgs;
 import static org.sqljson.util.AppUtils.splitOptionsAndRequiredArgs;
 import static org.sqljson.util.AppUtils.throwError;
-import static org.sqljson.util.IO.newFileOrStdoutWriter;
-import static org.sqljson.util.Nullables.applyIfPresent;
 import static org.sqljson.util.Nullables.ifPresent;
 
 
@@ -106,93 +99,28 @@ public class DatabaseRelationClassesGeneratorMain
    {
       String langStr = "";
       String targetPackage = "";
-      boolean generateJavaGetters = false;
-      boolean generateJavaSetters = false;
 
-      JavaWriter.NullableFieldRepr nullableFieldRepr = JavaWriter.NullableFieldRepr.ANNOTATED;
       for ( String opt : args.optional )
       {
          if ( opt.startsWith(langOptPrefix) )
             langStr = opt.substring(langOptPrefix.length());
          else if ( opt.startsWith(pkgOptPrefix) )
             targetPackage = opt.substring(pkgOptPrefix.length());
-         else if ( opt.startsWith(javaNullabilityOptPrefix) )
-            nullableFieldRepr = JavaWriter.NullableFieldRepr.valueOf(opt.substring(javaNullabilityOptPrefix.length()).toUpperCase());
-         else if ( opt.equals(javaGenerateGetters) )
-            generateJavaGetters = true;
-         else if ( opt.equals(javaGenerateSetters) )
-            generateJavaSetters = true;
          else
             throw new RuntimeException("Unrecognized option \"" + opt + "\".");
       }
 
-      TypesLanguage typesLanguage = TypesLanguage.valueOf(langStr);
+      SourcesLanguage sourcesLanguage = SourcesLanguage.valueOf(langStr);
 
-      switch ( typesLanguage )
+      switch ( sourcesLanguage )
       {
          case Java:
-            return new JavaWriter(
-               targetPackage,
-               srcOutputBaseDir,
-               nullableFieldRepr,
-               generateJavaGetters,
-               generateJavaSetters
-            );
+            return new JavaWriter(targetPackage, srcOutputBaseDir);
          case TypeScript:
-            return new TypeScriptWriter(srcOutputBaseDir, null, "");
+            return new TypeScriptWriter(srcOutputBaseDir);
          default:
             throw new RuntimeException("target language not supported");
       }
-   }
-
-   /**
-    *
-    * @param generatedQueries The queries to be written.
-    * @param outputDir The output directory in which to write directories if provided. If not provided, all queries
-    *                  will be written to stdout.
-    * @throws IOException if the output directory could not be created or a write operation fails
-    * @return A list of structures identifying the output locations of written queries.
-    */
-   private static List<WrittenQueryReprPath> writeQueries
-      (
-         List<GeneratedQuery> generatedQueries,
-         @Nullable Path outputDir
-      )
-      throws IOException
-   {
-      List<WrittenQueryReprPath> res = new ArrayList<>();
-
-      if ( outputDir != null )
-         Files.createDirectories(outputDir);
-
-      for ( GeneratedQuery q : generatedQueries )
-      {
-         for ( ResultsRepr repr: q.getResultRepresentations() )
-         {
-            String fileName = q.getQueryName() + "(" + repr.toString().toLowerCase().replace('_',' ') + ").sql";
-            @Nullable Path outputFilePath = applyIfPresent(outputDir, d -> d.resolve(fileName));
-
-            BufferedWriter bw = newFileOrStdoutWriter(outputFilePath);
-
-            try
-            {
-               bw.write(
-                  "-- [ THIS QUERY WAS AUTO-GENERATED, ANY CHANGES MADE HERE MAY BE LOST. ]\n" +
-                  "-- " + repr + " results representation for " + q.getQueryName() + "\n" +
-                  q.getSql(repr) + "\n"
-               );
-
-               res.add(new WrittenQueryReprPath(q.getQueryName(), repr, outputFilePath));
-            }
-            finally
-            {
-               if ( outputFilePath != null ) bw.close();
-               else bw.flush();
-            }
-         }
-      }
-
-      return res;
    }
 }
 
