@@ -10,10 +10,6 @@ import static java.util.Collections.emptyList;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
-
 import org.sqljson.mod_stmts.GeneratedModStatement;
 import org.sqljson.mod_stmts.ModStatementGenerator;
 import org.sqljson.mod_stmts.source_writers.JavaWriter;
@@ -28,6 +24,7 @@ import static org.sqljson.util.AppUtils.throwError;
 import static org.sqljson.util.IO.newFileOrStdoutWriter;
 import static org.sqljson.util.Nullables.ifPresent;
 import static org.sqljson.util.Nullables.applyIfPresent;
+import static org.sqljson.util.Serialization.getObjectMapper;
 import static org.sqljson.util.Serialization.writeJsonSchema;
 
 
@@ -83,11 +80,8 @@ public class ModStatementGeneratorMain
       try ( InputStream dbmdIS = Files.newInputStream(dbmdPath);
             InputStream modsSpecIS = Files.newInputStream(modsSpecFilePath) )
       {
-         ObjectMapper yamlMapper = new ObjectMapper(new YAMLFactory());
-         yamlMapper.registerModule(new Jdk8Module());
-
-         DatabaseMetadata dbmd = yamlMapper.readValue(dbmdIS, DatabaseMetadata.class);
-         ModGroupSpec modGroupSpec = yamlMapper.readValue(modsSpecIS, ModGroupSpec.class);
+         DatabaseMetadata dbmd = getObjectMapper(dbmdPath).readValue(dbmdIS, DatabaseMetadata.class);
+         ModGroupSpec modGroupSpec  = getObjectMapper(modsSpecFilePath).readValue(modsSpecIS, ModGroupSpec.class);
 
          @Nullable Path srcOutputBaseDirPath = outputDirs.size() > 0 ? outputDirs.get(0) : null;
          ifPresent(srcOutputBaseDirPath, path ->  {
