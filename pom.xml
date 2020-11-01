@@ -170,6 +170,39 @@
                </filesets>
             </configuration>
          </plugin>
+         <!-- Generate TypeScript type definitions for query/mod spec types.
+              https://github.com/vojtechhabarta/typescript-generator -->
+         <plugin>
+            <groupId>cz.habarta.typescript-generator</groupId>
+            <artifactId>typescript-generator-maven-plugin</artifactId>
+            <version>2.26.723</version>
+            <executions>
+               <execution>
+                  <id>generate-ts-spec-types</id>
+                  <goals>
+                     <goal>generate</goal>
+                  </goals>
+               </execution>
+            </executions>
+            <configuration>
+               <jsonLibrary>jackson2</jsonLibrary>
+               <classPatterns>
+                  <classPattern>org.sqljson.queries.specs.**</classPattern>
+                  <classPattern>org.sqljson.mod_stmts.specs.**</classPattern>
+                  <classPattern>org.sqljson.specs_common.**</classPattern>
+               </classPatterns>
+               <excludeClassPatterns>
+                  <excludeClassPattern>**.*Exception</excludeClassPattern>
+               </excludeClassPatterns>
+               <nullableAnnotations>
+                  <nullableAnnotation>org.checkerframework.checker.nullness.qual.Nullable</nullableAnnotation>
+               </nullableAnnotations>
+               <nullabilityDefinition>nullAndUndefinedUnion</nullabilityDefinition>
+               <outputKind>module</outputKind>
+               <outputFileType>implementationFile</outputFileType>
+               <outputFile>example/output/spec-types.ts</outputFile>
+            </configuration>
+         </plugin>
          <plugin>
             <groupId>org.codehaus.mojo</groupId>
             <artifactId>versions-maven-plugin</artifactId>
