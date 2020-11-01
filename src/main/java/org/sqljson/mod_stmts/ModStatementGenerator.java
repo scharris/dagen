@@ -17,13 +17,13 @@ import org.sqljson.common.specs.FieldParamCondition;
 import org.sqljson.common.sql_dialects.SqlDialect;
 import org.sqljson.mod_stmts.specs.ModSpec;
 import org.sqljson.mod_stmts.specs.TargetField;
-import org.sqljson.util.StringFuns;
+import org.sqljson.common.util.StringFuns;
 import static org.sqljson.mod_stmts.specs.ParametersType.NAMED;
 import static org.sqljson.mod_stmts.specs.ParametersType.NUMBERED;
-import static org.sqljson.util.Nullables.*;
-import static org.sqljson.util.StatementValidations.identifySpecificationTable;
-import static org.sqljson.util.StatementValidations.verifyTableFieldsExist;
-import static org.sqljson.util.StringFuns.*;
+import static org.sqljson.common.util.Nullables.*;
+import static org.sqljson.common.util.StatementValidations.identifySpecificationTable;
+import static org.sqljson.common.util.StatementValidations.verifyTableFieldsExist;
+import static org.sqljson.common.util.StringFuns.*;
 
 
 public class ModStatementGenerator

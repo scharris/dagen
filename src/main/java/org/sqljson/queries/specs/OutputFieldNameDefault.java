@@ -5,7 +5,7 @@ import static java.util.function.Function.identity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-import org.sqljson.util.StringFuns;
+import org.sqljson.common.util.StringFuns;
 
 
 public enum OutputFieldNameDefault

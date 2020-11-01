@@ -5,7 +5,7 @@ import java.util.function.Function;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.*;
 import static java.util.function.Function.identity;
-import static org.sqljson.util.Nullables.*;
+import static org.sqljson.common.util.Nullables.*;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
 
@@ -13,7 +13,7 @@ import org.sqljson.dbmd.*;
 import org.sqljson.queries.result_types.GeneratedType;
 import org.sqljson.queries.result_types.GeneratedTypeBuilder;
 import org.sqljson.queries.specs.*;
-import org.sqljson.util.StringFuns;
+import org.sqljson.common.util.StringFuns;
 
 
 class QueryTypesGenerator

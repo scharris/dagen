@@ -16,17 +16,17 @@ import org.sqljson.mod_stmts.ModStatementGenerator;
 import org.sqljson.mod_stmts.source_writers.JavaWriter;
 import org.sqljson.mod_stmts.source_writers.SourceCodeWriter;
 import org.sqljson.mod_stmts.source_writers.TypeScriptWriter;
-import org.sqljson.util.*;
-import org.sqljson.util.AppUtils.SplitArgs;
+import org.sqljson.common.util.*;
+import org.sqljson.common.util.AppUtils.SplitArgs;
 import org.sqljson.dbmd.DatabaseMetadata;
 import org.sqljson.mod_stmts.specs.ModGroupSpec;
-import static org.sqljson.util.AppUtils.splitOptionsAndRequiredArgs;
-import static org.sqljson.util.AppUtils.throwError;
-import static org.sqljson.util.IO.newFileOrStdoutWriter;
-import static org.sqljson.util.Nullables.ifPresent;
-import static org.sqljson.util.Nullables.applyIfPresent;
-import static org.sqljson.util.Serialization.getObjectMapper;
-import static org.sqljson.util.Serialization.writeJsonSchema;
+import static org.sqljson.common.util.AppUtils.splitOptionsAndRequiredArgs;
+import static org.sqljson.common.util.AppUtils.throwError;
+import static org.sqljson.common.util.IO.newFileOrStdoutWriter;
+import static org.sqljson.common.util.Nullables.ifPresent;
+import static org.sqljson.common.util.Nullables.applyIfPresent;
+import static org.sqljson.common.util.Serialization.getObjectMapper;
+import static org.sqljson.common.util.Serialization.writeJsonSchema;
 
 
 public class ModStatementGeneratorMain

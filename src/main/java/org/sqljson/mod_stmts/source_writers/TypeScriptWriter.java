@@ -10,8 +10,8 @@ import java.util.*;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
 import org.sqljson.mod_stmts.GeneratedModStatement;
-import static org.sqljson.util.IO.newFileOrStdoutWriter;
-import static org.sqljson.util.Nullables.*;
+import static org.sqljson.common.util.IO.newFileOrStdoutWriter;
+import static org.sqljson.common.util.Nullables.*;
 
 
 public class TypeScriptWriter implements SourceCodeWriter

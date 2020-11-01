@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import static java.util.Collections.*;
 
-import org.sqljson.util.StringFuns;
+import org.sqljson.common.util.StringFuns;
 
 
 public class SqlQueryParts

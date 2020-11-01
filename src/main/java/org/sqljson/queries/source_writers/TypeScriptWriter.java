@@ -13,14 +13,14 @@ import org.sqljson.queries.GeneratedQuery;
 import org.sqljson.queries.WrittenQueryReprPath;
 import org.sqljson.queries.result_types.*;
 import org.sqljson.queries.specs.ResultsRepr;
-import org.sqljson.util.IO;
+import org.sqljson.common.util.IO;
 
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toList;
 import static org.sqljson.queries.WrittenQueryReprPath.getWrittenSqlPathsForQuery;
-import static org.sqljson.util.IO.writeString;
-import static org.sqljson.util.Nullables.*;
-import static org.sqljson.util.StringFuns.upperCamelCase;
+import static org.sqljson.common.util.IO.writeString;
+import static org.sqljson.common.util.Nullables.*;
+import static org.sqljson.common.util.StringFuns.upperCamelCase;
 
 
 public class TypeScriptWriter implements SourceCodeWriter

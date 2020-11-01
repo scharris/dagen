@@ -1,4 +1,4 @@
-package org.sqljson.util;
+package org.sqljson.common.util;
 
 import java.util.ArrayList;
 import java.util.Arrays;

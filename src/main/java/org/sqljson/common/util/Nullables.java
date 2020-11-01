@@ -1,4 +1,4 @@
-package org.sqljson.util;
+package org.sqljson.common.util;
 
 import java.util.function.Consumer;
 import java.util.function.Function;

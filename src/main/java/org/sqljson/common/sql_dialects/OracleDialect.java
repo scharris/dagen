@@ -11,8 +11,8 @@ import org.sqljson.mod_stmts.specs.ParametersType;
 import org.sqljson.queries.sql.ColumnMetadata;
 
 import static org.sqljson.mod_stmts.specs.ParametersType.NUMBERED;
-import static org.sqljson.util.Nullables.valueOr;
-import static org.sqljson.util.StringFuns.*;
+import static org.sqljson.common.util.Nullables.valueOr;
+import static org.sqljson.common.util.StringFuns.*;
 
 
 public class OracleDialect implements SqlDialect

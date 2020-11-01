@@ -17,10 +17,10 @@ import org.sqljson.dbmd.DatabaseMetadata;
 import org.sqljson.dbmd.source_writers.JavaWriter;
 import org.sqljson.dbmd.source_writers.SourceCodeWriter;
 import org.sqljson.dbmd.source_writers.TypeScriptWriter;
-import org.sqljson.util.AppUtils.SplitArgs;
-import static org.sqljson.util.AppUtils.splitOptionsAndRequiredArgs;
-import static org.sqljson.util.AppUtils.throwError;
-import static org.sqljson.util.Nullables.ifPresent;
+import org.sqljson.common.util.AppUtils.SplitArgs;
+import static org.sqljson.common.util.AppUtils.splitOptionsAndRequiredArgs;
+import static org.sqljson.common.util.AppUtils.throwError;
+import static org.sqljson.common.util.Nullables.ifPresent;
 
 
 public class DatabaseRelationClassesGeneratorMain

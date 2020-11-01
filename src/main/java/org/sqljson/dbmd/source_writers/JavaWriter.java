@@ -15,9 +15,9 @@ import org.sqljson.dbmd.DatabaseMetadata;
 import org.sqljson.dbmd.Field;
 import org.sqljson.dbmd.RelMetadata;
 import org.sqljson.dbmd.RelId;
-import static org.sqljson.util.IO.newFileOrStdoutWriter;
-import static org.sqljson.util.Nullables.*;
-import static org.sqljson.util.StringFuns.*;
+import static org.sqljson.common.util.IO.newFileOrStdoutWriter;
+import static org.sqljson.common.util.Nullables.*;
+import static org.sqljson.common.util.StringFuns.*;
 
 
 public class JavaWriter implements SourceCodeWriter

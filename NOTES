@@ -14,8 +14,6 @@
 # Generate TypeScript module representing query and mod statement specification types.
 ./mvn typescript-generator:generate@ts-spec-types
 
-./mvn typescript-generator:generate@ts-spec-types
-
 
 Github Pages Setup
 ------------------

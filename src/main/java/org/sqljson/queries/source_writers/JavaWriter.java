@@ -18,10 +18,10 @@ import org.sqljson.queries.WrittenQueryReprPath;
 import org.sqljson.queries.result_types.*;
 import org.sqljson.queries.specs.ResultsRepr;
 import static org.sqljson.queries.WrittenQueryReprPath.getWrittenSqlPathsForQuery;
-import static org.sqljson.util.IO.newFileOrStdoutWriter;
-import static org.sqljson.util.IO.writeString;
-import static org.sqljson.util.Nullables.*;
-import static org.sqljson.util.StringFuns.*;
+import static org.sqljson.common.util.IO.newFileOrStdoutWriter;
+import static org.sqljson.common.util.IO.writeString;
+import static org.sqljson.common.util.Nullables.*;
+import static org.sqljson.common.util.StringFuns.*;
 
 
 public class JavaWriter implements SourceCodeWriter

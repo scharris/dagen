@@ -20,16 +20,16 @@ import org.sqljson.queries.WrittenQueryReprPath;
 import org.sqljson.queries.specs.QueryGroupSpec;
 import org.sqljson.queries.specs.ResultsRepr;
 import org.sqljson.common.specs.StatementSpecificationException;
-import org.sqljson.util.AppUtils.SplitArgs;
+import org.sqljson.common.util.AppUtils.SplitArgs;
 import org.sqljson.dbmd.DatabaseMetadata;
-import static org.sqljson.util.AppUtils.splitOptionsAndRequiredArgs;
-import static org.sqljson.util.AppUtils.throwError;
-import static org.sqljson.util.IO.newFileOrStdoutWriter;
-import static org.sqljson.util.IO.readString;
-import static org.sqljson.util.Nullables.ifPresent;
-import static org.sqljson.util.Nullables.applyIfPresent;
-import static org.sqljson.util.Serialization.getObjectMapper;
-import static org.sqljson.util.Serialization.writeJsonSchema;
+import static org.sqljson.common.util.AppUtils.splitOptionsAndRequiredArgs;
+import static org.sqljson.common.util.AppUtils.throwError;
+import static org.sqljson.common.util.IO.newFileOrStdoutWriter;
+import static org.sqljson.common.util.IO.readString;
+import static org.sqljson.common.util.Nullables.ifPresent;
+import static org.sqljson.common.util.Nullables.applyIfPresent;
+import static org.sqljson.common.util.Serialization.getObjectMapper;
+import static org.sqljson.common.util.Serialization.writeJsonSchema;
 
 
 public class QueryGeneratorMain
