@@ -189,7 +189,7 @@
                <classPatterns>
                   <classPattern>org.sqljson.queries.specs.**</classPattern>
                   <classPattern>org.sqljson.mod_stmts.specs.**</classPattern>
-                  <classPattern>org.sqljson.specs_common.**</classPattern>
+                  <classPattern>org.sqljson.common.specs.**</classPattern>
                </classPatterns>
                <excludeClassPatterns>
                   <excludeClassPattern>**.*Exception</excludeClassPattern>

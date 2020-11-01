@@ -9,8 +9,8 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-import org.sqljson.specs_common.RecordCondition;
-import org.sqljson.specs_common.FieldParamCondition;
+import org.sqljson.common.specs.RecordCondition;
+import org.sqljson.common.specs.FieldParamCondition;
 
 
 public final class TableJsonSpec

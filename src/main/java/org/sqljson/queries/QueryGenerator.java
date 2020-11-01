@@ -8,15 +8,15 @@ import static java.util.function.Function.identity;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
 
-import org.sqljson.specs_common.StatementSpecificationException;
+import org.sqljson.common.specs.StatementSpecificationException;
 import org.sqljson.dbmd.*;
 import org.sqljson.queries.result_types.GeneratedType;
 import org.sqljson.queries.specs.*;
-import org.sqljson.specs_common.FieldParamCondition;
-import org.sqljson.specs_common.RecordCondition;
+import org.sqljson.common.specs.FieldParamCondition;
+import org.sqljson.common.specs.RecordCondition;
 import org.sqljson.queries.sql.*;
 import org.sqljson.util.StringFuns;
-import org.sqljson.sql_dialects.SqlDialect;
+import org.sqljson.common.sql_dialects.SqlDialect;
 
 import static org.sqljson.util.StatementValidations.identifySpecificationTable;
 import static org.sqljson.util.StatementValidations.verifyTableFieldsExist;

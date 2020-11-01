@@ -10,6 +10,7 @@ import static java.util.stream.Collectors.toList;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
 
+import org.sqljson.common.SourcesLanguage;
 import org.sqljson.queries.GeneratedQuery;
 import org.sqljson.queries.QueryGenerator;
 import org.sqljson.queries.source_writers.SourceCodeWriter;
@@ -18,7 +19,7 @@ import org.sqljson.queries.source_writers.TypeScriptWriter;
 import org.sqljson.queries.WrittenQueryReprPath;
 import org.sqljson.queries.specs.QueryGroupSpec;
 import org.sqljson.queries.specs.ResultsRepr;
-import org.sqljson.specs_common.StatementSpecificationException;
+import org.sqljson.common.specs.StatementSpecificationException;
 import org.sqljson.util.AppUtils.SplitArgs;
 import org.sqljson.dbmd.DatabaseMetadata;
 import static org.sqljson.util.AppUtils.splitOptionsAndRequiredArgs;

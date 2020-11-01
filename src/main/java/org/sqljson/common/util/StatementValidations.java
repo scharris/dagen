@@ -7,7 +7,7 @@ import static java.util.stream.Collectors.toSet;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
 
-import org.sqljson.specs_common.StatementSpecificationException;
+import org.sqljson.common.specs.StatementSpecificationException;
 import org.sqljson.dbmd.DatabaseMetadata;
 import org.sqljson.dbmd.Field;
 import org.sqljson.dbmd.RelId;

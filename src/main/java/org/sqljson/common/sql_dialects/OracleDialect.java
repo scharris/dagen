@@ -1,25 +1,25 @@
-package org.sqljson.sql_dialects;
+package org.sqljson.common.sql_dialects;
 
 import java.util.List;
 import java.util.function.Function;
+
 import static java.util.stream.Collectors.joining;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
-
-import org.sqljson.specs_common.FieldParamCondition;
+import org.sqljson.common.specs.FieldParamCondition;
 import org.sqljson.mod_stmts.specs.ParametersType;
 import org.sqljson.queries.sql.ColumnMetadata;
-import org.sqljson.util.StringFuns;
+
 import static org.sqljson.mod_stmts.specs.ParametersType.NUMBERED;
 import static org.sqljson.util.Nullables.valueOr;
-import static org.sqljson.util.StringFuns.maybeQualify;
+import static org.sqljson.util.StringFuns.*;
 
 
-public class PostgresDialect implements SqlDialect
+public class OracleDialect implements SqlDialect
 {
    private final int indentSpaces;
 
-   public PostgresDialect(int indentSpaces)
+   public OracleDialect(int indentSpaces)
    {
       this.indentSpaces = indentSpaces;
    }
@@ -33,13 +33,14 @@ public class PostgresDialect implements SqlDialect
    {
       String objectFieldDecls =
          columnMetadatas.stream()
-         .map(col -> "'" + StringFuns.unDoubleQuote(col.getName()) + "', " + fromAlias + "." + col.getName())
+         .map(col -> "'" + unDoubleQuote(col.getName()) + "' value " + fromAlias + "." + col.getName())
          .collect(joining(",\n"));
 
-         return
-            "jsonb_build_object(\n" +
-               StringFuns.indentLines(objectFieldDecls, indentSpaces) + "\n" +
-            ")";
+      return
+         "json_object(\n" +
+            indentLines(objectFieldDecls, indentSpaces) + "\n" +
+            "  returning clob\n" +
+         ")";
    }
 
    @Override
@@ -49,20 +50,19 @@ public class PostgresDialect implements SqlDialect
          String fromAlias
       )
    {
-
       String rowObjExpr = getRowObjectExpression(columnMetadatas, fromAlias);
-      return "coalesce(jsonb_agg(" + rowObjExpr + "),'[]'::jsonb)";
+      return "treat(coalesce(json_arrayagg(" + rowObjExpr + " returning clob), to_clob('[]')) as json)";
    }
 
    @Override
    public String getAggregatedColumnValuesExpression
       (
-          ColumnMetadata columnMetadata,
-          String fromAlias
+         ColumnMetadata columnMetadata,
+         String fromAlias
       )
    {
       String qfield = fromAlias + "." + columnMetadata.getName();
-      return "coalesce(jsonb_agg(" + qfield + "))";
+      return "treat(coalesce(json_arrayagg(" + qfield + " returning clob), to_clob('[]')) as json)";
    }
 
    @Override
@@ -84,7 +84,8 @@ public class PostgresDialect implements SqlDialect
 
       switch ( fpcond.getOp() )
       {
-         case JSON_CONTAINS: return mqFieldName + " @> " + paramValExpr;
+         // NOTE: It's intended to eventually add more operators here.
+         case JSON_CONTAINS: throw new RuntimeException("Operator not recognized.");
          // (Add other dialect specific operators here.)
          default: throw new RuntimeException("Operator not recognized.");
       }

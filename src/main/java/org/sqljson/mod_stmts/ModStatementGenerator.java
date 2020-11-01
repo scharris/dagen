@@ -9,12 +9,12 @@ import static java.util.stream.Collectors.*;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
 
-import org.sqljson.specs_common.StatementSpecificationException;
+import org.sqljson.common.specs.StatementSpecificationException;
 import org.sqljson.dbmd.DatabaseMetadata;
 import org.sqljson.dbmd.RelId;
 import org.sqljson.dbmd.RelMetadata;
-import org.sqljson.specs_common.FieldParamCondition;
-import org.sqljson.sql_dialects.SqlDialect;
+import org.sqljson.common.specs.FieldParamCondition;
+import org.sqljson.common.sql_dialects.SqlDialect;
 import org.sqljson.mod_stmts.specs.ModSpec;
 import org.sqljson.mod_stmts.specs.TargetField;
 import org.sqljson.util.StringFuns;

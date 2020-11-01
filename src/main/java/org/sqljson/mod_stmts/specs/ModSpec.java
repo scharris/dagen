@@ -4,8 +4,8 @@ import java.util.List;
 import static java.util.Collections.emptyList;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
-import org.sqljson.specs_common.RecordCondition;
-import org.sqljson.specs_common.FieldParamCondition;
+import org.sqljson.common.specs.RecordCondition;
+import org.sqljson.common.specs.FieldParamCondition;
 import static org.sqljson.mod_stmts.specs.ParametersType.NAMED;
 
 

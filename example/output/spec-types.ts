@@ -1,6 +1,18 @@
 /* tslint:disable */
 /* eslint-disable */
-// Generated using typescript-generator version 2.26.723 on 2020-10-31 20:24:08.
+// Generated using typescript-generator version 2.26.723 on 2020-10-31 20:33:43.
+
+export interface FieldParamCondition {
+    field: string;
+    op: Operator;
+    paramName?: Nullable<string>;
+}
+
+export interface RecordCondition {
+    sql: string;
+    paramNames: string[];
+    withTableAliasAs?: Nullable<string>;
+}
 
 export interface ModGroupSpec {
     defaultSchema?: Nullable<string>;
@@ -51,8 +63,8 @@ export interface InlineParentSpec extends ParentSpec {
 }
 
 export interface ParentSpec {
-    parentTableJsonSpec: TableJsonSpec;
     childForeignKeyFieldsSet?: Nullable<string[]>;
+    parentTableJsonSpec: TableJsonSpec;
 }
 
 export interface QueryGroupSpec {
@@ -98,17 +110,7 @@ export interface TableJsonSpec {
     recordCondition?: Nullable<RecordCondition>;
 }
 
-export interface FieldParamCondition {
-    field: string;
-    op: Operator;
-    paramName?: Nullable<string>;
-}
-
-export interface RecordCondition {
-    sql: string;
-    paramNames: string[];
-    withTableAliasAs?: Nullable<string>;
-}
+export type Operator = "EQ" | "LT" | "LE" | "GT" | "GE" | "IN" | "EQ_IF_PARAM_NONNULL" | "JSON_CONTAINS";
 
 export type ModType = "INSERT" | "UPDATE" | "DELETE";
 
@@ -117,7 +119,5 @@ export type ParametersType = "NUMBERED" | "NAMED";
 export type OutputFieldNameDefault = "AS_IN_DB" | "CAMELCASE";
 
 export type ResultsRepr = "MULTI_COLUMN_ROWS" | "JSON_OBJECT_ROWS" | "JSON_ARRAY_ROW";
-
-export type Operator = "EQ" | "LT" | "LE" | "GT" | "GE" | "IN" | "EQ_IF_PARAM_NONNULL" | "JSON_CONTAINS";
 
 export type Nullable<T> = T | null | undefined;

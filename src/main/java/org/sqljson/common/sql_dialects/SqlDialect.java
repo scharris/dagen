@@ -1,11 +1,11 @@
-package org.sqljson.sql_dialects;
+package org.sqljson.common.sql_dialects;
 
 import java.util.List;
 import java.util.function.Function;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.sqljson.dbmd.DatabaseMetadata;
-import org.sqljson.specs_common.FieldParamCondition;
+import org.sqljson.common.specs.FieldParamCondition;
 import org.sqljson.mod_stmts.specs.ParametersType;
 import org.sqljson.queries.sql.ColumnMetadata;
 

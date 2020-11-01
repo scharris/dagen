@@ -1,4 +1,4 @@
-package org.sqljson;
+package org.sqljson.common;
 
 public enum SourcesLanguage
 {
