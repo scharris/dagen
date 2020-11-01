@@ -1,8 +1,3 @@
-TODO
-  Add example query spec in json format (convert from yaml), try generating queries from it.
-
-# Generate TypeScript module representing query and mod statement specification types.
-./mvn typescript-generator:generate@ts-spec-types
 
 # Generate database metadata.
 ./mvn exec:java@dbmd -DpropsFile="example/db/dbmd-pg.props" -DoutputFile="../../tmp/dmbd.yaml"
@@ -15,6 +10,11 @@ TODO
 
 # Generate mod statements with TypeScript types.
 ./mvn exec:java@mod-stmts -Dlang=TypeScript -Ddbmd="example/output/pg/dbmd-pg.yaml" -Dspecs="example/mod-specs.yaml" -DtypesDir="../../tmp" -DsqlDir="../../tmp"
+
+# Generate TypeScript module representing query and mod statement specification types.
+./mvn typescript-generator:generate@ts-spec-types
+
+./mvn typescript-generator:generate@ts-spec-types
 
 
 Github Pages Setup
