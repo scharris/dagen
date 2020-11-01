@@ -1,6 +1,6 @@
 {
   "type" : "object",
-  "id" : "urn:jsonschema:org:sqljson:specs:mod_stmts:ModGroupSpec",
+  "id" : "urn:jsonschema:org:sqljson:mod_stmts:specs:ModGroupSpec",
   "properties" : {
     "defaultSchema" : {
       "type" : "string"
@@ -15,7 +15,7 @@
       "type" : "array",
       "items" : {
         "type" : "object",
-        "id" : "urn:jsonschema:org:sqljson:specs:mod_stmts:ModSpec",
+        "id" : "urn:jsonschema:org:sqljson:mod_stmts:specs:ModSpec",
         "properties" : {
           "statementName" : {
             "type" : "string"
@@ -41,7 +41,7 @@
             "type" : "array",
             "items" : {
               "type" : "object",
-              "id" : "urn:jsonschema:org:sqljson:specs:mod_stmts:TargetField",
+              "id" : "urn:jsonschema:org:sqljson:mod_stmts:specs:TargetField",
               "properties" : {
                 "field" : {
                   "type" : "string"
@@ -62,7 +62,7 @@
             "type" : "array",
             "items" : {
               "type" : "object",
-              "id" : "urn:jsonschema:org:sqljson:specs:FieldParamCondition",
+              "id" : "urn:jsonschema:org:sqljson:specs_common:FieldParamCondition",
               "properties" : {
                 "field" : {
                   "type" : "string"
@@ -79,7 +79,7 @@
           },
           "recordCondition" : {
             "type" : "object",
-            "id" : "urn:jsonschema:org:sqljson:specs:RecordCondition",
+            "id" : "urn:jsonschema:org:sqljson:specs_common:RecordCondition",
             "properties" : {
               "sql" : {
                 "type" : "string"

@@ -2,7 +2,6 @@ defaultSchema: drugs
 generateUnqualifiedNamesForSchemas: ["drugs"]
 modificationStatementSpecs:
 
-  ##################################################################
   - statementName: drug insert with named params
     command: INSERT
     table: drug
@@ -22,7 +21,6 @@ modificationStatementSpecs:
       - field: registered_by
         value: :registeredBy
 
-  ##################################################################
   - statementName: drug insert with numbered params
     command: INSERT
     table: drug
@@ -40,7 +38,6 @@ modificationStatementSpecs:
       - field: registered_by
         value: '?'
 
-  ##################################################################
   - statementName: drug update with named params
     command: UPDATE
     table: drug
@@ -61,7 +58,6 @@ modificationStatementSpecs:
     recordCondition:
       sql: $$.compound_id < 0
 
-  ##################################################################
   - statementName: drug update with numbered params
     command: UPDATE
     table: drug
@@ -82,14 +78,12 @@ modificationStatementSpecs:
     recordCondition:
       sql: $$.compound_id < 0
 
-  ##################################################################
   - statementName: drug delete
     command: DELETE
     table: drug
     fieldParamConditions:
       - field: cid
 
-  ##################################################################
   - statementName: lesser drugs delete
     command: DELETE
     table: drug
@@ -97,7 +91,6 @@ modificationStatementSpecs:
       - field: cid
         op: LT
 
-  ##################################################################
   - statementName: drugs list delete
     command: DELETE
     table: drug

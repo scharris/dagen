@@ -1,6 +1,6 @@
 /* tslint:disable */
 /* eslint-disable */
-// Generated using typescript-generator version 2.26.723 on 2020-10-31 20:09:33.
+// Generated using typescript-generator version 2.26.723 on 2020-10-31 20:24:08.
 
 export interface ModGroupSpec {
     defaultSchema?: Nullable<string>;

@@ -1,6 +1,6 @@
 {
   "type" : "object",
-  "id" : "urn:jsonschema:org:sqljson:specs:queries:QueryGroupSpec",
+  "id" : "urn:jsonschema:org:sqljson:queries:specs:QueryGroupSpec",
   "properties" : {
     "defaultSchema" : {
       "type" : "string"
@@ -19,7 +19,7 @@
       "type" : "array",
       "items" : {
         "type" : "object",
-        "id" : "urn:jsonschema:org:sqljson:specs:queries:QuerySpec",
+        "id" : "urn:jsonschema:org:sqljson:queries:specs:QuerySpec",
         "properties" : {
           "queryName" : {
             "type" : "string"
@@ -43,7 +43,7 @@
           },
           "tableJson" : {
             "type" : "object",
-            "id" : "urn:jsonschema:org:sqljson:specs:queries:TableJsonSpec",
+            "id" : "urn:jsonschema:org:sqljson:queries:specs:TableJsonSpec",
             "properties" : {
               "table" : {
                 "type" : "string"
@@ -52,7 +52,7 @@
                 "type" : "array",
                 "items" : {
                   "type" : "object",
-                  "id" : "urn:jsonschema:org:sqljson:specs:queries:TableFieldExpr",
+                  "id" : "urn:jsonschema:org:sqljson:queries:specs:TableFieldExpr",
                   "properties" : {
                     "field" : {
                       "type" : "string"
@@ -76,11 +76,11 @@
                 "type" : "array",
                 "items" : {
                   "type" : "object",
-                  "id" : "urn:jsonschema:org:sqljson:specs:queries:InlineParentSpec",
+                  "id" : "urn:jsonschema:org:sqljson:queries:specs:InlineParentSpec",
                   "properties" : {
                     "tableJson" : {
                       "type" : "object",
-                      "$ref" : "urn:jsonschema:org:sqljson:specs:queries:TableJsonSpec"
+                      "$ref" : "urn:jsonschema:org:sqljson:queries:specs:TableJsonSpec"
                     },
                     "viaForeignKeyFields" : {
                       "type" : "array",
@@ -90,13 +90,13 @@
                     },
                     "customJoinCondition" : {
                       "type" : "object",
-                      "id" : "urn:jsonschema:org:sqljson:specs:queries:CustomJoinCondition",
+                      "id" : "urn:jsonschema:org:sqljson:queries:specs:CustomJoinCondition",
                       "properties" : {
                         "equatedFields" : {
                           "type" : "array",
                           "items" : {
                             "type" : "object",
-                            "id" : "urn:jsonschema:org:sqljson:specs:queries:CustomJoinCondition:FieldPair",
+                            "id" : "urn:jsonschema:org:sqljson:queries:specs:CustomJoinCondition:FieldPair",
                             "properties" : {
                               "childField" : {
                                 "type" : "string"
@@ -116,14 +116,14 @@
                 "type" : "array",
                 "items" : {
                   "type" : "object",
-                  "id" : "urn:jsonschema:org:sqljson:specs:queries:ReferencedParentSpec",
+                  "id" : "urn:jsonschema:org:sqljson:queries:specs:ReferencedParentSpec",
                   "properties" : {
                     "referenceName" : {
                       "type" : "string"
                     },
                     "tableJson" : {
                       "type" : "object",
-                      "$ref" : "urn:jsonschema:org:sqljson:specs:queries:TableJsonSpec"
+                      "$ref" : "urn:jsonschema:org:sqljson:queries:specs:TableJsonSpec"
                     },
                     "viaForeignKeyFields" : {
                       "type" : "array",
@@ -133,7 +133,7 @@
                     },
                     "customJoinCondition" : {
                       "type" : "object",
-                      "$ref" : "urn:jsonschema:org:sqljson:specs:queries:CustomJoinCondition"
+                      "$ref" : "urn:jsonschema:org:sqljson:queries:specs:CustomJoinCondition"
                     }
                   }
                 }
@@ -142,14 +142,14 @@
                 "type" : "array",
                 "items" : {
                   "type" : "object",
-                  "id" : "urn:jsonschema:org:sqljson:specs:queries:ChildCollectionSpec",
+                  "id" : "urn:jsonschema:org:sqljson:queries:specs:ChildCollectionSpec",
                   "properties" : {
                     "collectionName" : {
                       "type" : "string"
                     },
                     "tableJson" : {
                       "type" : "object",
-                      "$ref" : "urn:jsonschema:org:sqljson:specs:queries:TableJsonSpec"
+                      "$ref" : "urn:jsonschema:org:sqljson:queries:specs:TableJsonSpec"
                     },
                     "foreignKeyFields" : {
                       "type" : "array",
@@ -159,7 +159,7 @@
                     },
                     "customJoinCondition" : {
                       "type" : "object",
-                      "$ref" : "urn:jsonschema:org:sqljson:specs:queries:CustomJoinCondition"
+                      "$ref" : "urn:jsonschema:org:sqljson:queries:specs:CustomJoinCondition"
                     },
                     "filter" : {
                       "type" : "string"
@@ -174,7 +174,7 @@
                 "type" : "array",
                 "items" : {
                   "type" : "object",
-                  "id" : "urn:jsonschema:org:sqljson:specs:FieldParamCondition",
+                  "id" : "urn:jsonschema:org:sqljson:specs_common:FieldParamCondition",
                   "properties" : {
                     "field" : {
                       "type" : "string"
@@ -191,7 +191,7 @@
               },
               "recordCondition" : {
                 "type" : "object",
-                "id" : "urn:jsonschema:org:sqljson:specs:RecordCondition",
+                "id" : "urn:jsonschema:org:sqljson:specs_common:RecordCondition",
                 "properties" : {
                   "sql" : {
                     "type" : "string"
