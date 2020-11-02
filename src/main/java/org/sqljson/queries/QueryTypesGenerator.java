@@ -50,19 +50,19 @@ class QueryTypesGenerator
       Map<String, Field> dbFieldsByName = getTableFieldsByName(relId);
 
       // Add this table's own directly contained database fields to the generated type.
-      typeBuilder.addAllFieldsFrom(buildExpressionFields(relId, tjs.getFieldExpressions(), dbFieldsByName));
+      typeBuilder.addAllFieldsFrom(buildExpressionFields(relId, tjs.getFieldExpressionsList(), dbFieldsByName));
 
-      InlineParentsPart inlineParentsPart = buildInlineParentsPart(relId, tjs.getInlineParentTables(), typesInScope);
+      InlineParentsPart inlineParentsPart = buildInlineParentsPart(relId, tjs.getInlineParentTablesList(), typesInScope);
       typeBuilder.addAllFieldsFrom(inlineParentsPart.typesBuilder);
       generatedTypes.addAll(inlineParentsPart.generatedTypes);
       inlineParentsPart.generatedTypes.forEach(t -> typesInScope.put(t.getTypeName(), t));
 
-      ReferencedParentsPart refdParentsPart = buildReferencedParentsPart(relId, tjs.getReferencedParentTables(), typesInScope);
+      ReferencedParentsPart refdParentsPart = buildReferencedParentsPart(relId, tjs.getReferencedParentTablesList(), typesInScope);
       typeBuilder.addAllFieldsFrom(refdParentsPart.typesBuilder);
       generatedTypes.addAll(refdParentsPart.generatedTypes);
       inlineParentsPart.generatedTypes.forEach(t -> typesInScope.put(t.getTypeName(), t));
 
-      ChildCollectionsPart childCollsPart = buildChildCollectionsPart(tjs.getChildTableCollections(), typesInScope);
+      ChildCollectionsPart childCollsPart = buildChildCollectionsPart(tjs.getChildTableCollectionsList(), typesInScope);
       typeBuilder.addAllFieldsFrom(childCollsPart.typesBuilder);
       generatedTypes.addAll(childCollsPart.generatedTypes);
       inlineParentsPart.generatedTypes.forEach(t -> typesInScope.put(t.getTypeName(), t));
@@ -100,14 +100,15 @@ class QueryTypesGenerator
 
       for ( TableFieldExpr tfe : tableFieldExpressions )
       {
-         if ( tfe.isSimpleField() )
+         if ( tfe.getField() != null )
          {
-            Field dbField = requireNonNull(dbFieldsByName.get(dbmd.normalizeName(tfe.getField())),
+            Field dbField = requireNonNull(dbFieldsByName.get(dbmd.normalizeName(requireNonNull(tfe.getField()))),
                            "no metadata for field " + relId + "." + tfe.getField());
             typeBuilder.addDatabaseField(getOutputFieldName(tfe, dbField), dbField, tfe.getGeneratedFieldType());
          }
          else
          {
+            assert tfe.getExpression() != null;
             String jsonProperty = valueOrThrow(tfe.getJsonProperty(), () ->
                 new RuntimeException("Expression field " + relId + "." + tfe + " requires a json property.")
             );
@@ -198,7 +199,7 @@ class QueryTypesGenerator
          List<GeneratedType> childGenTypes = generateTypes(childCollSpec.getTableJson(), typesInScope);
 
          // Mark the top-level child type as unwrapped if specified.
-         GeneratedType childType = childGenTypes.get(0).withUnwrapped(childCollSpec.getUnwrap());
+         GeneratedType childType = childGenTypes.get(0).withUnwrapped(valueOr(childCollSpec.getUnwrap(), false));
          childGenTypes.set(0, childType);
 
          typeBuilder.addChildCollectionField(childCollSpec.getCollectionName(), childType, false);

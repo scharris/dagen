@@ -38,11 +38,11 @@ public class GeneratedModStatement
 
    public List<String> getConditionParamNames() { return conditionParamNames; }
 
-   public boolean getGenerateSource() { return modSpec.getGenerateSourceCode(); }
+   public boolean getGenerateSource() { return modSpec.getGenerateSourceCodeOrDefault(); }
 
    public String getStatementName() { return modSpec.getStatementName(); }
 
-   public boolean hasNamedParameters() { return modSpec.getParametersType() == NAMED; }
+   public boolean hasNamedParameters() { return modSpec.getParametersTypeOrDefault() == NAMED; }
 
    public List<String> getAllParameterNames()
    {

@@ -1,6 +1,5 @@
 package org.sqljson.common.specs;
 
-import java.util.Collections;
 import java.util.List;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -8,19 +7,21 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 
 public class RecordCondition
 {
-   private String sql;
-   private List<String> paramNames = Collections.emptyList();
-   private @Nullable String withTableAliasAs = null; // table alias variable used in sql
+   private final String sql;
+   private final @Nullable List<String> paramNames;
+   private final @Nullable String withTableAliasAs; // table alias variable used in sql
 
    private RecordCondition()
    {
       this.sql =  "";
+      this.paramNames = null;
+      this.withTableAliasAs = null;
    }
 
    public RecordCondition
       (
          String sql,
-         List<String> paramNames,
+         @Nullable List<String> paramNames,
          @Nullable String withTableAliasAs
       )
    {
@@ -31,7 +32,7 @@ public class RecordCondition
 
    public String getSql() { return sql; }
 
-   public List<String> getParamNames() { return paramNames; }
+   public @Nullable List<String> getParamNames() { return paramNames; }
 
    public @Nullable String getWithTableAliasAs() { return withTableAliasAs; }
 }

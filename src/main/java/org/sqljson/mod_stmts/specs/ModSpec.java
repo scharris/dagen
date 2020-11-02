@@ -6,26 +6,34 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 
 import org.sqljson.common.specs.RecordCondition;
 import org.sqljson.common.specs.FieldParamCondition;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import static org.sqljson.mod_stmts.specs.ParametersType.NAMED;
 
 
 public class ModSpec
 {
-   private String statementName;
-   private ModType command;
-   private String table; // possibly qualified
-   private @Nullable String tableAlias = null;
-   private ParametersType parametersType = NAMED;
-   private boolean generateSourceCode = true; // sql resource name and param info
-   private List<TargetField> targetFields = emptyList();
-   private List<FieldParamCondition> fieldParamConditions = emptyList();
-   private @Nullable RecordCondition recordCondition = null; // augments field param equalities
+   private final String statementName;
+   private final ModType command;
+   private final String table; // possibly qualified
+   private final @Nullable String tableAlias;
+   private final @Nullable List<TargetField> targetFields;
+   private final @Nullable ParametersType parametersType;
+   private final @Nullable Boolean generateSourceCode; // sql resource name and param info
+   private final @Nullable List<FieldParamCondition> fieldParamConditions;
+   private final @Nullable RecordCondition recordCondition; // augments field param equalities
 
    private ModSpec()
    {
       this.statementName = "";
       this.command = ModType.DELETE;
       this.table = "";
+      this.tableAlias = null;
+      this.targetFields = null;
+      this.parametersType = null;
+      this.generateSourceCode = true;
+      this.fieldParamConditions = null;
+      this.recordCondition = null;
    }
 
    public ModSpec
@@ -34,10 +42,10 @@ public class ModSpec
          ModType command,
          String table,
          @Nullable String tableAlias,
-         ParametersType parametersType,
-         boolean generateSourceCode,
-         List<TargetField> targetFields,
-         List<FieldParamCondition> fieldParamConditions,
+         @Nullable List<TargetField> targetFields,
+         @Nullable ParametersType parametersType,
+         @Nullable Boolean generateSourceCode,
+         @Nullable List<FieldParamCondition> fieldParamConditions,
          @Nullable RecordCondition recordCondition
       )
    {
@@ -45,9 +53,9 @@ public class ModSpec
       this.command = command;
       this.table = table;
       this.tableAlias = tableAlias;
+      this.targetFields = targetFields;
       this.parametersType = parametersType;
       this.generateSourceCode = generateSourceCode;
-      this.targetFields = targetFields;
       this.fieldParamConditions = fieldParamConditions;
       this.recordCondition = recordCondition;
    }
@@ -60,13 +68,37 @@ public class ModSpec
 
    public @Nullable String getTableAlias() { return tableAlias; }
 
-   public ParametersType getParametersType() { return parametersType; }
+   public @Nullable ParametersType getParametersType() { return parametersType; }
 
-   public boolean getGenerateSourceCode() { return generateSourceCode; }
+   @JsonIgnore
+   public ParametersType getParametersTypeOrDefault()
+   {
+      return parametersType != null ? parametersType : NAMED;
+   }
 
-   public List<TargetField> getTargetFields() { return targetFields; }
+   public @Nullable Boolean getGenerateSourceCode() { return generateSourceCode; }
 
-   public List<FieldParamCondition> getFieldParamConditions() { return fieldParamConditions; }
+   @JsonIgnore
+   public boolean getGenerateSourceCodeOrDefault()
+   {
+      return generateSourceCode != null ? generateSourceCode: true;
+   }
+
+   public @Nullable List<TargetField> getTargetFields() { return targetFields; }
+
+   @JsonIgnore
+   public List<TargetField> getTargetFieldsList()
+   {
+      return targetFields != null ? targetFields: emptyList();
+   }
+
+   public @Nullable List<FieldParamCondition> getFieldParamConditions() { return fieldParamConditions; }
+
+   @JsonIgnore
+   public List<FieldParamCondition> getFieldParamConditionsList()
+   {
+      return fieldParamConditions != null ? fieldParamConditions: emptyList();
+   }
 
    public @Nullable RecordCondition getRecordCondition() { return recordCondition; }
 }

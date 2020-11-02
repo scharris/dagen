@@ -77,12 +77,12 @@ public class PostgresDialect implements SqlDialect
       String mqFieldName = maybeQualify(tableAlias, fpcond.getField());
       String paramValExpr = paramsType == NUMBERED ? "?" : ":"+ valueOr(fpcond.getParamName(), defaultParamNameFn.apply(fpcond.getField()));
 
-      @Nullable String sql = SqlDialect.getCommonFieldParamConditionSql(mqFieldName, paramValExpr, fpcond.getOp());
+      @Nullable String sql = SqlDialect.getCommonFieldParamConditionSql(mqFieldName, paramValExpr, fpcond.getOpOrDefault());
 
       if ( sql != null )
          return sql;
 
-      switch ( fpcond.getOp() )
+      switch ( fpcond.getOpOrDefault() )
       {
          case JSON_CONTAINS: return mqFieldName + " @> " + paramValExpr;
          // (Add other dialect specific operators here.)

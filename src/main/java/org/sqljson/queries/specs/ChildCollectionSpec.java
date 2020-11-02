@@ -15,12 +15,13 @@ public final class ChildCollectionSpec
    private @Nullable List<String> foreignKeyFields = null;
    private @Nullable CustomJoinCondition customJoinCondition = null;
    private @Nullable String filter = null;
-   private boolean unwrap = false;
+   private @Nullable Boolean unwrap = false;
 
    private ChildCollectionSpec()
    {
       this.collectionName = "";
       this.tableJson = new TableJsonSpec();
+      this.unwrap = null;
    }
 
    public ChildCollectionSpec
@@ -29,7 +30,7 @@ public final class ChildCollectionSpec
          TableJsonSpec tableJson,
          @Nullable List<String> fkFields,
          @Nullable String filter,
-         boolean unwrap
+         @Nullable Boolean unwrap
       )
    {
       this.collectionName = collectionName;
@@ -45,7 +46,7 @@ public final class ChildCollectionSpec
          TableJsonSpec tableJson,
          CustomJoinCondition customJoinCondition,
          @Nullable String filter,
-         boolean unwrap
+         @Nullable Boolean unwrap
       )
    {
       this.collectionName = collectionName;
@@ -72,6 +73,6 @@ public final class ChildCollectionSpec
 
    public @Nullable String getFilter() { return filter; }
 
-   public boolean getUnwrap() { return unwrap; }
+   public @Nullable Boolean getUnwrap() { return unwrap; }
 }
 

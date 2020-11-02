@@ -3,6 +3,7 @@ package org.sqljson.queries;
 import java.util.*;
 import java.util.function.Function;
 import static java.util.Collections.*;
+import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.*;
 import static java.util.function.Function.identity;
 
@@ -86,12 +87,12 @@ public class QueryGenerator
                  this.defaultPropNameFn);
 
       Map<ResultsRepr,String> querySqls =
-         querySpec.getResultsRepresentations().stream()
+         querySpec.getResultsRepresentationsList().stream()
          .collect(toMap(identity(), repr ->
             makeSqlForResultsRepr(querySpec, repr, propNameDefaultFn)
          ));
 
-      List<GeneratedType> generatedTypes = querySpec.getGenerateResultTypes() ?
+      List<GeneratedType> generatedTypes = querySpec.getGenerateResultTypesOrDeault() ?
             queryTypesGenerator.generateTypes(querySpec.getTableJson(), emptyMap())
             : emptyList();
 
@@ -100,7 +101,7 @@ public class QueryGenerator
             queryName,
             querySqls,
             generatedTypes,
-            querySpec.getGenerateSource(),
+            querySpec.getGenerateSourceOrDefault(),
             querySpec.getTypesFileHeader(),
             getAllParamNames(querySpec)
       );
@@ -122,11 +123,11 @@ public class QueryGenerator
          {
             String q = makeBaseQuery(tjs, null, false, propNameDefaultFn, queryName, "" )
                        .getSql();
-            return querySpec.getForUpdate() ? q + "\nfor update" : q;
+            return querySpec.getForUpdateOrDefault() ? q + "\nfor update" : q;
          }
          case JSON_OBJECT_ROWS:
          {
-            if ( querySpec.getForUpdate() )
+            if ( querySpec.getForUpdateOrDefault() )
                throw specError(
                   querySpec.getQueryName(),
                   "for update clause",
@@ -137,7 +138,7 @@ public class QueryGenerator
          }
          case JSON_ARRAY_ROW:
          {
-            if ( querySpec.getForUpdate() )
+            if ( querySpec.getForUpdateOrDefault() )
                throw specError(
                   querySpec.getQueryName(),
                   "for update clause",
@@ -211,7 +212,7 @@ public class QueryGenerator
       // Add this table's own field expressions to the select clause.
       verifySimpleSelectFieldsExist(tableJsonSpec, queryName, queryPart);
       //
-      for ( TableFieldExpr tfe : tableJsonSpec.getFieldExpressions() )
+      for ( TableFieldExpr tfe : tableJsonSpec.getFieldExpressionsList() )
          q.addSelectClauseEntry(
             getTableFieldExpressionForAlias(tfe, alias),
             dbmd.quoteIfNeeded(getJsonPropertyName(tfe, propNameDefaultFn, tableJsonSpec.getTable())),
@@ -219,7 +220,7 @@ public class QueryGenerator
          );
 
       // Add child record collections to the select clause.
-      for ( ChildCollectionSpec childSpec : tableJsonSpec.getChildTableCollections() )
+      for ( ChildCollectionSpec childSpec : tableJsonSpec.getChildTableCollectionsList() )
       {
          String childPart =  joinPartDescriptions(queryPart, "child collection '" + childSpec.getCollectionName() + "'");
          String childQuery = makeChildRecordsQuery(childSpec, relId, alias, propNameDefaultFn, queryName, childPart);
@@ -231,7 +232,7 @@ public class QueryGenerator
       }
 
       // Add query parts for inline parents.
-      for ( InlineParentSpec parentSpec : tableJsonSpec.getInlineParentTables() )
+      for ( InlineParentSpec parentSpec : tableJsonSpec.getInlineParentTablesList() )
       {
          String parentPart = joinPartDescriptions(queryPart, "inline parent '" + parentSpec.getTableJson().getTable() + "'");
          Set<String> aliases = q.getAliasesInScope();
@@ -241,7 +242,7 @@ public class QueryGenerator
       }
 
       // Add parts for referenced parents.
-      for ( ReferencedParentSpec parentSpec : tableJsonSpec.getReferencedParentTables() )
+      for ( ReferencedParentSpec parentSpec : tableJsonSpec.getReferencedParentTablesList() )
       {
          String parentPart = joinPartDescriptions(queryPart, "parent '" + parentSpec.getTableJson().getTable() + "'");
          q.addParts(
@@ -361,7 +362,7 @@ public class QueryGenerator
       ParentChildCondition pcCond =
          getChildCollectionJoinCondition(childSpec, childRelId, parentRelId, parentAlias, queryName, queryPart);
 
-      boolean unwrapChildValues = childSpec.getUnwrap();
+      boolean unwrapChildValues = valueOr(childSpec.getUnwrap(), false);
       if ( unwrapChildValues && childSpec.getTableJson().getJsonPropertiesCount() > 1 )
          throw specError(
             queryName,
@@ -568,7 +569,7 @@ public class QueryGenerator
       List<String> conds = new ArrayList<>();
 
       List<String> paramFieldNames =
-         tableJsonSpec.getFieldParamConditions().stream().map(FieldParamCondition::getField).collect(toList());
+         tableJsonSpec.getFieldParamConditionsList().stream().map(FieldParamCondition::getField).collect(toList());
 
       verifyTableFieldsExist(
          tableJsonSpec.getTable(),
@@ -580,14 +581,14 @@ public class QueryGenerator
          queryPart
       );
 
-      for ( FieldParamCondition fieldParamCond : tableJsonSpec.getFieldParamConditions() )
+      for ( FieldParamCondition fieldParamCond : tableJsonSpec.getFieldParamConditionsList() )
       {
          conds.add(
             sqlDialect.getFieldParamConditionSql(
                 fieldParamCond,
                 tableAlias,
                 NAMED,
-                getDefaultParamNameFn(tableJsonSpec.getTable(), fieldParamCond.getOp())
+                getDefaultParamNameFn(tableJsonSpec.getTable(), fieldParamCond.getOpOrDefault())
             )
          );
       }
@@ -606,12 +607,14 @@ public class QueryGenerator
          String tableAlias
       )
    {
-      if ( tableFieldExpr.isSimpleField() )
-         return tableAlias + "." + tableFieldExpr.getField();
+      if ( tableFieldExpr.getField() != null )
+         return tableAlias + "." + requireNonNull(tableFieldExpr.getField());
       else
       {
          String tableAliasVarInExpr = valueOr(tableFieldExpr.getWithTableAliasAs(), DEFAULT_TABLE_ALIAS_VAR);
-         return tableFieldExpr.getExpression().replace(tableAliasVarInExpr, tableAlias);
+         assert tableFieldExpr.getExpression() != null;
+         String expr = requireNonNull(tableFieldExpr.getExpression());
+         return expr.replace(tableAliasVarInExpr, tableAlias);
       }
    }
 
@@ -637,24 +640,24 @@ public class QueryGenerator
    {
       List<String> paramNames = new ArrayList<>();
 
-      tableJsonSpec.getFieldParamConditions().stream()
+      tableJsonSpec.getFieldParamConditionsList().stream()
          .map(fpCond ->
             valueOr(fpCond.getParamName(),
-                    getDefaultParamNameFn(tableJsonSpec.getTable(), fpCond.getOp()).apply(fpCond.getField())))
+                    getDefaultParamNameFn(tableJsonSpec.getTable(), fpCond.getOpOrDefault()).apply(fpCond.getField())))
          .forEach(paramNames::add);
 
-      for ( ChildCollectionSpec childSpec: tableJsonSpec.getChildTableCollections() )
+      for ( ChildCollectionSpec childSpec: tableJsonSpec.getChildTableCollectionsList() )
          paramNames.addAll(getAllParamNames(childSpec.getTableJson()));
 
-      for ( InlineParentSpec parentSpec : tableJsonSpec.getInlineParentTables() )
+      for ( InlineParentSpec parentSpec : tableJsonSpec.getInlineParentTablesList() )
          paramNames.addAll(getAllParamNames(parentSpec.getParentTableJsonSpec()));
 
-      for ( ReferencedParentSpec parentSpec : tableJsonSpec.getReferencedParentTables() )
+      for ( ReferencedParentSpec parentSpec : tableJsonSpec.getReferencedParentTablesList() )
          paramNames.addAll(getAllParamNames(parentSpec.getParentTableJsonSpec()));
 
       @Nullable RecordCondition recCond = tableJsonSpec.getRecordCondition();
-      if ( recCond != null )
-         paramNames.addAll(recCond.getParamNames());
+      if ( recCond != null && recCond.getParamNames() != null )
+         paramNames.addAll(requireNonNull(recCond.getParamNames()));
 
       return paramNames;
    }
@@ -727,15 +730,18 @@ public class QueryGenerator
          String tableName
       )
    {
-      if ( tfe.isSimpleField() )
-         return valueOrGet(tfe.getJsonProperty(), () -> defaultFn.apply(tfe.getField()));
+      if ( tfe.getField() != null )
+         return valueOrGet(tfe.getJsonProperty(), () -> defaultFn.apply(requireNonNull(tfe.getField())));
       else
+      {
+         assert tfe.getExpression() != null;
          return valueOrThrow(tfe.getJsonProperty(), () -> // expression fields must have output name specified
             new RuntimeException(
                "Json propery name is required for expression field " + tfe.getExpression() +
                " of table " + tableName + "."
             )
          );
+      }
    }
 
    /// Return a possibly qualified identifier for the given relation, omitting the schema
@@ -812,9 +818,9 @@ public class QueryGenerator
       )
    {
       List<String> simpleSelectFields =
-         tableJsonSpec.getFieldExpressions().stream()
-         .filter(TableFieldExpr::isSimpleField)
-         .map(TableFieldExpr::getField)
+         tableJsonSpec.getFieldExpressionsList().stream()
+         .filter(tfe -> tfe.getField() != null)
+         .map(tfe -> requireNonNull(tfe.getField()))
          .collect(toList());
 
       verifyTableFieldsExist(

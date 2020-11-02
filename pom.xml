@@ -4,7 +4,7 @@
    <modelVersion>4.0.0</modelVersion>
    <groupId>org.sqljson</groupId>
    <artifactId>dagen</artifactId>
-   <version>1.3</version>
+   <version>1.4</version>
    <name>data access generator</name>
    <description>Generate hierarchical SQL/JSON queries, SQL modification statements, and matching types.</description>
 

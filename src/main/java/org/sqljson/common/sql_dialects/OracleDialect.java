@@ -77,12 +77,12 @@ public class OracleDialect implements SqlDialect
       String mqFieldName = maybeQualify(tableAlias, fpcond.getField());
       String paramValExpr = paramsType == NUMBERED ? "?" : ":"+ valueOr(fpcond.getParamName(), defaultParamNameFn.apply(fpcond.getField()));
 
-      @Nullable String sql = SqlDialect.getCommonFieldParamConditionSql(mqFieldName, paramValExpr, fpcond.getOp());
+      @Nullable String sql = SqlDialect.getCommonFieldParamConditionSql(mqFieldName, paramValExpr, fpcond.getOpOrDefault());
 
       if ( sql != null )
          return sql;
 
-      switch ( fpcond.getOp() )
+      switch ( fpcond.getOpOrDefault() )
       {
          // NOTE: It's intended to eventually add more operators here.
          case JSON_CONTAINS: throw new RuntimeException("Operator not recognized.");

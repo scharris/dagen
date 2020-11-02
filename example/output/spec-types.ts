@@ -1,16 +1,16 @@
 /* tslint:disable */
 /* eslint-disable */
-// Generated using typescript-generator version 2.26.723 on 2020-10-31 20:33:43.
+// Generated using typescript-generator version 2.26.723 on 2020-11-02 15:18:06.
 
 export interface FieldParamCondition {
     field: string;
-    op: Operator;
+    op?: Nullable<Operator>;
     paramName?: Nullable<string>;
 }
 
 export interface RecordCondition {
     sql: string;
-    paramNames: string[];
+    paramNames?: Nullable<string[]>;
     withTableAliasAs?: Nullable<string>;
 }
 
@@ -25,17 +25,17 @@ export interface ModSpec {
     command: ModType;
     table: string;
     tableAlias?: Nullable<string>;
-    parametersType: ParametersType;
-    generateSourceCode: boolean;
-    targetFields: TargetField[];
-    fieldParamConditions: FieldParamCondition[];
+    targetFields?: Nullable<TargetField[]>;
+    parametersType?: Nullable<ParametersType>;
+    generateSourceCode?: Nullable<boolean>;
+    fieldParamConditions?: Nullable<FieldParamCondition[]>;
     recordCondition?: Nullable<RecordCondition>;
 }
 
 export interface TargetField {
     field: string;
     value: string;
-    paramNames: string[];
+    paramNames?: Nullable<string[]>;
 }
 
 export interface ChildCollectionSpec {
@@ -44,7 +44,7 @@ export interface ChildCollectionSpec {
     foreignKeyFields?: Nullable<string[]>;
     customJoinCondition?: Nullable<CustomJoinCondition>;
     filter?: Nullable<string>;
-    unwrap: boolean;
+    unwrap?: Nullable<boolean>;
 }
 
 export interface CustomJoinCondition {
@@ -63,8 +63,6 @@ export interface InlineParentSpec extends ParentSpec {
 }
 
 export interface ParentSpec {
-    childForeignKeyFieldsSet?: Nullable<string[]>;
-    parentTableJsonSpec: TableJsonSpec;
 }
 
 export interface QueryGroupSpec {
@@ -76,12 +74,12 @@ export interface QueryGroupSpec {
 
 export interface QuerySpec {
     queryName: string;
-    resultsRepresentations: ResultsRepr[];
-    generateResultTypes: boolean;
-    generateSource: boolean;
-    outputFieldNameDefault?: Nullable<OutputFieldNameDefault>;
     tableJson: TableJsonSpec;
-    forUpdate: boolean;
+    resultsRepresentations?: Nullable<ResultsRepr[]>;
+    generateResultTypes?: Nullable<boolean>;
+    generateSource?: Nullable<boolean>;
+    outputFieldNameDefault?: Nullable<OutputFieldNameDefault>;
+    forUpdate?: Nullable<boolean>;
     typesFileHeader?: Nullable<string>;
 }
 
@@ -93,8 +91,8 @@ export interface ReferencedParentSpec extends ParentSpec {
 }
 
 export interface TableFieldExpr {
-    field: string;
-    expression: string;
+    field?: Nullable<string>;
+    expression?: Nullable<string>;
     withTableAliasAs?: Nullable<string>;
     jsonProperty?: Nullable<string>;
     generatedFieldType?: Nullable<string>;
@@ -102,11 +100,11 @@ export interface TableFieldExpr {
 
 export interface TableJsonSpec {
     table: string;
-    fieldExpressions: TableFieldExpr[];
-    inlineParentTables: InlineParentSpec[];
-    referencedParentTables: ReferencedParentSpec[];
-    childTableCollections: ChildCollectionSpec[];
-    fieldParamConditions: FieldParamCondition[];
+    fieldExpressions?: Nullable<TableFieldExpr[]>;
+    inlineParentTables?: Nullable<InlineParentSpec[]>;
+    referencedParentTables?: Nullable<ReferencedParentSpec[]>;
+    childTableCollections?: Nullable<ChildCollectionSpec[]>;
+    fieldParamConditions?: Nullable<FieldParamCondition[]>;
     recordCondition?: Nullable<RecordCondition>;
 }
 

@@ -77,7 +77,7 @@ public class ModStatementGenerator
       if ( modSpec.getTableAlias() != null )
          throw specError(modSpec.getStatementName(), "tableAlias",
                         "A table alias is not allowed in an INSERT command.");
-      if ( !modSpec.getFieldParamConditions().isEmpty() )
+      if ( !modSpec.getFieldParamConditionsList().isEmpty() )
          throw specError(modSpec.getStatementName(), "fieldParamConditions",
                         "fieldParamConditions are not allowed for INSERT commands.");
       if ( modSpec.getRecordCondition() != null )
@@ -100,8 +100,8 @@ public class ModStatementGenerator
 
       verifyReferencedTableFields(modSpec, relId);
 
-      String fields = modSpec.getTargetFields().stream().map(TargetField::getField).collect(joining(",\n"));
-      String fieldVals = modSpec.getTargetFields().stream() .map(TargetField::getValue).collect(joining(",\n"));
+      String fields = modSpec.getTargetFieldsList().stream().map(TargetField::getField).collect(joining(",\n"));
+      String fieldVals = modSpec.getTargetFieldsList().stream() .map(TargetField::getValue).collect(joining(",\n"));
 
       return
          "insert into " + minimalRelIdentifier(relId) + "\n" +
@@ -135,14 +135,14 @@ public class ModStatementGenerator
    {
       RelId relId = identifyTable(modSpec.getTable(), modSpec.getStatementName(), "update table name");
 
-      if ( modSpec.getTargetFields().isEmpty() )
+      if ( modSpec.getTargetFieldsList().isEmpty() )
          throw specError(modSpec.getStatementName(), "target fields",
                         "At least one field is required in an update modification command.");
 
       verifyReferencedTableFields(modSpec, relId);
 
       String fieldAssignments =
-         modSpec.getTargetFields().stream()
+         modSpec.getTargetFieldsList().stream()
          .map(f -> f.getField() + " = " + f.getValue())
          .collect(joining(",\n"));
 
@@ -159,7 +159,7 @@ public class ModStatementGenerator
          ModSpec modSpec
       )
    {
-      if ( !modSpec.getTargetFields().isEmpty() )
+      if ( !modSpec.getTargetFieldsList().isEmpty() )
          throw specError(modSpec.getStatementName(), "target fields",
                         "Fields are not allowed in a delete command.");
 
@@ -193,18 +193,20 @@ public class ModStatementGenerator
    {
       List<String> res = new ArrayList<>();
 
-      for ( TargetField targetField : modSpec.getTargetFields() )
+      for ( TargetField targetField : modSpec.getTargetFieldsList() )
       {
-         if ( !targetField.getParamNames().isEmpty() )
+         if ( !targetField.getParamNamesList().isEmpty() )
          {
             validateExpressionValueParamNames(targetField, modSpec);
-            res.addAll(targetField.getParamNames());
+            res.addAll(targetField.getParamNamesList());
          }
-         else if ( modSpec.getParametersType() == NAMED && simpleNamedParamValueRegex.matcher(targetField.getValue()).matches() )
+         else if ( modSpec.getParametersTypeOrDefault() == NAMED &&
+                   simpleNamedParamValueRegex.matcher(targetField.getValue()).matches() )
          {
             res.add(targetField.getValue().substring(1));
          }
-         else if ( modSpec.getParametersType() == NUMBERED && targetField.getValue().equals("?"))
+         else if ( modSpec.getParametersTypeOrDefault() == NUMBERED &&
+                   targetField.getValue().equals("?"))
          {
             res.add(lowerCamelCase(unDoubleQuote(targetField.getField())));
          }
@@ -222,18 +224,18 @@ public class ModStatementGenerator
       )
    {
       // For named parameters, check that the declared parameters actually occur in the value expression string.
-      if ( modSpec.getParametersType() == NAMED )
+      if ( modSpec.getParametersTypeOrDefault() == NAMED )
       {
-         for ( String exprValParam : targetField.getParamNames() )
+         for ( String exprValParam : targetField.getParamNamesList() )
             if ( !targetField.getValue().contains(":" + exprValParam) )
                throw specError(modSpec.getStatementName(),
                   "field values list",
                   "Param \"" + exprValParam + "\" was not detected in value expresion for " +
                      "input field \"" + targetField.getField() + "\".");
       }
-      else if ( modSpec.getParametersType() == NUMBERED )
+      else if ( modSpec.getParametersTypeOrDefault() == NUMBERED )
       {
-         if ( StringFuns.countOccurrences(targetField.getValue(), '?') < targetField.getParamNames().size() )
+         if ( StringFuns.countOccurrences(targetField.getValue(), '?') < targetField.getParamNamesList().size() )
             throw specError(modSpec.getStatementName(),
                "field values list",
                "Not enough '?' parameters detected in value expresion vs specified param names for " +
@@ -251,13 +253,13 @@ public class ModStatementGenerator
    {
       List<String> conds = new ArrayList<>();
 
-      for ( FieldParamCondition fieldParamCond : modSpec.getFieldParamConditions() )
+      for ( FieldParamCondition fieldParamCond : modSpec.getFieldParamConditionsList() )
       {
          conds.add(
             sqlDialect.getFieldParamConditionSql(
                fieldParamCond,
                modSpec.getTableAlias(),
-               modSpec.getParametersType(),
+               modSpec.getParametersTypeOrDefault(),
                this::getDefaultFieldConditionParamName
             )
          );
@@ -282,12 +284,12 @@ public class ModStatementGenerator
       // Since the parameters may be numbered, the ordering of params here must
       // match their occurrence in the sql generated in getCondition().
       List<String> res =
-          modSpec.getFieldParamConditions().stream()
+          modSpec.getFieldParamConditionsList().stream()
           .map(eq -> valueOr(eq.getParamName(), getDefaultFieldConditionParamName(eq.getField())))
           .collect(toList());
 
       ifPresent(modSpec.getRecordCondition(), cond ->
-          res.addAll(cond.getParamNames())
+         ifPresent(cond.getParamNames(), res::addAll)
       );
 
       return res;
@@ -317,10 +319,10 @@ public class ModStatementGenerator
 
       String stmtName = modSpec.getStatementName();
 
-      List<String> targetFields = modSpec.getTargetFields().stream().map(TargetField::getField).collect(toList());
+      List<String> targetFields = modSpec.getTargetFieldsList().stream().map(TargetField::getField).collect(toList());
       verifyTableFieldsExist(targetFields, relMetadata, dbmd, statementsSource, stmtName, "target fields");
 
-      List<String> whereCondFields = modSpec.getFieldParamConditions().stream().map(FieldParamCondition::getField).collect(toList());
+      List<String> whereCondFields = modSpec.getFieldParamConditionsList().stream().map(FieldParamCondition::getField).collect(toList());
       verifyTableFieldsExist(whereCondFields, relMetadata, dbmd, statementsSource, stmtName, "where condition");
    }
 
