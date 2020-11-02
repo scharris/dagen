@@ -1,6 +1,6 @@
 /* tslint:disable */
 /* eslint-disable */
-// Generated using typescript-generator version 2.26.723 on 2020-11-02 15:18:06.
+// Generated using typescript-generator version 2.26.723 on 2020-11-02 17:40:00.
 
 export interface FieldParamCondition {
     field: string;
