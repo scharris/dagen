@@ -7,7 +7,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 public class FieldParamCondition
 {
    public enum Operator {
-      EQ, LT, LE, GT, GE, IN, EQ_IF_PARAM_NONNULL, JSON_CONTAINS;
+      EQ, LIKE, LT, LE, GT, GE, IN, EQ_IF_PARAM_NONNULL, JSON_CONTAINS;
 
       public boolean acceptsListParam()
       {

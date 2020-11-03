@@ -74,12 +74,13 @@ public interface SqlDialect
    {
       switch ( op )
       {
-         case EQ: return mqFieldName + " = " + paramValExpr;
-         case LT: return mqFieldName + " < " + paramValExpr;
-         case LE: return mqFieldName + " <= " + paramValExpr;
-         case GT: return mqFieldName + " > " + paramValExpr;
-         case GE: return mqFieldName + " >= " + paramValExpr;
-         case IN: return mqFieldName + " IN (" + paramValExpr + ")";
+         case EQ:   return mqFieldName + " = " + paramValExpr;
+         case LIKE: return mqFieldName + " like " + paramValExpr;
+         case LT:   return mqFieldName + " < " + paramValExpr;
+         case LE:   return mqFieldName + " <= " + paramValExpr;
+         case GT:   return mqFieldName + " > " + paramValExpr;
+         case GE:   return mqFieldName + " >= " + paramValExpr;
+         case IN:   return mqFieldName + " IN (" + paramValExpr + ")";
          case EQ_IF_PARAM_NONNULL: return "(" + paramValExpr + " is null or " + mqFieldName + " = " + paramValExpr + ")";
          default: return null;
       }
