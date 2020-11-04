@@ -10,7 +10,6 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import org.sqljson.common.specs.RecordCondition;
-import org.sqljson.common.specs.FieldParamCondition;
 
 
 public final class TableJsonSpec
@@ -25,8 +24,6 @@ public final class TableJsonSpec
 
    private final @Nullable List<ChildCollectionSpec> childTableCollections;
 
-   private final @Nullable List<FieldParamCondition> fieldParamConditions;
-
    private @Nullable RecordCondition recordCondition = null;
 
    TableJsonSpec()
@@ -36,7 +33,6 @@ public final class TableJsonSpec
       this.inlineParentTables = null;
       this.referencedParentTables = null;
       this.childTableCollections = null;
-      this.fieldParamConditions = null;
    }
 
    public TableJsonSpec
@@ -46,7 +42,6 @@ public final class TableJsonSpec
          @Nullable List<InlineParentSpec> inlineParentTables,
          @Nullable List<ReferencedParentSpec> referencedParentTables,
          @Nullable List<ChildCollectionSpec> childTableCollections,
-         @Nullable List<FieldParamCondition> fieldParamConditions,
          @Nullable RecordCondition recordCondition
       )
    {
@@ -57,7 +52,6 @@ public final class TableJsonSpec
       this.inlineParentTables = inlineParentTables != null ? unmodifiableList(new ArrayList<>(inlineParentTables)) : null;
       this.referencedParentTables = referencedParentTables != null ? unmodifiableList(new ArrayList<>(referencedParentTables)): null;
       this.childTableCollections = childTableCollections != null ? unmodifiableList(new ArrayList<>(childTableCollections)): null;
-      this.fieldParamConditions = fieldParamConditions != null ? unmodifiableList(fieldParamConditions) : null;
       this.recordCondition = recordCondition;
    }
 
@@ -97,22 +91,12 @@ public final class TableJsonSpec
       return childTableCollections != null ? childTableCollections : emptyList();
    }
 
-   public @Nullable List<FieldParamCondition> getFieldParamConditions() { return fieldParamConditions; }
-
-   @JsonIgnore
-   public List<FieldParamCondition> getFieldParamConditionsList()
-   {
-      return fieldParamConditions != null ? fieldParamConditions : emptyList();
-   }
-
    public @Nullable RecordCondition getRecordCondition() { return recordCondition; }
 
    @JsonIgnore
    public boolean hasCondition()
    {
-      return
-         fieldParamConditions != null && !fieldParamConditions.isEmpty() ||
-         recordCondition != null;
+      return recordCondition != null;
    }
 
    @JsonIgnore

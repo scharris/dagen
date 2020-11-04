@@ -141,7 +141,7 @@ class ModStatementGeneratorTests extends TestsBase
 
       SqlParameterSource params =
          params(
-            DrugUpdateWithNamedParams.idCondParam, 2L,
+            "id", 2L,
             DrugUpdateWithNamedParams.nameParam, "new value",
             DrugUpdateWithNamedParams.meshIdParam, "M002"
          );
@@ -205,7 +205,7 @@ class ModStatementGeneratorTests extends TestsBase
 
       SqlParameterSource params =
          params(
-            DrugUpdateWithMultiParamExpr.idCondParam, 2L,
+            DrugUpdateWithMultiParamExpr.idParam, 2L,
             DrugUpdateWithMultiParamExpr.namePartOneParam, "left",
             DrugUpdateWithMultiParamExpr.namePartTwoParam, "right"
          );
@@ -224,7 +224,7 @@ class ModStatementGeneratorTests extends TestsBase
    {
       String sql = getGeneratedModStatementSql(DrugDeleteNamedParams.sqlResource);
 
-      SqlParameterSource params = params(DrugDeleteNamedParams.idCondParam, 2L);
+      SqlParameterSource params = params(DrugDeleteNamedParams.idParam, 2L);
 
       doUpdateWithNamedParams(sql, params, (count, jdbc) -> {
          assertEquals(count, 1);
@@ -240,7 +240,7 @@ class ModStatementGeneratorTests extends TestsBase
       String sql = getGeneratedModStatementSql(DrugDeleteNumberedParams.sqlResource);
 
       PreparedStatementSetter pstmtSetter = pstmt -> {
-         pstmt.setLong(DrugDeleteNumberedParams.idCondParamNum, 2L);
+         pstmt.setLong(DrugDeleteNumberedParams.idParamNum, 2L);
       };
 
       doUpdate(sql, pstmtSetter, (count, jdbc) -> {

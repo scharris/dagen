@@ -1,12 +1,6 @@
 /* tslint:disable */
 /* eslint-disable */
-// Generated using typescript-generator version 2.26.723 on 2020-11-02 17:40:00.
-
-export interface FieldParamCondition {
-    field: string;
-    op?: Nullable<Operator>;
-    paramName?: Nullable<string>;
-}
+// Generated using typescript-generator version 2.26.723 on 2020-11-03 18:32:03.
 
 export interface RecordCondition {
     sql: string;
@@ -28,7 +22,6 @@ export interface ModSpec {
     targetFields?: Nullable<TargetField[]>;
     parametersType?: Nullable<ParametersType>;
     generateSourceCode?: Nullable<boolean>;
-    fieldParamConditions?: Nullable<FieldParamCondition[]>;
     recordCondition?: Nullable<RecordCondition>;
 }
 
@@ -104,11 +97,8 @@ export interface TableJsonSpec {
     inlineParentTables?: Nullable<InlineParentSpec[]>;
     referencedParentTables?: Nullable<ReferencedParentSpec[]>;
     childTableCollections?: Nullable<ChildCollectionSpec[]>;
-    fieldParamConditions?: Nullable<FieldParamCondition[]>;
     recordCondition?: Nullable<RecordCondition>;
 }
-
-export type Operator = "EQ" | "LT" | "LE" | "GT" | "GE" | "IN" | "EQ_IF_PARAM_NONNULL" | "JSON_CONTAINS";
 
 export type ModType = "INSERT" | "UPDATE" | "DELETE";
 

@@ -92,15 +92,6 @@
                "value": ":meshId"
             }
          ],
-         "fieldParamConditions": [
-            {
-               "field": "cid"
-            },
-            {
-               "field": "mesh_id",
-               "paramName": "oldMeshId"
-            }
-         ],
          "recordCondition": {
             "sql": "$$.compound_id < 0"
          }
@@ -129,15 +120,6 @@
                "value": "?"
             }
          ],
-         "fieldParamConditions": [
-            {
-               "field": "cid"
-            },
-            {
-               "field": "mesh_id",
-               "paramName": "oldMeshId"
-            }
-         ],
          "recordCondition": {
             "sql": "$$.compound_id < 0"
          }
@@ -146,33 +128,19 @@
          "statementName": "drug delete",
          "command": "DELETE",
          "table": "drug",
-         "fieldParamConditions": [
-            {
-               "field": "cid"
-            }
-         ]
+         "recordCondition": { "sql": "$$.cid = :cid" }
       },
       {
          "statementName": "lesser drugs delete",
          "command": "DELETE",
          "table": "drug",
-         "fieldParamConditions": [
-            {
-               "field": "cid",
-               "op": "LT"
-            }
-         ]
+         "recordCondition": { "sql": "$$.cid <= :maxCid" }
       },
       {
          "statementName": "drugs list delete",
          "command": "DELETE",
          "table": "drug",
-         "fieldParamConditions": [
-            {
-               "field": "cid",
-               "op": "IN"
-            }
-         ]
+         "recordCondition": { "sql": "$$.cid in (:cidList)" }
       }
    ]
 }

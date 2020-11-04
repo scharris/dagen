@@ -13,18 +13,14 @@ import org.sqljson.common.specs.StatementSpecificationException;
 import org.sqljson.dbmd.*;
 import org.sqljson.queries.result_types.GeneratedType;
 import org.sqljson.queries.specs.*;
-import org.sqljson.common.specs.FieldParamCondition;
 import org.sqljson.common.specs.RecordCondition;
 import org.sqljson.queries.sql.*;
 import org.sqljson.common.util.StringFuns;
 import org.sqljson.common.sql_dialects.SqlDialect;
-
 import static org.sqljson.common.util.StatementValidations.identifySpecificationTable;
 import static org.sqljson.common.util.StatementValidations.verifyTableFieldsExist;
 import static org.sqljson.common.util.Nullables.*;
-import static org.sqljson.common.util.StringFuns.*;
 import static org.sqljson.dbmd.ForeignKeyScope.REGISTERED_TABLES_ONLY;
-import static org.sqljson.mod_stmts.specs.ParametersType.NAMED;
 
 
 public class QueryGenerator
@@ -255,8 +251,7 @@ public class QueryGenerator
          q.addWhereClauseEntry(pcCond.asEquationConditionOn(alias, dbmd))
       );
 
-      @Nullable String whereCond =
-         getWhereCondition(tableJsonSpec, alias, queryName, joinPartDescriptions(queryPart, "where clause"));
+      @Nullable String whereCond = getWhereCondition(tableJsonSpec, alias);
       ifPresent(whereCond, q::addWhereClauseEntry);
 
       String sql = makeSqlFromParts(q);
@@ -561,37 +556,10 @@ public class QueryGenerator
    private @Nullable String getWhereCondition
       (
          TableJsonSpec tableJsonSpec,
-         String tableAlias,
-         String queryName,
-         String queryPart
+         String tableAlias
       )
    {
       List<String> conds = new ArrayList<>();
-
-      List<String> paramFieldNames =
-         tableJsonSpec.getFieldParamConditionsList().stream().map(FieldParamCondition::getField).collect(toList());
-
-      verifyTableFieldsExist(
-         tableJsonSpec.getTable(),
-         defaultSchema,
-         paramFieldNames,
-         dbmd,
-         queriesSource,
-         queryName,
-         queryPart
-      );
-
-      for ( FieldParamCondition fieldParamCond : tableJsonSpec.getFieldParamConditionsList() )
-      {
-         conds.add(
-            sqlDialect.getFieldParamConditionSql(
-                fieldParamCond,
-                tableAlias,
-                NAMED,
-                getDefaultParamNameFn(tableJsonSpec.getTable(), fieldParamCond.getOpOrDefault())
-            )
-         );
-      }
 
       ifPresent(tableJsonSpec.getRecordCondition(), cond -> {
          String tableAliasVar = valueOr(cond.getWithTableAliasAs(), DEFAULT_TABLE_ALIAS_VAR);
@@ -618,19 +586,6 @@ public class QueryGenerator
       }
    }
 
-   /// The returned function creates a default param name from a field name in the
-   /// context of a given table..
-   private Function<String,String> getDefaultParamNameFn(String tableName, FieldParamCondition.Operator op)
-   {
-      return (String fieldName) -> {
-         String baseName = lowerCamelCase(tableName) + upperCamelCase(fieldName);
-         if ( op.acceptsListParam() )
-            return baseName + "List";
-         else
-            return baseName;
-      };
-   }
-
    private List<String> getAllParamNames(QuerySpec querySpec)
    {
       return getAllParamNames(querySpec.getTableJson());
@@ -639,12 +594,6 @@ public class QueryGenerator
    private List<String> getAllParamNames(TableJsonSpec tableJsonSpec)
    {
       List<String> paramNames = new ArrayList<>();
-
-      tableJsonSpec.getFieldParamConditionsList().stream()
-         .map(fpCond ->
-            valueOr(fpCond.getParamName(),
-                    getDefaultParamNameFn(tableJsonSpec.getTable(), fpCond.getOpOrDefault()).apply(fpCond.getField())))
-         .forEach(paramNames::add);
 
       for ( ChildCollectionSpec childSpec: tableJsonSpec.getChildTableCollectionsList() )
          paramNames.addAll(getAllParamNames(childSpec.getTableJson()));

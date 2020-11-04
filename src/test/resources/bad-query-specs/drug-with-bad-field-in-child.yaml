@@ -17,5 +17,5 @@ querySpecs:
                 fieldExpressions:
                    - field: brand_namex
                    - field: manufacturer_id
-        fieldParamConditions:
-           - field: id
+        recordCondition:
+           sql: "$$.id = :id"

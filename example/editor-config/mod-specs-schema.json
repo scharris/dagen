@@ -30,13 +30,6 @@
           "tableAlias" : {
             "type" : "string"
           },
-          "parametersType" : {
-            "type" : "string",
-            "enum" : [ "NUMBERED", "NAMED" ]
-          },
-          "generateSourceCode" : {
-            "type" : "boolean"
-          },
           "targetFields" : {
             "type" : "array",
             "items" : {
@@ -58,28 +51,16 @@
               }
             }
           },
-          "fieldParamConditions" : {
-            "type" : "array",
-            "items" : {
-              "type" : "object",
-              "id" : "urn:jsonschema:org:sqljson:specs_common:FieldParamCondition",
-              "properties" : {
-                "field" : {
-                  "type" : "string"
-                },
-                "op" : {
-                  "type" : "string",
-                  "enum" : [ "EQ", "LT", "LE", "GT", "GE", "IN", "EQ_IF_PARAM_NONNULL", "JSON_CONTAINS" ]
-                },
-                "paramName" : {
-                  "type" : "string"
-                }
-              }
-            }
+          "parametersType" : {
+            "type" : "string",
+            "enum" : [ "NUMBERED", "NAMED" ]
+          },
+          "generateSourceCode" : {
+            "type" : "boolean"
           },
           "recordCondition" : {
             "type" : "object",
-            "id" : "urn:jsonschema:org:sqljson:specs_common:RecordCondition",
+            "id" : "urn:jsonschema:org:sqljson:common:specs:RecordCondition",
             "properties" : {
               "sql" : {
                 "type" : "string"

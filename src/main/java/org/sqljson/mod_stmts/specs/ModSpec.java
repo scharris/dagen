@@ -2,12 +2,12 @@ package org.sqljson.mod_stmts.specs;
 
 import java.util.List;
 import static java.util.Collections.emptyList;
+
 import org.checkerframework.checker.nullness.qual.Nullable;
 
-import org.sqljson.common.specs.RecordCondition;
-import org.sqljson.common.specs.FieldParamCondition;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import org.sqljson.common.specs.RecordCondition;
 import static org.sqljson.mod_stmts.specs.ParametersType.NAMED;
 
 
@@ -20,7 +20,6 @@ public class ModSpec
    private final @Nullable List<TargetField> targetFields;
    private final @Nullable ParametersType parametersType;
    private final @Nullable Boolean generateSourceCode; // sql resource name and param info
-   private final @Nullable List<FieldParamCondition> fieldParamConditions;
    private final @Nullable RecordCondition recordCondition; // augments field param equalities
 
    private ModSpec()
@@ -32,7 +31,6 @@ public class ModSpec
       this.targetFields = null;
       this.parametersType = null;
       this.generateSourceCode = true;
-      this.fieldParamConditions = null;
       this.recordCondition = null;
    }
 
@@ -45,7 +43,6 @@ public class ModSpec
          @Nullable List<TargetField> targetFields,
          @Nullable ParametersType parametersType,
          @Nullable Boolean generateSourceCode,
-         @Nullable List<FieldParamCondition> fieldParamConditions,
          @Nullable RecordCondition recordCondition
       )
    {
@@ -56,7 +53,6 @@ public class ModSpec
       this.targetFields = targetFields;
       this.parametersType = parametersType;
       this.generateSourceCode = generateSourceCode;
-      this.fieldParamConditions = fieldParamConditions;
       this.recordCondition = recordCondition;
    }
 
@@ -90,14 +86,6 @@ public class ModSpec
    public List<TargetField> getTargetFieldsList()
    {
       return targetFields != null ? targetFields: emptyList();
-   }
-
-   public @Nullable List<FieldParamCondition> getFieldParamConditions() { return fieldParamConditions; }
-
-   @JsonIgnore
-   public List<FieldParamCondition> getFieldParamConditionsList()
-   {
-      return fieldParamConditions != null ? fieldParamConditions: emptyList();
    }
 
    public @Nullable RecordCondition getRecordCondition() { return recordCondition; }

@@ -208,12 +208,3 @@ TODO: Show how to add a general record condition.
         sql: 'not $$.id = 2'
 ```
 
-TODO: Show how to add a condition based on a field value using a standard operator.
-      This has the advantage of checking database metadata for the existence of the
-      field, and generating a source code constant representing the parameter to
-      prevent errors.
-```
-      fieldParamConditions:
-        - field: mesh_id
-          op: IN
-```

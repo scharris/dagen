@@ -51,10 +51,6 @@ modificationStatementSpecs:
         value: :compoundId
       - field: mesh_id
         value: :meshId
-    fieldParamConditions:
-      - field: cid
-      - field: mesh_id
-        paramName: oldMeshId
     recordCondition:
       sql: $$.compound_id < 0
 
@@ -71,30 +67,23 @@ modificationStatementSpecs:
         value: "?"
       - field: mesh_id
         value: "?"
-    fieldParamConditions:
-      - field: cid
-      - field: mesh_id
-        paramName: oldMeshId
     recordCondition:
       sql: $$.compound_id < 0
 
   - statementName: drug delete
     command: DELETE
     table: drug
-    fieldParamConditions:
-      - field: cid
+    recordCondition:
+       sql: $$.cid = :cid
 
   - statementName: lesser drugs delete
     command: DELETE
     table: drug
-    fieldParamConditions:
-      - field: cid
-        op: LT
+    recordCondition:
+       sql: $$.cid <= :cidMax
 
   - statementName: drugs list delete
     command: DELETE
     table: drug
-    fieldParamConditions:
-      - field: cid
-        op: IN
-
+    recordCondition:
+       sql: $$.cid in (:cidList)

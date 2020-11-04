@@ -105,8 +105,5 @@ querySpecs:
                   fieldExpressions:
                     - field: id
                     - field: short_name
-      fieldParamConditions:
-        - field: mesh_id
-          op: IN
       recordCondition:
         sql: 'not $$.id = 2'

@@ -225,12 +225,6 @@
                   }
                }
             ],
-            "fieldParamConditions": [
-               {
-                  "field": "mesh_id",
-                  "op": "IN"
-               }
-            ],
             "recordCondition": {
                "sql": "not $$.id = 2"
             }

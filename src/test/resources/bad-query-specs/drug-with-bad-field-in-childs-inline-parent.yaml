@@ -20,5 +20,5 @@ querySpecs:
                         table: advisory_type
                         fieldExpressions:
                            - field: namex
-        fieldParamConditions:
-           - field: id
+        recordCondition:
+           sql: "$$.id = :id"

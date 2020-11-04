@@ -14,19 +14,25 @@ import static org.sqljson.queries.specs.ResultsRepr.JSON_OBJECT_ROWS;
 
 public final class QuerySpec
 {
-   private String queryName;
-   private TableJsonSpec tableJson;
-   private @Nullable List<ResultsRepr> resultsRepresentations = singletonList(JSON_OBJECT_ROWS);
-   private @Nullable Boolean generateResultTypes = true;
-   private @Nullable Boolean generateSource = true; // Contains at least the resource name for generated SQL, if not result types.
-   private @Nullable OutputFieldNameDefault outputFieldNameDefault = null; // inherited from query group spec if empty
-   private @Nullable Boolean forUpdate = false;
-   private @Nullable String typesFileHeader = null;
+   private final String queryName;
+   private final TableJsonSpec tableJson;
+   private final @Nullable List<ResultsRepr> resultsRepresentations;
+   private final @Nullable Boolean generateResultTypes;
+   private final @Nullable Boolean generateSource; // Contains at least the resource name for generated SQL, if not result types.
+   private final @Nullable OutputFieldNameDefault outputFieldNameDefault; // inherited from query group spec if empty
+   private final @Nullable Boolean forUpdate;
+   private final @Nullable String typesFileHeader;
 
    private QuerySpec()
    {
       this.queryName = "";
       this.tableJson = new TableJsonSpec();
+      this.resultsRepresentations = singletonList(JSON_OBJECT_ROWS);
+      this.generateResultTypes = true;
+      this.generateSource = true;
+      this.outputFieldNameDefault = null;
+      this.forUpdate = false;
+      this.typesFileHeader = null;
    }
 
    public QuerySpec

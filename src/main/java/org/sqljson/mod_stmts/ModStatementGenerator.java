@@ -13,8 +13,6 @@ import org.sqljson.common.specs.StatementSpecificationException;
 import org.sqljson.dbmd.DatabaseMetadata;
 import org.sqljson.dbmd.RelId;
 import org.sqljson.dbmd.RelMetadata;
-import org.sqljson.common.specs.FieldParamCondition;
-import org.sqljson.common.sql_dialects.SqlDialect;
 import org.sqljson.mod_stmts.specs.ModSpec;
 import org.sqljson.mod_stmts.specs.TargetField;
 import org.sqljson.common.util.StringFuns;
@@ -29,7 +27,6 @@ import static org.sqljson.common.util.StringFuns.*;
 public class ModStatementGenerator
 {
    private final DatabaseMetadata dbmd;
-   private final SqlDialect sqlDialect;
    private final @Nullable String defaultSchema;
    private final Set<String> unqualifiedNamesSchemas;
    private final int indentSpaces;
@@ -49,7 +46,6 @@ public class ModStatementGenerator
    {
       this.dbmd = dbmd;
       this.indentSpaces = 2;
-      this.sqlDialect = SqlDialect.fromDatabaseMetadata(this.dbmd, this.indentSpaces);
       this.defaultSchema = defaultSchema;
       this.unqualifiedNamesSchemas = unqualifiedNamesSchemas.stream().map(dbmd::normalizeName).collect(toSet());
       this.statementsSource = statementsSource;
@@ -77,9 +73,6 @@ public class ModStatementGenerator
       if ( modSpec.getTableAlias() != null )
          throw specError(modSpec.getStatementName(), "tableAlias",
                         "A table alias is not allowed in an INSERT command.");
-      if ( !modSpec.getFieldParamConditionsList().isEmpty() )
-         throw specError(modSpec.getStatementName(), "fieldParamConditions",
-                        "fieldParamConditions are not allowed for INSERT commands.");
       if ( modSpec.getRecordCondition() != null )
          throw specError(modSpec.getStatementName(), "recordCondition",
                         "A record condition is not allowed for INSERT commands.");
@@ -244,26 +237,9 @@ public class ModStatementGenerator
       }
    }
 
-   private String getDefaultFieldConditionParamName(String fieldName)
-   {
-      return lowerCamelCase(unDoubleQuote(fieldName)) + "Cond";
-   }
-
    private @Nullable String getCondition(ModSpec modSpec)
    {
       List<String> conds = new ArrayList<>();
-
-      for ( FieldParamCondition fieldParamCond : modSpec.getFieldParamConditionsList() )
-      {
-         conds.add(
-            sqlDialect.getFieldParamConditionSql(
-               fieldParamCond,
-               modSpec.getTableAlias(),
-               modSpec.getParametersTypeOrDefault(),
-               this::getDefaultFieldConditionParamName
-            )
-         );
-      }
 
       ifPresent(modSpec.getRecordCondition(), cond -> {
          @Nullable String tableAlias = modSpec.getTableAlias();
@@ -283,10 +259,7 @@ public class ModStatementGenerator
    {
       // Since the parameters may be numbered, the ordering of params here must
       // match their occurrence in the sql generated in getCondition().
-      List<String> res =
-          modSpec.getFieldParamConditionsList().stream()
-          .map(eq -> valueOr(eq.getParamName(), getDefaultFieldConditionParamName(eq.getField())))
-          .collect(toList());
+      List<String> res = new ArrayList<>();
 
       ifPresent(modSpec.getRecordCondition(), cond ->
          ifPresent(cond.getParamNames(), res::addAll)
@@ -321,9 +294,6 @@ public class ModStatementGenerator
 
       List<String> targetFields = modSpec.getTargetFieldsList().stream().map(TargetField::getField).collect(toList());
       verifyTableFieldsExist(targetFields, relMetadata, dbmd, statementsSource, stmtName, "target fields");
-
-      List<String> whereCondFields = modSpec.getFieldParamConditionsList().stream().map(FieldParamCondition::getField).collect(toList());
-      verifyTableFieldsExist(whereCondFields, relMetadata, dbmd, statementsSource, stmtName, "where condition");
    }
 
    private StatementSpecificationException specError

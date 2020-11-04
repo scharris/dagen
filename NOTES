@@ -1,3 +1,8 @@
+RecordCondition
+  Need to distinguish param name in source vs that emitted in SQL.
+  This should allow various parameter styles in sql, such as:
+    "$1", ":1", "?", ":myParam".
+
 
 # Generate database metadata.
 ./mvn exec:java@dbmd -DpropsFile="example/db/dbmd-pg.props" -DoutputFile="../../tmp/dmbd.yaml"

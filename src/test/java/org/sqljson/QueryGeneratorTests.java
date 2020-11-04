@@ -45,7 +45,7 @@ class QueryGeneratorTests extends TestsBase
    {
       String sql = getGeneratedQuerySql("drug fields query with param(multi column rows).sql");
 
-      SqlParameterSource params = params(DrugFieldsQueryWithParam.drugIdParam, 2L);
+      SqlParameterSource params = params(DrugFieldsQueryWithParam.idParam, 2L);
 
       doQuery(sql, params, rs -> {
          assertEquals(rs.getLong(1), 2);
@@ -76,7 +76,7 @@ class QueryGeneratorTests extends TestsBase
    {
       String sql = getGeneratedQuerySql("drug fields query with param(json object rows).sql");
 
-      SqlParameterSource params = params(DrugFieldsQueryWithParam.drugIdParam, 2L);
+      SqlParameterSource params = params(DrugFieldsQueryWithParam.idParam, 2L);
 
       doQuery(sql, params, rs -> {
          DrugFieldsQueryWithParam.Drug res = readJson(rs.getString(1), DrugFieldsQueryWithParam.Drug.class);
@@ -92,7 +92,7 @@ class QueryGeneratorTests extends TestsBase
    {
       String sql = getGeneratedQuerySql("drug fields customized type query(json object rows).sql");
 
-      SqlParameterSource params = params(DrugFieldsCustomizedTypeQuery.drugIdParam, 2L);
+      SqlParameterSource params = params(DrugFieldsCustomizedTypeQuery.idParam, 2L);
 
       doQuery(sql, params, rs -> {
          DrugFieldsCustomizedTypeQuery.Drug res = readJson(rs.getString(1), DrugFieldsCustomizedTypeQuery.Drug.class);
@@ -107,7 +107,7 @@ class QueryGeneratorTests extends TestsBase
    {
       String sql = getGeneratedQuerySql("drug with field expression query(json object rows).sql");
 
-      SqlParameterSource params = params(DrugWithFieldExpressionQuery.drugIdParam, 2L);
+      SqlParameterSource params = params(DrugWithFieldExpressionQuery.idParam, 2L);
 
       doQuery(sql, params, rs -> {
          DrugWithFieldExpressionQuery.Drug res = readJson(rs.getString(1), DrugWithFieldExpressionQuery.Drug.class);
@@ -122,7 +122,7 @@ class QueryGeneratorTests extends TestsBase
    {
       String sql = getGeneratedQuerySql("drug with brands query(json object rows).sql");
 
-      SqlParameterSource params = params(DrugWithBrandsQuery.drugIdParam, 2L);
+      SqlParameterSource params = params(DrugWithBrandsQuery.idParam, 2L);
 
       doQuery(sql, params, rs -> {
          DrugWithBrandsQuery.Drug res = readJson(rs.getString(1), DrugWithBrandsQuery.Drug.class);
@@ -140,7 +140,7 @@ class QueryGeneratorTests extends TestsBase
    {
       String sql = getGeneratedQuerySql("drug with brands custom join query(json object rows).sql");
 
-      SqlParameterSource params = params(DrugWithBrandsCustomJoinQuery.drugIdParam, 2L);
+      SqlParameterSource params = params(DrugWithBrandsCustomJoinQuery.idParam, 2L);
 
       doQuery(sql, params, rs -> {
          DrugWithBrandsCustomJoinQuery.Drug res = readJson(rs.getString(1), DrugWithBrandsCustomJoinQuery.Drug.class);
@@ -159,7 +159,7 @@ class QueryGeneratorTests extends TestsBase
    {
       String sql = getGeneratedQuerySql("drug with brands and advisories query(json object rows).sql");
 
-      SqlParameterSource params = params(DrugWithBrandsAndAdvisoriesQuery.drugIdParam, 2L);
+      SqlParameterSource params = params(DrugWithBrandsAndAdvisoriesQuery.idParam, 2L);
 
       doQuery(sql, params, rs -> {
          DrugWithBrandsAndAdvisoriesQuery.Drug res = readJson(rs.getString(1), DrugWithBrandsAndAdvisoriesQuery.Drug.class);
@@ -186,7 +186,7 @@ class QueryGeneratorTests extends TestsBase
    {
       String sql = getGeneratedQuerySql("drug with unwrapped advisory ids query(json object rows).sql");
 
-      SqlParameterSource params = params(DrugWithUnwrappedAdvisoryIdsQuery.drugIdParam, 2L);
+      SqlParameterSource params = params(DrugWithUnwrappedAdvisoryIdsQuery.idParam, 2L);
 
       doQuery(sql, params, rs -> {
          DrugWithUnwrappedAdvisoryIdsQuery.Drug res = readJson(rs.getString(1), DrugWithUnwrappedAdvisoryIdsQuery.Drug.class);
@@ -201,7 +201,7 @@ class QueryGeneratorTests extends TestsBase
    {
       String sql = getGeneratedQuerySql("drug with unwrapped advisory texts query(json object rows).sql");
 
-      SqlParameterSource params = params(DrugWithUnwrappedAdvisoryTextsQuery.drugIdParam, 2L);
+      SqlParameterSource params = params(DrugWithUnwrappedAdvisoryTextsQuery.idParam, 2L);
 
       doQuery(sql, params, rs -> {
          DrugWithUnwrappedAdvisoryTextsQuery.Drug res = readJson(rs.getString(1), DrugWithUnwrappedAdvisoryTextsQuery.Drug.class);
@@ -219,7 +219,7 @@ class QueryGeneratorTests extends TestsBase
    {
       String sql = getGeneratedQuerySql("drug with unwrapped advisory type names query(json object rows).sql");
 
-      SqlParameterSource params = params(DrugWithUnwrappedAdvisoryTypeNamesQuery.drugIdParam, 2L);
+      SqlParameterSource params = params(DrugWithUnwrappedAdvisoryTypeNamesQuery.idParam, 2L);
 
       doQuery(sql, params, rs -> {
          DrugWithUnwrappedAdvisoryTypeNamesQuery.Drug res = readJson(rs.getString(1), DrugWithUnwrappedAdvisoryTypeNamesQuery.Drug.class);
@@ -237,7 +237,7 @@ class QueryGeneratorTests extends TestsBase
    {
       String sql = getGeneratedQuerySql("advisory with inline advisory type query(json object rows).sql");
 
-      SqlParameterSource params = params(AdvisoryWithInlineAdvisoryTypeQuery.advisoryIdParam, 201L);
+      SqlParameterSource params = params(AdvisoryWithInlineAdvisoryTypeQuery.idParam, 201L);
 
       doQuery(sql, params, rs -> {
          AdvisoryWithInlineAdvisoryTypeQuery.Advisory res = readJson(rs.getString(1), AdvisoryWithInlineAdvisoryTypeQuery.Advisory.class);
@@ -254,7 +254,7 @@ class QueryGeneratorTests extends TestsBase
    {
       String sql = getGeneratedQuerySql("advisory with inline custom joined advisory type query(json object rows).sql");
 
-      SqlParameterSource params = params(AdvisoryWithInlineCustomJoinedAdvisoryTypeQuery.advisoryIdParam, 201L);
+      SqlParameterSource params = params(AdvisoryWithInlineCustomJoinedAdvisoryTypeQuery.idParam, 201L);
 
       doQuery(sql, params, rs -> {
          AdvisoryWithInlineCustomJoinedAdvisoryTypeQuery.Advisory res = readJson(rs.getString(1), AdvisoryWithInlineCustomJoinedAdvisoryTypeQuery.Advisory.class);
@@ -271,7 +271,7 @@ class QueryGeneratorTests extends TestsBase
    {
       String sql = getGeneratedQuerySql("drug with wrapped analyst query(json object rows).sql");
 
-      SqlParameterSource params = params(DrugWithWrappedAnalystQuery.drugIdParam, 2L);
+      SqlParameterSource params = params(DrugWithWrappedAnalystQuery.idParam, 2L);
 
       doQuery(sql, params, rs -> {
          DrugWithWrappedAnalystQuery.Drug res = readJson(rs.getString(1), DrugWithWrappedAnalystQuery.Drug.class);
@@ -287,7 +287,7 @@ class QueryGeneratorTests extends TestsBase
    {
       String sql = getGeneratedQuerySql("drug with wrapped analyst via custom join query(json object rows).sql");
 
-      SqlParameterSource params = params(DrugWithWrappedAnalystViaCustomJoinQuery.drugIdParam, 2L);
+      SqlParameterSource params = params(DrugWithWrappedAnalystViaCustomJoinQuery.idParam, 2L);
 
       doQuery(sql, params, rs -> {
          DrugWithWrappedAnalystViaCustomJoinQuery.Drug res =
@@ -304,7 +304,7 @@ class QueryGeneratorTests extends TestsBase
    {
       String sql = getGeneratedQuerySql("drug with explicit compound reference query(json object rows).sql");
 
-      SqlParameterSource params = params(DrugWithExplicitCompoundReferenceQuery.drugIdParam, 2L);
+      SqlParameterSource params = params(DrugWithExplicitCompoundReferenceQuery.idParam, 2L);
 
       doQuery(sql, params, rs -> {
          DrugWithExplicitCompoundReferenceQuery.Drug res = readJson(rs.getString(1), DrugWithExplicitCompoundReferenceQuery.Drug.class);

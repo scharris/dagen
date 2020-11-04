@@ -12,8 +12,9 @@ querySpecs:
         - field: id
         - field: name
         - field: mesh_id
-      fieldParamConditions:
-        - field: id
+      recordCondition:
+         sql: "$$.id = :id"
+         paramNames: ["id"]
 
   - queryName: drug fields query with other cond
     resultsRepresentations: [JSON_OBJECT_ROWS, MULTI_COLUMN_ROWS]
@@ -39,8 +40,9 @@ querySpecs:
         - field: id
         - field: cid
           generatedFieldType: "@Nullable BigDecimal"
-      fieldParamConditions:
-        - field: id
+      recordCondition:
+         sql: "$$.id = :id"
+         paramNames: ["id"]
 
   - queryName: drug with field expression query
     resultsRepresentations: [JSON_OBJECT_ROWS]
@@ -53,8 +55,9 @@ querySpecs:
           withTableAliasAs: $d # custom table alias used in expression
           jsonProperty: cidPlus1000
           generatedFieldType: "@Nullable Integer"
-      fieldParamConditions:
-        - field: id
+      recordCondition:
+         sql: "$$.id = :id"
+         paramNames: ["id"]
 
   # Drug with brands child collection.
   - queryName: drug with brands query
@@ -72,8 +75,9 @@ querySpecs:
             fieldExpressions:
               - field: brand_name
               - field: manufacturer_id
-      fieldParamConditions:
-        - field: id
+      recordCondition:
+         sql: "$$.id = :id"
+         paramNames: ["id"]
 
   # drug with brands via custom join condition
   - queryName: drug with brands custom join query
@@ -95,8 +99,9 @@ querySpecs:
             fieldExpressions:
               - field: brand_name
               - field: manufacturer_id
-      fieldParamConditions:
-        - field: id
+      recordCondition:
+         sql: "$$.id = :id"
+         paramNames: ["id"]
 
   # drug with brands and advisories
   - queryName: drug with brands and advisories query
@@ -120,8 +125,9 @@ querySpecs:
             fieldExpressions:
               - field: text
                 jsonProperty: advisoryText
-      fieldParamConditions:
-        - field: id
+      recordCondition:
+         sql: "$$.id = :id"
+         paramNames: ["id"]
 
   # drug with unwrapped advisory ids
   - queryName: drug with unwrapped advisory ids query
@@ -139,8 +145,9 @@ querySpecs:
             table: advisory
             fieldExpressions:
               - field: id
-      fieldParamConditions:
-        - field: id
+      recordCondition:
+         sql: "$$.id = :id"
+         paramNames: ["id"]
 
   # drug with unwrapped advisory texts
   - queryName: drug with unwrapped advisory texts query
@@ -158,8 +165,9 @@ querySpecs:
             table: advisory
             fieldExpressions:
               - field: text
-      fieldParamConditions:
-        - field: id
+      recordCondition:
+         sql: "$$.id = :id"
+         paramNames: ["id"]
 
   # drug with unwrapped advisory type names
   - queryName: drug with unwrapped advisory type names query
@@ -180,8 +188,9 @@ querySpecs:
                   table: advisory_type
                   fieldExpressions:
                     - field: name
-      fieldParamConditions:
-        - field: id
+      recordCondition:
+         sql: "$$.id = :id"
+         paramNames: ["id"]
 
   # Inline parent query, where parent's fields are included inline in the child table.
   - queryName: advisory with inline advisory type query
@@ -202,8 +211,9 @@ querySpecs:
               - expression: "(select 1 + 1)"
                 jsonProperty: exprYieldingTwo
                 generatedFieldType: long
-      fieldParamConditions:
-        - field: id
+      recordCondition:
+         sql: "$$.id = :id"
+         paramNames: ["id"]
 
   # Inline parent query with custom join condition.
   - queryName: advisory with inline custom joined advisory type query
@@ -228,8 +238,9 @@ querySpecs:
             equatedFields:
               - childField: advisory_type_id
                 parentPrimaryKeyField: id
-      fieldParamConditions:
-        - field: id
+      recordCondition:
+         sql: "$$.id = :id"
+         paramNames: ["id"]
 
   # Referenced (wrapped) parent query, where parent is available through an object reference.
   - queryName: drug with wrapped analyst query
@@ -248,8 +259,9 @@ querySpecs:
             fieldExpressions:
               - field: id
               - field: short_name
-      fieldParamConditions:
-        - field: id
+      recordCondition:
+         sql: "$$.id = :id"
+         paramNames: ["id"]
 
   # Referenced (wrapped) parent with custom join condition.
   - queryName: drug with wrapped analyst via custom join query
@@ -272,8 +284,9 @@ querySpecs:
             equatedFields:
               - childField: registered_by
                 parentPrimaryKeyField: id
-      fieldParamConditions:
-        - field: id
+      recordCondition:
+         sql: "$$.id = :id"
+         paramNames: ["id"]
 
   - queryName: drug with explicit compound reference query
     resultsRepresentations: [JSON_OBJECT_ROWS]
@@ -293,5 +306,6 @@ querySpecs:
             fieldExpressions:
               - field: display_name
               - field: nctr_isis_id
-      fieldParamConditions:
-        - field: id
+      recordCondition:
+         sql: "$$.id = :id"
+         paramNames: ["id"]

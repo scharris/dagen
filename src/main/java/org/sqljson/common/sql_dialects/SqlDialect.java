@@ -1,12 +1,8 @@
 package org.sqljson.common.sql_dialects;
 
 import java.util.List;
-import java.util.function.Function;
 
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.sqljson.dbmd.DatabaseMetadata;
-import org.sqljson.common.specs.FieldParamCondition;
-import org.sqljson.mod_stmts.specs.ParametersType;
 import org.sqljson.queries.sql.ColumnMetadata;
 
 
@@ -34,14 +30,6 @@ public interface SqlDialect
          String fromAlias
       );
 
-   String getFieldParamConditionSql
-      (
-         FieldParamCondition fieldParamCondition,
-         @Nullable String tableAlias,
-         ParametersType paramsType,
-         Function<String,String> defaultParamNameFn // default param name as function of field name
-      );
-
    static SqlDialect fromDatabaseMetadata
       (
          DatabaseMetadata dbmd,
@@ -63,27 +51,6 @@ public interface SqlDialect
       if ( dbmsLower.contains("postgres") ) return DbmsType.PG;
       else if ( dbmsLower.contains("oracle") ) return DbmsType.ORA;
       else return DbmsType.ISO;
-   }
-
-   static @Nullable String getCommonFieldParamConditionSql
-      (
-         String mqFieldName, // field name, maybe qualified
-         String paramValExpr,
-         FieldParamCondition.Operator op
-      )
-   {
-      switch ( op )
-      {
-         case EQ:   return mqFieldName + " = " + paramValExpr;
-         case LIKE: return mqFieldName + " like " + paramValExpr;
-         case LT:   return mqFieldName + " < " + paramValExpr;
-         case LE:   return mqFieldName + " <= " + paramValExpr;
-         case GT:   return mqFieldName + " > " + paramValExpr;
-         case GE:   return mqFieldName + " >= " + paramValExpr;
-         case IN:   return mqFieldName + " IN (" + paramValExpr + ")";
-         case EQ_IF_PARAM_NONNULL: return "(" + paramValExpr + " is null or " + mqFieldName + " = " + paramValExpr + ")";
-         default: return null;
-      }
    }
 }
 

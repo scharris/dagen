@@ -24,23 +24,6 @@
           "queryName" : {
             "type" : "string"
           },
-          "resultsRepresentations" : {
-            "type" : "array",
-            "items" : {
-              "type" : "string",
-              "enum" : [ "MULTI_COLUMN_ROWS", "JSON_OBJECT_ROWS", "JSON_ARRAY_ROW" ]
-            }
-          },
-          "generateResultTypes" : {
-            "type" : "boolean"
-          },
-          "generateSource" : {
-            "type" : "boolean"
-          },
-          "outputFieldNameDefault" : {
-            "type" : "string",
-            "enum" : [ "AS_IN_DB", "CAMELCASE" ]
-          },
           "tableJson" : {
             "type" : "object",
             "id" : "urn:jsonschema:org:sqljson:queries:specs:TableJsonSpec",
@@ -170,28 +153,9 @@
                   }
                 }
               },
-              "fieldParamConditions" : {
-                "type" : "array",
-                "items" : {
-                  "type" : "object",
-                  "id" : "urn:jsonschema:org:sqljson:specs_common:FieldParamCondition",
-                  "properties" : {
-                    "field" : {
-                      "type" : "string"
-                    },
-                    "op" : {
-                      "type" : "string",
-                      "enum" : [ "EQ", "LT", "LE", "GT", "GE", "IN", "EQ_IF_PARAM_NONNULL", "JSON_CONTAINS" ]
-                    },
-                    "paramName" : {
-                      "type" : "string"
-                    }
-                  }
-                }
-              },
               "recordCondition" : {
                 "type" : "object",
-                "id" : "urn:jsonschema:org:sqljson:specs_common:RecordCondition",
+                "id" : "urn:jsonschema:org:sqljson:common:specs:RecordCondition",
                 "properties" : {
                   "sql" : {
                     "type" : "string"
@@ -208,6 +172,23 @@
                 }
               }
             }
+          },
+          "resultsRepresentations" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string",
+              "enum" : [ "MULTI_COLUMN_ROWS", "JSON_OBJECT_ROWS", "JSON_ARRAY_ROW" ]
+            }
+          },
+          "generateResultTypes" : {
+            "type" : "boolean"
+          },
+          "generateSource" : {
+            "type" : "boolean"
+          },
+          "outputFieldNameDefault" : {
+            "type" : "string",
+            "enum" : [ "AS_IN_DB", "CAMELCASE" ]
           },
           "forUpdate" : {
             "type" : "boolean"
