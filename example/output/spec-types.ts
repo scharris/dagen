@@ -1,35 +1,6 @@
 /* tslint:disable */
 /* eslint-disable */
-// Generated using typescript-generator version 2.26.723 on 2020-11-03 18:32:03.
-
-export interface RecordCondition {
-    sql: string;
-    paramNames?: Nullable<string[]>;
-    withTableAliasAs?: Nullable<string>;
-}
-
-export interface ModGroupSpec {
-    defaultSchema?: Nullable<string>;
-    generateUnqualifiedNamesForSchemas: string[];
-    modificationStatementSpecs: ModSpec[];
-}
-
-export interface ModSpec {
-    statementName: string;
-    command: ModType;
-    table: string;
-    tableAlias?: Nullable<string>;
-    targetFields?: Nullable<TargetField[]>;
-    parametersType?: Nullable<ParametersType>;
-    generateSourceCode?: Nullable<boolean>;
-    recordCondition?: Nullable<RecordCondition>;
-}
-
-export interface TargetField {
-    field: string;
-    value: string;
-    paramNames?: Nullable<string[]>;
-}
+// Generated using typescript-generator version 2.26.723 on 2020-11-04 07:39:18.
 
 export interface ChildCollectionSpec {
     collectionName: string;
@@ -76,6 +47,12 @@ export interface QuerySpec {
     typesFileHeader?: Nullable<string>;
 }
 
+export interface RecordCondition {
+    sql: string;
+    paramNames?: Nullable<string[]>;
+    withTableAliasAs?: Nullable<string>;
+}
+
 export interface ReferencedParentSpec extends ParentSpec {
     referenceName: string;
     tableJson: TableJsonSpec;
@@ -99,10 +76,6 @@ export interface TableJsonSpec {
     childTableCollections?: Nullable<ChildCollectionSpec[]>;
     recordCondition?: Nullable<RecordCondition>;
 }
-
-export type ModType = "INSERT" | "UPDATE" | "DELETE";
-
-export type ParametersType = "NUMBERED" | "NAMED";
 
 export type OutputFieldNameDefault = "AS_IN_DB" | "CAMELCASE";
 

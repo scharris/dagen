@@ -19,7 +19,7 @@ import org.sqljson.queries.source_writers.TypeScriptWriter;
 import org.sqljson.queries.WrittenQueryReprPath;
 import org.sqljson.queries.specs.QueryGroupSpec;
 import org.sqljson.queries.specs.ResultsRepr;
-import org.sqljson.common.specs.StatementSpecificationException;
+import org.sqljson.common.StatementSpecificationException;
 import org.sqljson.common.util.AppUtils.SplitArgs;
 import org.sqljson.dbmd.DatabaseMetadata;
 import static org.sqljson.common.util.AppUtils.splitOptionsAndRequiredArgs;

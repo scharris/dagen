@@ -9,11 +9,10 @@ import static java.util.function.Function.identity;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
 
-import org.sqljson.common.specs.StatementSpecificationException;
+import org.sqljson.common.StatementSpecificationException;
 import org.sqljson.dbmd.*;
 import org.sqljson.queries.result_types.GeneratedType;
 import org.sqljson.queries.specs.*;
-import org.sqljson.common.specs.RecordCondition;
 import org.sqljson.queries.sql.*;
 import org.sqljson.common.util.StringFuns;
 import org.sqljson.common.sql_dialects.SqlDialect;

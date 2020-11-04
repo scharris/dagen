@@ -10,14 +10,3 @@ java -cp "$JAR" `
     $PSScriptRoot/output/ora `
     $PSScriptRoot/output/ora
 Write-Host "  Done"
-
-Write-Host "Generating mod statements..."
-java -cp "$JAR" `
-  org.sqljson.ModStatementGeneratorMain `
-  --types-language:Java `
-  $PSScriptRoot/db/dbmd-ora.yaml `
-  $PSScriptRoot/mod-specs.yaml `
-  $PSScriptRoot/output/ora `
-  $PSScriptRoot/output/ora
-Write-Host "  Done"
-

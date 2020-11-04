@@ -1,4 +1,4 @@
-package org.sqljson.common.specs;
+package org.sqljson.common;
 
 
 public class StatementSpecificationException extends RuntimeException

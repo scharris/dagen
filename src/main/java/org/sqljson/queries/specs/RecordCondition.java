@@ -1,4 +1,4 @@
-package org.sqljson.common.specs;
+package org.sqljson.queries.specs;
 
 import java.util.List;
 

@@ -260,23 +260,6 @@
                      </arguments>
                   </configuration>
                </execution>
-               <!-- General exec:java for generating mod statements. Example run:
-               ./mvn exec:java@mod-stmts -Dlang=TypeScript -Ddbmd="example/output/pg/dbmd-pg.yaml" -Dspecs="example/mod-specs.yaml" -DtypesDir="../../tmp" -DsqlDir="../../tmp"
-               -->
-               <execution>
-                  <id>mod-stmts</id>
-                  <configuration>
-                     <mainClass>org.sqljson.ModStatementGeneratorMain</mainClass>
-                     <arguments>
-                        <argument>--types-language:${lang}</argument>
-                        <argument>--package:${pkg}</argument>
-                        <argument>${dbmd}</argument>
-                        <arguement>${specs}</arguement>
-                        <argument>${typesDir}</argument>
-                        <argument>${sqlDir}</argument>
-                     </arguments>
-                  </configuration>
-               </execution>
                <execution>
                   <id>gen-test-queries</id>
                   <phase>generate-test-sources</phase>
@@ -295,28 +278,6 @@
                         <arguement>${project.basedir}/src/test/resources/query-specs.yaml</arguement>
                         <argument>${project.basedir}/src/test/java</argument>
                         <argument>${project.basedir}/src/test/resources/generated/query-sql</argument>
-                     </arguments>
-                  </configuration>
-               </execution>
-               <!-- Generate example mod statements and supporting param info classes at example/db/output/mod-stmts/. -->
-               <execution>
-                  <id>gen-mod-stmts</id>
-                  <phase>generate-test-sources</phase>
-                  <goals>
-                     <goal>java</goal>
-                  </goals>
-                  <configuration>
-                     <additionalClasspathElements>
-                        <classpathElement>${project.build.outputDirectory}</classpathElement>
-                     </additionalClasspathElements>
-                     <mainClass>org.sqljson.ModStatementGeneratorMain</mainClass>
-                     <arguments>
-                        <argument>--types-language:Java</argument>
-                        <argument>--package:generated.mod_stmt</argument>
-                        <argument>${project.basedir}/src/test/resources/dbmd-pg.yaml</argument>
-                        <arguement>${project.basedir}/src/test/resources/mod-specs.yaml</arguement>
-                        <argument>${project.basedir}/src/test/java</argument>
-                        <argument>${project.basedir}/src/test/resources/generated/mod-stmt-sql</argument>
                      </arguments>
                   </configuration>
                </execution>
