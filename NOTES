@@ -1,9 +1,4 @@
 
-Commit
-------
-git tag 1.5.1
-
-
 # Generate database metadata.
 ./mvn exec:java@dbmd -DpropsFile="example/db/dbmd-pg.props" -DoutputFile="../../tmp/dmbd.yaml"
 
