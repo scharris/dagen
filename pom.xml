@@ -4,7 +4,7 @@
    <modelVersion>4.0.0</modelVersion>
    <groupId>org.sqljson</groupId>
    <artifactId>dagen</artifactId>
-   <version>1.4.1</version>
+   <version>1.5.1</version>
    <name>data access generator</name>
    <description>Generate hierarchical SQL/JSON queries, SQL modification statements, and matching types.</description>
 
@@ -200,7 +200,7 @@
                <nullabilityDefinition>nullAndUndefinedUnion</nullabilityDefinition>
                <outputKind>module</outputKind>
                <outputFileType>implementationFile</outputFileType>
-               <outputFile>example/output/spec-types.ts</outputFile>
+               <outputFile>${project.build.directory}/spec-types.ts</outputFile>
             </configuration>
          </plugin>
          <plugin>
