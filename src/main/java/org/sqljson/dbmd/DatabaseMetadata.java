@@ -294,7 +294,6 @@ public class DatabaseMetadata
          if ( normdFkFieldNames == null || fk.sourceFieldNamesSetEqualsNormalizedNamesSet(normdFkFieldNames) )
          {
             if ( soughtFk != null ) // already found an fk satisfying requirements?
-               // TODO
                throw new IllegalArgumentException(
                   "Child table " + fromRelId + " has multiple foreign keys to parent table " + toRelId +
                   (fieldNames != null ?
