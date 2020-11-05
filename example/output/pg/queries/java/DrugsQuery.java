@@ -17,8 +17,6 @@ public class DrugsQuery
 {
    public static final String sqlResource = "drugs query(json object rows).sql";
 
-   public static final String drugMeshIdListParam = "drugMeshIdList";
-
    public static final Class<Drug> principalResultClass = Drug.class;
 
 

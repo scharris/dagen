@@ -52,7 +52,7 @@ from (
         coalesce(jsonb_agg(jsonb_build_object(
           'brandName', q."brandName",
           'manufacturer', q.manufacturer
-        )),'[]'::jsonb) json
+        ) order by q."brandName" desc),'[]'::jsonb) json
       from (
         select
           b.brand_name "brandName",
@@ -80,7 +80,7 @@ from (
           'authorityName', q."authorityName",
           'authorityUrl', q."authorityUrl",
           'authorityDescription', q."authorityDescription"
-        )),'[]'::jsonb) json
+        ) order by q."advisoryType"),'[]'::jsonb) json
       from (
         select
           a.text "advisoryText",
@@ -215,8 +215,7 @@ from (
   from
     drug d
   where (
-    d.mesh_id IN (:drugMeshIdList)
-    and
     (not d.id = 2)
   )
 ) q
+order by q.name desc

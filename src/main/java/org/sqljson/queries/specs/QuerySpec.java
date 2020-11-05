@@ -20,6 +20,7 @@ public final class QuerySpec
    private final @Nullable Boolean generateResultTypes;
    private final @Nullable Boolean generateSource; // Contains at least the resource name for generated SQL, if not result types.
    private final @Nullable OutputFieldNameDefault outputFieldNameDefault; // inherited from query group spec if empty
+   private final @Nullable String orderBy;
    private final @Nullable Boolean forUpdate;
    private final @Nullable String typesFileHeader;
 
@@ -31,6 +32,7 @@ public final class QuerySpec
       this.generateResultTypes = true;
       this.generateSource = true;
       this.outputFieldNameDefault = null;
+      this.orderBy = null;
       this.forUpdate = false;
       this.typesFileHeader = null;
    }
@@ -43,6 +45,7 @@ public final class QuerySpec
          @Nullable Boolean generateResultTypes,
          @Nullable Boolean generateSource,
          @Nullable OutputFieldNameDefault outputFieldNameDefault,
+         @Nullable String orderBy,
          @Nullable Boolean forUpdate,
          @Nullable String typesFileHeader
       )
@@ -55,6 +58,7 @@ public final class QuerySpec
       this.generateSource = generateSource;
       this.outputFieldNameDefault = outputFieldNameDefault;
       this.tableJson = tableJson;
+      this.orderBy = orderBy;
       this.forUpdate = forUpdate;
       this.typesFileHeader = typesFileHeader;
       if ( valueOr(generateResultTypes, true) && !valueOr(generateSource, true) )
@@ -94,6 +98,8 @@ public final class QuerySpec
    public @Nullable OutputFieldNameDefault getOutputFieldNameDefault() { return outputFieldNameDefault; }
 
    public TableJsonSpec getTableJson() { return tableJson; }
+
+   public @Nullable String getOrderBy() { return orderBy; }
 
    public @Nullable Boolean getForUpdate() { return forUpdate; }
 

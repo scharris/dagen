@@ -10,18 +10,23 @@ import static org.sqljson.common.util.Nullables.applyIfPresent;
 
 public final class ChildCollectionSpec
 {
-   private String collectionName;
-   private TableJsonSpec tableJson;
-   private @Nullable List<String> foreignKeyFields = null;
-   private @Nullable CustomJoinCondition customJoinCondition = null;
-   private @Nullable String filter = null;
-   private @Nullable Boolean unwrap = false;
+   private final String collectionName;
+   private final TableJsonSpec tableJson;
+   private final @Nullable List<String> foreignKeyFields;
+   private final @Nullable CustomJoinCondition customJoinCondition;
+   private final @Nullable String filter;
+   private final @Nullable Boolean unwrap;
+   private final @Nullable String orderBy;
 
    private ChildCollectionSpec()
    {
       this.collectionName = "";
       this.tableJson = new TableJsonSpec();
-      this.unwrap = null;
+      this.foreignKeyFields = null;
+      this.customJoinCondition = null;
+      this.filter = null;
+      this.unwrap = false;
+      this.orderBy = null;
    }
 
    public ChildCollectionSpec
@@ -30,14 +35,17 @@ public final class ChildCollectionSpec
          TableJsonSpec tableJson,
          @Nullable List<String> fkFields,
          @Nullable String filter,
-         @Nullable Boolean unwrap
+         @Nullable Boolean unwrap,
+         @Nullable String orderBy
       )
    {
       this.collectionName = collectionName;
       this.tableJson = tableJson;
       this.foreignKeyFields = applyIfPresent(fkFields, Collections::unmodifiableList);
+      this.customJoinCondition = null;
       this.filter = filter;
       this.unwrap = unwrap;
+      this.orderBy = orderBy;
    }
 
    public ChildCollectionSpec
@@ -46,7 +54,8 @@ public final class ChildCollectionSpec
          TableJsonSpec tableJson,
          CustomJoinCondition customJoinCondition,
          @Nullable String filter,
-         @Nullable Boolean unwrap
+         @Nullable Boolean unwrap,
+         @Nullable String orderBy
       )
    {
       this.collectionName = collectionName;
@@ -55,6 +64,7 @@ public final class ChildCollectionSpec
       this.customJoinCondition = customJoinCondition;
       this.filter = filter;
       this.unwrap = unwrap;
+      this.orderBy = orderBy;
    }
 
    public String getCollectionName() { return collectionName; }
@@ -74,5 +84,6 @@ public final class ChildCollectionSpec
    public @Nullable String getFilter() { return filter; }
 
    public @Nullable Boolean getUnwrap() { return unwrap; }
-}
 
+   public @Nullable String getOrderBy() { return orderBy; }
+}

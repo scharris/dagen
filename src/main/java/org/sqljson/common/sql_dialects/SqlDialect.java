@@ -2,6 +2,7 @@ package org.sqljson.common.sql_dialects;
 
 import java.util.List;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.sqljson.dbmd.DatabaseMetadata;
 import org.sqljson.queries.sql.ColumnMetadata;
 
@@ -21,12 +22,14 @@ public interface SqlDialect
    String getAggregatedRowObjectsExpression
       (
          List<ColumnMetadata> columnMetadatas,
+         @Nullable String orderBy,
          String fromAlias
       );
 
    String getAggregatedColumnValuesExpression
       (
          ColumnMetadata columnMetadata,
+         @Nullable String orderBy,
          String fromAlias
       );
 

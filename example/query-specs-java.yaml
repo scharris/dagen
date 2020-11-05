@@ -4,6 +4,7 @@ querySpecs:
   - queryName: drugs query
     resultsRepresentations: [JSON_OBJECT_ROWS] # (<- the default, other options: JSON_ARRAY_ROW, MULTI_COLUMN_ROWS)
     generateResultTypes: true
+    orderBy: '$$.name desc'
     tableJson:
       table: drug
       fieldExpressions:
@@ -37,6 +38,7 @@ querySpecs:
                   fieldExpressions:
                     - field: name
                       jsonProperty: manufacturer
+          orderBy: '$$."brandName" desc'
         - collectionName: advisories
           tableJson:
             table: advisory
@@ -62,6 +64,7 @@ querySpecs:
                             jsonProperty: authorityUrl
                           - field: description
                             jsonProperty: authorityDescription
+          orderBy: '$$."advisoryType"'
         - collectionName: functionalCategories
           tableJson:
             table: drug_functional_category

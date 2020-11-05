@@ -3,6 +3,7 @@ package org.sqljson.common.sql_dialects;
 import java.util.List;
 import static java.util.stream.Collectors.joining;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.sqljson.queries.sql.ColumnMetadata;
 import org.sqljson.common.util.StringFuns;
 
@@ -38,23 +39,31 @@ public class PostgresDialect implements SqlDialect
    public String getAggregatedRowObjectsExpression
       (
          List<ColumnMetadata> columnMetadatas,
+         @Nullable String orderBy,
          String fromAlias
       )
    {
 
-      String rowObjExpr = getRowObjectExpression(columnMetadatas, fromAlias);
-      return "coalesce(jsonb_agg(" + rowObjExpr + "),'[]'::jsonb)";
+      return
+         "coalesce(jsonb_agg(" +
+            getRowObjectExpression(columnMetadatas, fromAlias) +
+            (orderBy != null ? " order by " + orderBy.replace("$$", fromAlias) : "") +
+         "),'[]'::jsonb)";
    }
 
    @Override
    public String getAggregatedColumnValuesExpression
       (
           ColumnMetadata columnMetadata,
+          @Nullable String orderBy,
           String fromAlias
       )
    {
-      String qfield = fromAlias + "." + columnMetadata.getName();
-      return "coalesce(jsonb_agg(" + qfield + "))";
+      return
+         "coalesce(jsonb_agg(" +
+            fromAlias + "." + columnMetadata.getName() +
+            (orderBy != null ? " order by " + orderBy.replace("$$", fromAlias) : "") +
+         "))";
    }
 }
 

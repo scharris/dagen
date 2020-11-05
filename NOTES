@@ -1,12 +1,8 @@
-RecordCondition
-  This should allow various parameter styles in sql, such as:
-    "$1", ":1", "?", ":myParam".
-  To now, it was assumed that queries would always just use named params, but
-  node-postgres api supports only numbered params prefixed by '$' in the SQL,
-  like "$1", "$2", etc.
 
-Are mod statements even necessary any more?
-  Field-level relation metadata is available at compile time so
+Commit
+------
+git tag 1.5.1
+
 
 # Generate database metadata.
 ./mvn exec:java@dbmd -DpropsFile="example/db/dbmd-pg.props" -DoutputFile="../../tmp/dmbd.yaml"

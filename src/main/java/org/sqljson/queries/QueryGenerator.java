@@ -99,7 +99,7 @@ public class QueryGenerator
             querySpec.getGenerateSourceOrDefault(),
             querySpec.getTypesFileHeader(),
             getAllParamNames(querySpec)
-      );
+         );
    }
 
    private String makeSqlForResultsRepr
@@ -116,9 +116,16 @@ public class QueryGenerator
       {
          case MULTI_COLUMN_ROWS:
          {
-            String q = makeBaseQuery(tjs, null, false, propNameDefaultFn, queryName, "" )
-                       .getSql();
-            return querySpec.getForUpdateOrDefault() ? q + "\nfor update" : q;
+            return
+               makeBaseQuery(
+                  tjs,
+                  null,
+                  false,
+                  propNameDefaultFn,
+                  querySpec.getOrderBy(),
+                  queryName,
+                  "" ).sql +
+               (querySpec.getForUpdateOrDefault() ? "\nfor update" : "");
          }
          case JSON_OBJECT_ROWS:
          {
@@ -129,7 +136,15 @@ public class QueryGenerator
                   "FOR UPDATE queries are only allowed for MULTI_COLUMN_ROWS results"
                );
 
-            return makeJsonObjectRowsSql( tjs, null, propNameDefaultFn, queryName, "");
+            return
+               makeJsonObjectRowsSql(
+                  tjs,
+                  null,
+                  propNameDefaultFn,
+                  querySpec.getOrderBy(),
+                  queryName,
+                  ""
+               );
          }
          case JSON_ARRAY_ROW:
          {
@@ -140,7 +155,15 @@ public class QueryGenerator
                   "FOR UPDATE queries are only allowed for MULTI_COLUMN_ROWS results"
                );
 
-            return makeAggregatedJsonResultSql(tjs, null, propNameDefaultFn, false, queryName, "");
+            return
+               makeAggregatedJsonResultSql(
+                  tjs,
+                  null,
+                  propNameDefaultFn,
+                  false,
+                  querySpec.getOrderBy(),
+                  queryName, ""
+               );
          }
          default:
             throw specError(
@@ -176,6 +199,7 @@ public class QueryGenerator
          @Nullable ParentChildCondition parentChildCond,
          boolean exportPkFieldsHidden,
          Function<String,String> propNameDefaultFn,
+         @Nullable String orderBy,
          String queryName, // for error details
          String queryPart  // "
       )
@@ -253,6 +277,9 @@ public class QueryGenerator
       @Nullable String whereCond = getWhereCondition(tableJsonSpec, alias);
       ifPresent(whereCond, q::addWhereClauseEntry);
 
+      if ( orderBy != null )
+         q.setOrderBy(orderBy);
+
       String sql = makeSqlFromParts(q);
 
       List<ColumnMetadata> columnMetadatas =
@@ -278,14 +305,23 @@ public class QueryGenerator
          @Nullable ParentChildCondition parentChildCond,
          Function<String,String> propNameDefaultFn,
          boolean unwrapSingleColumnValues,
+         @Nullable String orderBy,
          String queryName,
          String queryPart
       )
    {
       BaseQuery baseQuery =
-         makeBaseQuery(tjs, parentChildCond, false, propNameDefaultFn, queryName, queryPart);
+         makeBaseQuery(
+            tjs,
+            parentChildCond,
+            false,
+            propNameDefaultFn,
+            null,
+            queryName,
+            queryPart
+         );
 
-      if ( unwrapSingleColumnValues && baseQuery.getResultColumnMetadatas().size() != 1 )
+      if ( unwrapSingleColumnValues && baseQuery.resultColumnMetadatas.size() != 1 )
          throw specError(
             queryName,
             queryPart,
@@ -294,14 +330,14 @@ public class QueryGenerator
          );
 
       String aggExpr = unwrapSingleColumnValues ?
-          sqlDialect.getAggregatedColumnValuesExpression(baseQuery.getResultColumnMetadatas().get(0), "q")
-          : sqlDialect.getAggregatedRowObjectsExpression(baseQuery.getResultColumnMetadatas(), "q");
+          sqlDialect.getAggregatedColumnValuesExpression(baseQuery.resultColumnMetadatas.get(0), orderBy, "q")
+          : sqlDialect.getAggregatedRowObjectsExpression(baseQuery.resultColumnMetadatas, orderBy, "q");
 
       return
          "select\n" +
             indent(aggExpr) + " json\n" +
          "from (\n" +
-            indent(baseQuery.getSql()) + "\n" +
+            indent(baseQuery.sql) + "\n" +
          ") q";
    }
 
@@ -318,16 +354,25 @@ public class QueryGenerator
          TableJsonSpec tjs,
          @Nullable ParentChildCondition parentChildCond,
          Function<String,String> propNameDefaultFn,
+         @Nullable String orderBy,
          String queryName,
          String queryPart
       )
    {
       BaseQuery baseQuery =
-         makeBaseQuery(tjs, parentChildCond, false, propNameDefaultFn, queryName, queryPart);
+         makeBaseQuery(
+            tjs,
+            parentChildCond,
+            false,
+            propNameDefaultFn,
+            null,
+            queryName,
+            queryPart
+         );
 
       String rowObjExpr =
          sqlDialect.getRowObjectExpression(
-            baseQuery.getResultColumnMetadatas(),
+            baseQuery.resultColumnMetadatas,
             "q"
          );
 
@@ -335,8 +380,11 @@ public class QueryGenerator
          "select\n" +
             indent(rowObjExpr) + " json\n" +
          "from (\n" +
-            indent(baseQuery.getSql()) + "\n" +
-         ") q";
+            indent(baseQuery.sql) + "\n" +
+         ") q" +
+         (orderBy != null ?
+            "\norder by " + orderBy.replace("$$", "q")
+            : "");
    }
 
    private String makeChildRecordsQuery
@@ -365,8 +413,7 @@ public class QueryGenerator
              "multiple field expressions are included."
          );
 
-      return
-         makeAggregatedJsonResultSql(tjs, pcCond, propNameDefaultFn, unwrapChildValues, queryName, queryPart);
+      return makeAggregatedJsonResultSql(tjs, pcCond, propNameDefaultFn, unwrapChildValues, childSpec.getOrderBy(), queryName, queryPart);
    }
 
    private ParentChildCondition getChildCollectionJoinCondition
@@ -421,12 +468,20 @@ public class QueryGenerator
       RelId parentRelId = identifyTable(tjs.getTable(), queryName, queryPart);
 
       BaseQuery fromClauseQuery =
-         makeBaseQuery(tjs, null, true, propNameDefaultFn, queryName, queryPart);
+         makeBaseQuery(
+            tjs,
+            null,
+            true,
+            propNameDefaultFn,
+            null,
+            queryName,
+            queryPart
+         );
 
       String fromClauseQueryAlias = StringFuns.makeNameNotInSet("q", avoidAliases);
       q.addAliasToScope(fromClauseQueryAlias);
 
-      for ( ColumnMetadata parentColumn : fromClauseQuery.getResultColumnMetadatas() )
+      for ( ColumnMetadata parentColumn : fromClauseQuery.resultColumnMetadatas )
          q.addSelectClauseEntry(
             fromClauseQueryAlias + "." + parentColumn.getName(),
              parentColumn.getName(),
@@ -458,7 +513,7 @@ public class QueryGenerator
 
       q.addFromClauseEntry(
          "left join (\n" +
-            indent(fromClauseQuery.getSql()) + "\n" +
+            indent(fromClauseQuery.sql) + "\n" +
          ") " + fromClauseQueryAlias + " on " + joinCond
       );
 
@@ -486,7 +541,7 @@ public class QueryGenerator
                dbmd.quoteIfNeeded(parentSpec.getReferenceName()),
                SelectClauseEntry.Source.PARENT_REFERENCE
             )),
-            emptyList(), emptyList(), emptySet()
+            emptyList(), emptyList(), null, emptySet()
          );
    }
 
@@ -527,7 +582,14 @@ public class QueryGenerator
       }
 
       return
-         makeJsonObjectRowsSql(tjs, childCondOnParent, propNameDefaultFn, queryName, queryPart);
+         makeJsonObjectRowsSql(
+            tjs,
+            childCondOnParent,
+            propNameDefaultFn,
+            null,
+            queryName,
+            queryPart
+         );
    }
 
    private String makeSqlFromParts(SqlQueryParts q)
@@ -549,7 +611,8 @@ public class QueryGenerator
          (q.getWhereClauseEntries().isEmpty() ? "":
          "where (\n" +
             indent(whereEntriesStr) + "\n" +
-         ")");
+         ")") +
+         applyOr(q.getOrderBy(), orderBy -> "\norder by " + orderBy, "");
    }
 
    private @Nullable String getWhereCondition
@@ -710,18 +773,14 @@ public class QueryGenerator
 
    private static class BaseQuery
    {
-      private final String sql;
-      private final List<ColumnMetadata> resultColumnMetadatas;
+      final String sql;
+      final List<ColumnMetadata> resultColumnMetadatas;
 
       BaseQuery(String sql, List<ColumnMetadata> resultColumnMetadatas)
       {
          this.sql = sql;
          this.resultColumnMetadatas = List.copyOf(resultColumnMetadatas);
       }
-
-      String getSql() { return sql; }
-
-      List<ColumnMetadata> getResultColumnMetadatas() { return resultColumnMetadatas; }
    }
 
    private StatementSpecificationException specError
@@ -787,4 +846,3 @@ public class QueryGenerator
       return part1.isEmpty() ? part2 : part1 + " / " + part2;
    }
 }
-

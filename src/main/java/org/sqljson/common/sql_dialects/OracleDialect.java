@@ -4,6 +4,7 @@ import java.util.List;
 
 import static java.util.stream.Collectors.joining;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.sqljson.queries.sql.ColumnMetadata;
 
 import static org.sqljson.common.util.StringFuns.*;
@@ -41,22 +42,32 @@ public class OracleDialect implements SqlDialect
    public String getAggregatedRowObjectsExpression
       (
          List<ColumnMetadata> columnMetadatas,
+         @Nullable String orderBy,
          String fromAlias
       )
    {
-      String rowObjExpr = getRowObjectExpression(columnMetadatas, fromAlias);
-      return "treat(coalesce(json_arrayagg(" + rowObjExpr + " returning clob), to_clob('[]')) as json)";
+      return
+         "treat(coalesce(json_arrayagg(" +
+            getRowObjectExpression(columnMetadatas, fromAlias) +
+            (orderBy != null ? " order by " + orderBy.replace("$$", fromAlias) : "") +
+            " returning clob" +
+         "), to_clob('[]')) as json)";
    }
 
    @Override
    public String getAggregatedColumnValuesExpression
       (
          ColumnMetadata columnMetadata,
+         @Nullable String orderBy,
          String fromAlias
       )
    {
-      String qfield = fromAlias + "." + columnMetadata.getName();
-      return "treat(coalesce(json_arrayagg(" + qfield + " returning clob), to_clob('[]')) as json)";
+      return
+         "treat(coalesce(json_arrayagg(" +
+            fromAlias + "." + columnMetadata.getName() +
+            (orderBy != null ? " order by " + orderBy.replace("$$", fromAlias) : "") +
+            " returning clob" +
+         "), to_clob('[]')) as json)";
    }
 }
 

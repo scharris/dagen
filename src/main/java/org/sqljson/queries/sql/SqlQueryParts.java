@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import static java.util.Collections.*;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.sqljson.common.util.StringFuns;
 
 
@@ -14,6 +15,7 @@ public class SqlQueryParts
    private final List<SelectClauseEntry> selectEntries;
    private final List<String> fromEntries;
    private final List<String> whereEntries;
+   private @Nullable String orderBy;
    private final Set<String> aliasesInScope;
 
    public SqlQueryParts()
@@ -21,6 +23,7 @@ public class SqlQueryParts
       this.selectEntries = new ArrayList<>();
       this.fromEntries = new ArrayList<>();
       this.whereEntries = new ArrayList<>();
+      this.orderBy = null;
       this.aliasesInScope = new HashSet<>();
    }
 
@@ -29,12 +32,14 @@ public class SqlQueryParts
          List<SelectClauseEntry> selectEntries,
          List<String> fromEntries,
          List<String> whereEntries,
+         @Nullable String orderBy,
          Set<String> aliasesInScope
       )
    {
       this.selectEntries = new ArrayList<>(selectEntries);
       this.fromEntries = new ArrayList<>(fromEntries);
       this.whereEntries = new ArrayList<>(whereEntries);
+      this.orderBy = orderBy;
       this.aliasesInScope = new HashSet<>(aliasesInScope);
    }
 
@@ -59,6 +64,8 @@ public class SqlQueryParts
    public void addAliasToScope(String alias) { aliasesInScope.add(alias); }
    public void addAliasesToScope(Set<String> aliases) { aliasesInScope.addAll(aliases); }
 
+   public void setOrderBy(String orderByExpr) { orderBy = orderByExpr; }
+
    public void addParts(SqlQueryParts otherParts)
    {
       addSelectClauseEntries(otherParts.getSelectClauseEntries());
@@ -70,6 +77,7 @@ public class SqlQueryParts
    public List<SelectClauseEntry> getSelectClauseEntries() { return unmodifiableList(selectEntries); }
    public List<String> getFromClauseEntries() { return unmodifiableList(fromEntries); }
    public List<String> getWhereClauseEntries() { return unmodifiableList(whereEntries); }
+   public @Nullable String getOrderBy() { return orderBy; }
    public Set<String> getAliasesInScope() { return unmodifiableSet(aliasesInScope); }
 
    public String makeNewAliasFor(String dbObjectName)
