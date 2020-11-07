@@ -11,7 +11,7 @@ import static org.sqljson.common.util.Nullables.applyIfPresent;
 public final class ReferencedParentSpec implements ParentSpec
 {
    private String referenceName;
-   private TableJsonSpec tableJson;
+   private TableJsonSpec tableJson; // parent table json spec
    private @Nullable List<String> viaForeignKeyFields = null;
    private @Nullable CustomJoinCondition customJoinCondition = null;
 
@@ -47,16 +47,19 @@ public final class ReferencedParentSpec implements ParentSpec
 
    public String getReferenceName() { return referenceName; }
 
+   @Override
    public TableJsonSpec getTableJson() { return getParentTableJsonSpec(); }
 
+   @Override
    public @Nullable List<String> getViaForeignKeyFields() { return viaForeignKeyFields; }
+
+   @Override
+   public @Nullable CustomJoinCondition getCustomJoinCondition() { return customJoinCondition; }
 
    @JsonIgnore
    public TableJsonSpec getParentTableJsonSpec() { return tableJson; }
 
    @JsonIgnore
    public @Nullable Set<String> getChildForeignKeyFieldsSet() { return applyIfPresent(viaForeignKeyFields, HashSet::new); }
-
-   public @Nullable CustomJoinCondition getCustomJoinCondition() { return customJoinCondition; }
 }
 

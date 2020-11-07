@@ -5,9 +5,13 @@ import java.util.Set;
 import java.util.ArrayList;
 import java.util.HashSet;
 import static java.util.Collections.*;
+import static java.util.stream.Collectors.joining;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
+
 import org.sqljson.common.util.StringFuns;
+import static org.sqljson.common.util.Nullables.applyOr;
+import static org.sqljson.common.util.StringFuns.indentLines;
 
 
 public class SqlQueryParts
@@ -85,6 +89,29 @@ public class SqlQueryParts
       String alias = StringFuns.makeNameNotInSet(StringFuns.lowercaseInitials(dbObjectName, "_"), aliasesInScope);
       aliasesInScope.add(alias);
       return alias;
+   }
+
+   public String toSql(int indentSpaces)
+   {
+      String selectEntriesStr =
+         getSelectClauseEntries().stream()
+         .map(p -> p.getValueExpression() + (p.getName().startsWith("\"") ? " " : " as ") + p.getName())
+         .collect(joining(",\n"));
+
+      String fromEntriesStr = String.join("\n", getFromClauseEntries());
+
+      String whereEntriesStr = String.join(" and\n", getWhereClauseEntries());
+
+      return
+         "select\n" +
+            indentLines(selectEntriesStr, indentSpaces) + "\n" +
+         "from\n" +
+            indentLines(fromEntriesStr, indentSpaces) + "\n" +
+         (getWhereClauseEntries().isEmpty() ? "":
+            "where (\n" +
+               indentLines(whereEntriesStr, indentSpaces) + "\n" +
+            ")") +
+         applyOr(getOrderBy(), orderBy -> "\norder by " + orderBy, "");
    }
 }
 

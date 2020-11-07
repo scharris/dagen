@@ -2,16 +2,21 @@ package org.sqljson.common.util;
 
 import java.util.List;
 import java.util.Set;
+
+import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
 
+import org.sqljson.common.StatementLocation;
 import org.sqljson.common.StatementSpecificationException;
 import org.sqljson.dbmd.DatabaseMetadata;
 import org.sqljson.dbmd.Field;
 import org.sqljson.dbmd.RelId;
 import org.sqljson.dbmd.RelMetadata;
+import org.sqljson.queries.specs.CustomJoinCondition;
+import org.sqljson.queries.specs.TableJsonSpec;
 
 
 public final class StatementValidations
@@ -22,8 +27,7 @@ public final class StatementValidations
          @Nullable String defaultSchema,
          DatabaseMetadata dbmd,
          String statementsSource,
-         String statementName,
-         String statementPart
+         StatementLocation statementLocation
       )
       throws StatementSpecificationException
    {
@@ -32,8 +36,7 @@ public final class StatementValidations
       if ( relMd == null )
          throw new StatementSpecificationException(
             statementsSource,
-            statementName,
-            statementPart,
+            statementLocation,
             "Table '" + table + "' was not found in database metadata."
          );
 
@@ -47,8 +50,7 @@ public final class StatementValidations
          List<String> fieldNames,
          DatabaseMetadata dbmd,
          String statementsSource,
-         String statementName,
-         String statementPart
+         StatementLocation statementLocation
       )
       throws StatementSpecificationException
    {
@@ -57,12 +59,11 @@ public final class StatementValidations
       if ( relMd == null )
          throw new StatementSpecificationException(
             statementsSource,
-            statementName,
-            statementPart,
+            statementLocation,
             "Table '" + table + "' was not found in database metadata."
          );
 
-      verifyTableFieldsExist(fieldNames, relMd, dbmd, statementsSource, statementName, statementPart);
+      verifyTableFieldsExist(fieldNames, relMd, dbmd, statementsSource, statementLocation);
    }
 
    public static void verifyTableFieldsExist
@@ -71,8 +72,7 @@ public final class StatementValidations
          RelMetadata relMd,
          DatabaseMetadata dbmd,
          String statementsSource,
-         String statementName,
-         String statementPart
+         StatementLocation statementLocation
       )
       throws StatementSpecificationException
    {
@@ -86,10 +86,72 @@ public final class StatementValidations
       if ( !missingFields.isEmpty() )
          throw new StatementSpecificationException(
             statementsSource,
-            statementName,
-            statementPart,
+            statementLocation,
             "Field(s) not found in table " + relMd.getRelationId() + ": " + missingFields + "."
          );
+   }
+
+   public static void verifySimpleSelectFieldsExist
+      (
+         TableJsonSpec tableSpec,
+         @Nullable String defaultSchema,
+         DatabaseMetadata dbmd,
+         String statementsSource,
+         StatementLocation stmtLoc
+      )
+   {
+      List<String> simpleSelectFields =
+         tableSpec.getFieldExpressionsList().stream()
+         .filter(tfe -> tfe.getField() != null)
+         .map(tfe -> requireNonNull(tfe.getField()))
+         .collect(toList());
+
+      verifyTableFieldsExist(
+         tableSpec.getTable(),
+         defaultSchema,
+         simpleSelectFields,
+         dbmd,
+         statementsSource,
+         stmtLoc
+      );
+   }
+
+   public static void validateCustomJoinCondition
+      (
+         CustomJoinCondition customJoinCond,
+         RelId childRelId,
+         RelId parentRelId,
+         DatabaseMetadata dbmd,
+         String stmtsSource,
+         StatementLocation stmtLoc
+      )
+      throws StatementSpecificationException
+   {
+      @Nullable RelMetadata parentMd = dbmd.getRelationMetadata(parentRelId);
+      @Nullable RelMetadata childMd = dbmd.getRelationMetadata(childRelId);
+
+      if ( parentMd == null )
+         throw new StatementSpecificationException(stmtsSource,
+            stmtLoc.withPart("custom join condition"), "Parent table not found."
+         );
+      if ( childMd == null )
+         throw new StatementSpecificationException(stmtsSource,
+            stmtLoc.withPart("custom join condition"), "Child table not found."
+         );
+
+      List<String> parentMatchFields =
+         customJoinCond.getEquatedFields().stream()
+            .map(CustomJoinCondition.FieldPair::getParentPrimaryKeyField)
+            .collect(toList());
+
+      verifyTableFieldsExist(parentMatchFields, parentMd, dbmd, stmtsSource, stmtLoc);
+
+      List<String> childMatchFields =
+         customJoinCond.getEquatedFields().stream()
+            .map(CustomJoinCondition.FieldPair::getChildField)
+            .collect(toList());
+
+      verifyTableFieldsExist(childMatchFields, childMd, dbmd, stmtsSource, stmtLoc);
    }
 
    private StatementValidations() {}

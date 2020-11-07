@@ -329,7 +329,7 @@ class QueryGeneratorTests extends TestsBase
          queryGenerator.generateQuery(queryGroupSpec.getQuerySpecs().get(0))
       );
       String msg = t.getMessage().toLowerCase();
-      assertTrue(msg.contains("foreign key not found") && msg.contains("x_compound_id"));
+      assertTrue(msg.contains("no foreign key found") && msg.contains("x_compound_id"));
    }
 
    @Test

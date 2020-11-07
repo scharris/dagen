@@ -10,13 +10,15 @@ import static org.sqljson.common.util.Nullables.applyIfPresent;
 
 public final class InlineParentSpec implements ParentSpec
 {
-   private TableJsonSpec tableJson;
-   private @Nullable List<String> viaForeignKeyFields = null;
-   private @Nullable CustomJoinCondition customJoinCondition = null;
+   private final TableJsonSpec tableJson;
+   private final @Nullable List<String> viaForeignKeyFields;
+   private final @Nullable CustomJoinCondition customJoinCondition;
 
    private InlineParentSpec()
    {
-      tableJson = new TableJsonSpec();
+      this.tableJson = new TableJsonSpec();
+      this.viaForeignKeyFields = null;
+      this.customJoinCondition = null;
    }
 
    public InlineParentSpec
@@ -27,6 +29,7 @@ public final class InlineParentSpec implements ParentSpec
    {
       this.tableJson = tableJson;
       this.viaForeignKeyFields = applyIfPresent(viaForeignKeyFields, Collections::unmodifiableList);
+      this.customJoinCondition = null;
    }
 
    public InlineParentSpec
@@ -37,18 +40,22 @@ public final class InlineParentSpec implements ParentSpec
    {
       this.tableJson = tableJson;
       this.customJoinCondition = customJoinCondition;
+      this.viaForeignKeyFields = null;
    }
 
+   @Override
+   public TableJsonSpec getTableJson() { return getParentTableJsonSpec(); }
+
+   @Override
    public @Nullable List<String> getViaForeignKeyFields() { return viaForeignKeyFields; }
 
-   public TableJsonSpec getTableJson() { return getParentTableJsonSpec(); }
+   @Override
+   public @Nullable CustomJoinCondition getCustomJoinCondition() { return customJoinCondition; }
 
    @JsonIgnore
    public TableJsonSpec getParentTableJsonSpec() { return tableJson; }
 
    @JsonIgnore
    public @Nullable Set<String> getChildForeignKeyFieldsSet() { return applyIfPresent(viaForeignKeyFields, HashSet::new); }
-
-   public @Nullable CustomJoinCondition getCustomJoinCondition() { return customJoinCondition; }
 }
 

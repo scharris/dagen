@@ -148,8 +148,8 @@ public class QueryGeneratorMain
          System.err.println();
          System.err.println("----------------------------------------------------------------------");
          System.err.println("Error in specification: " + sse.getStatementsSource());
-         System.err.println("  in query: " + sse.getStatementName());
-         System.err.println("  at part: " + sse.getStatementPart());
+         System.err.println("  in query: " + sse.getStatementLocation().getStatementName());
+         System.err.println("  at part: " + sse.getStatementLocation().getStatementPart());
          System.err.println("  problem: " + sse.getProblem());
          System.err.println("----------------------------------------------------------------------");
          System.err.println();
