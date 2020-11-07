@@ -1,6 +1,6 @@
 /* tslint:disable */
 /* eslint-disable */
-// Generated using typescript-generator version 2.26.723 on 2020-11-04 07:39:18.
+// Generated using typescript-generator version 2.26.723 on 2020-11-07 13:41:34.
 
 export interface ChildCollectionSpec {
     collectionName: string;
@@ -9,6 +9,7 @@ export interface ChildCollectionSpec {
     customJoinCondition?: Nullable<CustomJoinCondition>;
     filter?: Nullable<string>;
     unwrap?: Nullable<boolean>;
+    orderBy?: Nullable<string>;
 }
 
 export interface CustomJoinCondition {
@@ -21,12 +22,12 @@ export interface FieldPair {
 }
 
 export interface InlineParentSpec extends ParentSpec {
-    tableJson: TableJsonSpec;
-    viaForeignKeyFields?: Nullable<string[]>;
-    customJoinCondition?: Nullable<CustomJoinCondition>;
 }
 
 export interface ParentSpec {
+    customJoinCondition?: Nullable<CustomJoinCondition>;
+    tableJson: TableJsonSpec;
+    viaForeignKeyFields?: Nullable<string[]>;
 }
 
 export interface QueryGroupSpec {
@@ -43,6 +44,7 @@ export interface QuerySpec {
     generateResultTypes?: Nullable<boolean>;
     generateSource?: Nullable<boolean>;
     outputFieldNameDefault?: Nullable<OutputFieldNameDefault>;
+    orderBy?: Nullable<string>;
     forUpdate?: Nullable<boolean>;
     typesFileHeader?: Nullable<string>;
 }
@@ -55,9 +57,6 @@ export interface RecordCondition {
 
 export interface ReferencedParentSpec extends ParentSpec {
     referenceName: string;
-    tableJson: TableJsonSpec;
-    viaForeignKeyFields?: Nullable<string[]>;
-    customJoinCondition?: Nullable<CustomJoinCondition>;
 }
 
 export interface TableFieldExpr {
