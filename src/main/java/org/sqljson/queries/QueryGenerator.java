@@ -28,7 +28,7 @@ public class QueryGenerator
    private final DatabaseMetadata dbmd;
    private final SqlDialect sqlDialect;
    private final @Nullable String defaultSchema;
-   private final Set<String> generateUnqualifiedNamesForSchemas;
+   private final Set<String> unqualifiedNamesSchemas; // Use unqualified names for objects in these schemas.
    private final int indentSpaces;
    private final QueryTypesGenerator queryTypesGenerator;
    private final Function<String,String> defaultPropNameFn; // default output property naming function
@@ -55,7 +55,7 @@ public class QueryGenerator
       (
          DatabaseMetadata dbmd,
          @Nullable String defaultSchema,
-         Set<String> generateUnqualifiedNamesForSchemas,
+         Set<String> unqualifiedNamesSchemas,
          Function<String,String> defaultPropNameFn,
          String queriesSource
       )
@@ -64,8 +64,7 @@ public class QueryGenerator
       this.indentSpaces = 2;
       this.sqlDialect = SqlDialect.fromDatabaseMetadata(this.dbmd, this.indentSpaces);
       this.defaultSchema = defaultSchema;
-      this.generateUnqualifiedNamesForSchemas =
-         generateUnqualifiedNamesForSchemas.stream().map(dbmd::normalizeName).collect(toSet());
+      this.unqualifiedNamesSchemas = unqualifiedNamesSchemas.stream().map(dbmd::normalizeName).collect(toSet());
       this.defaultPropNameFn = defaultPropNameFn;
       this.queriesSource = queriesSource;
       this.queryTypesGenerator = new QueryTypesGenerator(dbmd, defaultSchema, defaultPropNameFn);
@@ -215,7 +214,6 @@ public class QueryGenerator
 
       // Add this table's own field expressions to the select clause.
       verifySimpleSelectFieldsExist(tableSpec, defaultSchema, dbmd, queriesSource, stmtLoc);
-      //
       for ( TableFieldExpr tfe : tableSpec.getFieldExpressionsList() )
          q.addSelectClauseEntry(
             getTableFieldExpressionSql(tfe, alias),
@@ -229,7 +227,10 @@ public class QueryGenerator
          StatementLocation childLoc =  stmtLoc.withPart("child collection '" + childSpec.getCollectionName() + "'");
          String childQuery = makeChildRecordsQuery(childSpec, relId, alias, propNameFn, childLoc);
          q.addSelectClauseEntry(
-            "(\n" + indent(childQuery) + "\n)",
+            lineCommentChildCollectionSelectExpression(childSpec) + "\n" +
+            "(" + "\n" +
+               indent(childQuery) + "\n" +
+            ")",
             dbmd.quoteIfNeeded(childSpec.getCollectionName()),
             SelectClauseEntry.Source.CHILD_COLLECTION
          );
@@ -306,8 +307,10 @@ public class QueryGenerator
 
       return
          "select\n" +
+            indent(lineCommentAggregatedRowObjects(tableSpec)) + "\n" +
             indent(aggExpr) + " json\n" +
          "from (\n" +
+            indent(lineCommentBaseTableQuery(tableSpec)) + "\n" +
             indent(baseQuery.sql) + "\n" +
          ") q";
    }
@@ -343,13 +346,13 @@ public class QueryGenerator
 
       return
          "select\n" +
+            indent(lineCommentTableRowObject(tableSpec)) + "\n" +
             indent(rowObjExpr) + " json\n" +
          "from (\n" +
+            indent(lineCommentBaseTableQuery(tableSpec)) + "\n" +
             indent(baseQuery.sql) + "\n" +
          ") q" +
-         (orderBy != null ?
-            "\norder by " + orderBy.replace("$$", "q")
-            : "");
+         (orderBy != null ? "\norder by " + orderBy.replace("$$", "q") : "");
    }
 
    private String makeChildRecordsQuery
@@ -399,18 +402,23 @@ public class QueryGenerator
       String fromClauseQueryAlias = StringFuns.makeNameNotInSet("q", avoidAliases);
       q.addAliasToScope(fromClauseQueryAlias);
 
-      for ( ColumnMetadata parentColumn : fromClauseQuery.resultColumnMetadatas )
+      for (int i = 0; i < fromClauseQuery.resultColumnMetadatas.size(); ++i )
+      {
+         ColumnMetadata parentColumn = fromClauseQuery.resultColumnMetadatas.get(i);
          q.addSelectClauseEntry(
             fromClauseQueryAlias + "." + parentColumn.getName(),
-             parentColumn.getName(),
-            SelectClauseEntry.Source.INLINE_PARENT
+            parentColumn.getName(),
+            SelectClauseEntry.Source.INLINE_PARENT,
+            (i == 0 ? lineCommentInlineParentFieldsBegin(inlineParentSpec): null)
          );
+      }
 
       String joinCond =
          getParentPkCondition(inlineParentSpec, childRelId, childAlias, stmtLoc)
          .asEquationConditionOn(fromClauseQueryAlias, dbmd, HIDDEN_PK_PREFIX);
 
       q.addFromClauseEntry(
+         lineCommentJoinToParent(inlineParentSpec) + "\n" +
          "left join (\n" +
             indent(fromClauseQuery.sql) + "\n" +
          ") " + fromClauseQueryAlias + " on " + joinCond
@@ -440,9 +448,13 @@ public class QueryGenerator
       // A referenced parent only requires a SELECT clause entry.
       return new SqlQueryParts(
          singletonList(new SelectClauseEntry(
-            "(\n" + indent(parentRecordQuery) + "\n)",
+            lineCommentReferencedParent(parentSpec) + "\n" +
+            "(\n" +
+               indent(parentRecordQuery) + "\n" +
+            ")",
             dbmd.quoteIfNeeded(parentSpec.getReferenceName()),
-            SelectClauseEntry.Source.PARENT_REFERENCE
+            SelectClauseEntry.Source.PARENT_REFERENCE,
+            null
          )),
          emptyList(), emptyList(), null, emptySet()
       );
@@ -601,12 +613,52 @@ public class QueryGenerator
       }
    }
 
+   private String lineCommentTableRowObject(TableJsonSpec tableJsonSpec)
+   {
+      return "-- row object builder for table '" + tableJsonSpec.getTable() + "'";
+   }
+
+   private String lineCommentBaseTableQuery(TableJsonSpec tableSpec)
+   {
+      return "-- base query for table '" + tableSpec.getTable() + "'";
+   }
+
+   private String lineCommentAggregatedRowObjects(TableJsonSpec tableSpec)
+   {
+      return "-- aggregated row objects builder for table '" + tableSpec.getTable() + "'";
+   }
+
+   private String lineCommentChildCollectionSelectExpression(ChildCollectionSpec childSpec)
+   {
+      return "-- records from child table '" + childSpec.getTableJson().getTable() + "'" +
+         " as collection '" + childSpec.getCollectionName() + "'";
+   }
+
+   private String lineCommentJoinToParent(ParentSpec parentSpec)
+   {
+      return
+         "-- parent table '" + parentSpec.getTableJson().getTable() + "'" +
+         ", joined for inlined fields";
+   }
+
+   private String lineCommentInlineParentFieldsBegin(ParentSpec parentSpec)
+   {
+      return "-- field(s) inlined from parent table '" + parentSpec.getTableJson().getTable() + "'";
+   }
+
+   private String lineCommentReferencedParent(ReferencedParentSpec parentSpec)
+   {
+      return
+         "-- parent table '" + parentSpec.getTableJson().getTable() + "'" +
+         " referenced as '" + parentSpec.getReferenceName() + "'";
+   }
+
    /// Return a possibly qualified identifier for the given relation, omitting the schema
    /// qualifier if it has a schema for which it's specified to use unqualified names.
    private String minimalRelIdentifier(RelId relId)
    {
       @Nullable String schema = relId.getSchema();
-      if ( schema == null || generateUnqualifiedNamesForSchemas.contains(dbmd.normalizeName(schema)) )
+      if ( schema == null || unqualifiedNamesSchemas.contains(dbmd.normalizeName(schema)) )
          return relId.getName();
       else
          return relId.getIdString();
@@ -645,16 +697,16 @@ public class QueryGenerator
       return identifySpecificationTable(table, defaultSchema, dbmd, queriesSource, loc);
    }
 
-}
-
-class BaseQuery
-{
-   final String sql;
-   final List<ColumnMetadata> resultColumnMetadatas;
-
-   BaseQuery(String sql, List<ColumnMetadata> resultColumnMetadatas)
+   private static class BaseQuery
    {
-      this.sql = sql;
-      this.resultColumnMetadatas = List.copyOf(resultColumnMetadatas);
+      final String sql;
+      final List<ColumnMetadata> resultColumnMetadatas;
+
+      BaseQuery(String sql, List<ColumnMetadata> resultColumnMetadatas)
+      {
+         this.sql = sql;
+         this.resultColumnMetadatas = List.copyOf(resultColumnMetadatas);
+      }
    }
 }
+

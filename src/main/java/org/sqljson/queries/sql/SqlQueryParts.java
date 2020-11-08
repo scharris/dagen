@@ -51,10 +51,21 @@ public class SqlQueryParts
       (
          String expr,
          String name,
+         SelectClauseEntry.Source src,
+         @Nullable String comment
+      )
+   {
+      selectEntries.add(new SelectClauseEntry(expr, name, src, comment));
+   }
+
+   public void addSelectClauseEntry
+      (
+         String expr,
+         String name,
          SelectClauseEntry.Source src
       )
    {
-      selectEntries.add(new SelectClauseEntry(expr, name, src));
+      addSelectClauseEntry(expr, name, src, null);
    }
 
    public void addSelectClauseEntries(List<SelectClauseEntry> entries) { selectEntries.addAll(entries); }
@@ -95,7 +106,7 @@ public class SqlQueryParts
    {
       String selectEntriesStr =
          getSelectClauseEntries().stream()
-         .map(p -> p.getValueExpression() + (p.getName().startsWith("\"") ? " " : " as ") + p.getName())
+         .map(SqlQueryParts::selectEntrySql)
          .collect(joining(",\n"));
 
       String fromEntriesStr = String.join("\n", getFromClauseEntries());
@@ -112,6 +123,16 @@ public class SqlQueryParts
                indentLines(whereEntriesStr, indentSpaces) + "\n" +
             ")") +
          applyOr(getOrderBy(), orderBy -> "\norder by " + orderBy, "");
+   }
+
+   // Make sql string for a select clause entry.
+   private static String selectEntrySql(SelectClauseEntry sce)
+   {
+      String exprNameSep = sce.getName().startsWith("\"") ? " " : " as ";
+      @Nullable String comment = sce.getComment();
+      return
+         (comment != null ? comment + "\n" : "") +
+         sce.getValueExpression() + exprNameSep + sce.getName();
    }
 }
 

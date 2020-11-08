@@ -1,6 +1,7 @@
 -- [ THIS QUERY WAS AUTO-GENERATED, ANY CHANGES MADE HERE MAY BE LOST. ]
 -- JSON_OBJECT_ROWS results representation for drugs query
 select
+  -- row object builder for table 'drug'
   jsonb_build_object(
     'name', q.name,
     'meshId', q."meshId",
@@ -17,6 +18,7 @@ select
     'compound', q.compound
   ) json
 from (
+  -- base query for table 'drug'
   select
     d.name as name,
     d.mesh_id "meshId",
@@ -25,16 +27,21 @@ from (
     d.market_entry_date "marketEntryDate",
     d.therapeutic_indications "therapeuticIndications",
     d.cid + 1000 "cidPlus1000",
+    -- records from child table 'drug_reference' as collection 'references'
     (
       select
+        -- aggregated row objects builder for table 'drug_reference'
         coalesce(jsonb_agg(jsonb_build_object(
           'publication', q.publication
         )),'[]'::jsonb) json
       from (
+        -- base query for table 'drug_reference'
         select
+          -- field(s) inlined from parent table 'reference'
           q.publication as publication
         from
           drug_reference dr
+          -- parent table 'reference', joined for inlined fields
           left join (
             select
               r.id "_id",
@@ -47,18 +54,23 @@ from (
         )
       ) q
     ) as references,
+    -- records from child table 'brand' as collection 'brands'
     (
       select
+        -- aggregated row objects builder for table 'brand'
         coalesce(jsonb_agg(jsonb_build_object(
           'brandName', q."brandName",
           'manufacturer', q.manufacturer
         ) order by q."brandName" desc),'[]'::jsonb) json
       from (
+        -- base query for table 'brand'
         select
           b.brand_name "brandName",
+          -- field(s) inlined from parent table 'manufacturer'
           q.manufacturer as manufacturer
         from
           brand b
+          -- parent table 'manufacturer', joined for inlined fields
           left join (
             select
               m.id "_id",
@@ -71,8 +83,10 @@ from (
         )
       ) q
     ) as brands,
+    -- records from child table 'advisory' as collection 'advisories'
     (
       select
+        -- aggregated row objects builder for table 'advisory'
         coalesce(jsonb_agg(jsonb_build_object(
           'advisoryText', q."advisoryText",
           'advisoryType', q."advisoryType",
@@ -82,8 +96,10 @@ from (
           'authorityDescription', q."authorityDescription"
         ) order by q."advisoryType"),'[]'::jsonb) json
       from (
+        -- base query for table 'advisory'
         select
           a.text "advisoryText",
+          -- field(s) inlined from parent table 'advisory_type'
           q."advisoryType" "advisoryType",
           q."exprYieldingTwo" "exprYieldingTwo",
           q."authorityName" "authorityName",
@@ -91,16 +107,19 @@ from (
           q."authorityDescription" "authorityDescription"
         from
           advisory a
+          -- parent table 'advisory_type', joined for inlined fields
           left join (
             select
               at.id "_id",
               at.name "advisoryType",
               (1 + 1) "exprYieldingTwo",
+              -- field(s) inlined from parent table 'authority'
               q."authorityName" "authorityName",
               q."authorityUrl" "authorityUrl",
               q."authorityDescription" "authorityDescription"
             from
               advisory_type at
+              -- parent table 'authority', joined for inlined fields
               left join (
                 select
                   a.id "_id",
@@ -116,8 +135,10 @@ from (
         )
       ) q
     ) as advisories,
+    -- records from child table 'drug_functional_category' as collection 'functionalCategories'
     (
       select
+        -- aggregated row objects builder for table 'drug_functional_category'
         coalesce(jsonb_agg(jsonb_build_object(
           'categoryName', q."categoryName",
           'description', q.description,
@@ -126,14 +147,18 @@ from (
           'authorityDescription', q."authorityDescription"
         )),'[]'::jsonb) json
       from (
+        -- base query for table 'drug_functional_category'
         select
+          -- field(s) inlined from parent table 'functional_category'
           q."categoryName" "categoryName",
           q.description as description,
+          -- field(s) inlined from parent table 'authority'
           q1."authorityName" "authorityName",
           q1."authorityUrl" "authorityUrl",
           q1."authorityDescription" "authorityDescription"
         from
           drug_functional_category dfc
+          -- parent table 'functional_category', joined for inlined fields
           left join (
             select
               fc.id "_id",
@@ -142,6 +167,7 @@ from (
             from
               functional_category fc
           ) q on dfc.functional_category_id = q."_id"
+          -- parent table 'authority', joined for inlined fields
           left join (
             select
               a.id "_id",
@@ -156,13 +182,16 @@ from (
         )
       ) q
     ) "functionalCategories",
+    -- parent table 'analyst' referenced as 'registeredByAnalyst'
     (
       select
+        -- row object builder for table 'analyst'
         jsonb_build_object(
           'id', q.id,
           'shortName', q."shortName"
         ) json
       from (
+        -- base query for table 'analyst'
         select
           a.id as id,
           a.short_name "shortName"
@@ -173,8 +202,10 @@ from (
         )
       ) q
     ) "registeredByAnalyst",
+    -- parent table 'compound' referenced as 'compound'
     (
       select
+        -- row object builder for table 'compound'
         jsonb_build_object(
           'displayName', q."displayName",
           'nctrIsisId', q."nctrIsisId",
@@ -183,18 +214,22 @@ from (
           'enteredByAnalyst', q."enteredByAnalyst"
         ) json
       from (
+        -- base query for table 'compound'
         select
           c.display_name "displayName",
           c.nctr_isis_id "nctrIsisId",
           c.cas as cas,
           c.entered as entered,
+          -- parent table 'analyst' referenced as 'enteredByAnalyst'
           (
             select
+              -- row object builder for table 'analyst'
               jsonb_build_object(
                 'id', q.id,
                 'shortName', q."shortName"
               ) json
             from (
+              -- base query for table 'analyst'
               select
                 a.id as id,
                 a.short_name "shortName"
