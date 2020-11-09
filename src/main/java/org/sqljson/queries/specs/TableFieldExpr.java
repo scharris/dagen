@@ -1,8 +1,19 @@
 package org.sqljson.queries.specs;
 
+import java.io.IOException;
+
 import org.checkerframework.checker.nullness.qual.Nullable;
 
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.JsonDeserializer;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.node.JsonNodeType;
 
+
+@JsonDeserialize(using = TableFieldExprDeserializer.class) // Allow deserializing from simple String as "field" property.
 public final class TableFieldExpr
 {
    private @Nullable String field;
@@ -43,4 +54,26 @@ public final class TableFieldExpr
    public @Nullable String getJsonProperty() { return jsonProperty; }
 
    public @Nullable String getGeneratedFieldType() { return generatedFieldType; }
+}
+
+/// Allow simple String to be deserialized to TableFieldExpression with the value as the "field" property and other values null.
+class TableFieldExprDeserializer extends JsonDeserializer<TableFieldExpr>
+{
+   @Override
+   public TableFieldExpr deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) throws IOException, JsonProcessingException
+   {
+      JsonNode node = jsonParser.readValueAs(JsonNode.class);
+
+      if ( node.getNodeType() == JsonNodeType.STRING )
+         return new TableFieldExpr(node.textValue(), null, null, null, null);
+      else
+      {
+         @Nullable String field = node.has("field") ? node.get("field").textValue(): null;
+         @Nullable String expr = node.has("expression") ? node.get("expression").textValue(): null;
+         @Nullable String withTableAliasAs = node.has("withTableAliasAs") ? node.get("withTableAliasAs").textValue(): null;
+         @Nullable String jsonProperty = node.has("jsonProperty") ? node.get("jsonProperty").textValue(): null;
+         @Nullable String generatedFieldType = node.has("generatedFieldType") ? node.get("generatedFieldType").textValue(): null;
+         return new TableFieldExpr(field, expr, withTableAliasAs, jsonProperty, generatedFieldType);
+      }
+   }
 }

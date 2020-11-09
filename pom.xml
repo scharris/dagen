@@ -4,7 +4,7 @@
    <modelVersion>4.0.0</modelVersion>
    <groupId>org.sqljson</groupId>
    <artifactId>dagen</artifactId>
-   <version>1.5.2</version>
+   <version>1.5.3</version>
    <name>data access generator</name>
    <description>Generate hierarchical SQL/JSON queries, SQL modification statements, and matching types.</description>
 
@@ -193,11 +193,19 @@
                </classPatterns>
                <excludeClassPatterns>
                   <excludeClassPattern>**.*Exception</excludeClassPattern>
+                  <excludeClassPattern>**.*Deserializer</excludeClassPattern>
                </excludeClassPatterns>
                <nullableAnnotations>
                   <nullableAnnotation>org.checkerframework.checker.nullness.qual.Nullable</nullableAnnotation>
                </nullableAnnotations>
                <nullabilityDefinition>nullAndUndefinedUnion</nullabilityDefinition>
+               <customTypeAliases>
+                  <customTypeAlias>TableFieldExpr:{field?: string; expression?: string; withTableAliasAs?: string; jsonProperty?: string; generatedFieldType?: string;}</customTypeAlias>
+               </customTypeAliases>
+               <customTypeMappings>
+                  <!-- Allow simple string to be used for TableFieldExpr as allowed by custom deserializer. -->
+                  <mapping>org.sqljson.queries.specs.TableFieldExpr:(string | TableFieldExpr)</mapping>
+                </customTypeMappings>
                <outputKind>module</outputKind>
                <outputFileType>implementationFile</outputFileType>
                <outputFile>${project.build.directory}/spec-types.ts</outputFile>

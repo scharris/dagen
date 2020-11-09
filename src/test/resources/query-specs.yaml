@@ -9,9 +9,9 @@ querySpecs:
     tableJson:
       table: drug
       fieldExpressions:
-        - field: id
-        - field: name
-        - field: mesh_id
+        - id
+        - name
+        - mesh_id
       recordCondition:
          sql: "$$.id = :id"
          paramNames: ["id"]
@@ -21,10 +21,7 @@ querySpecs:
     generateResultTypes: true
     tableJson:
       table: drug
-      fieldExpressions:
-        - field: id
-        - field: name
-        - field: mesh_id
+      fieldExpressions: [id, {field: name, jsonProperty: myName}, mesh_id]
       recordCondition:
         sql: '$$.id = :idMinusOne + 1'
         paramNames: ['idMinusOne']

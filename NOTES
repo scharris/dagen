@@ -1,4 +1,6 @@
 
+Consider making npm package that just embeds dagen.jar and requires developer to have Java installed.
+
 
 # Generate database metadata.
 ./mvn exec:java@dbmd -DpropsFile="example/db/dbmd-pg.props" -DoutputFile="../../tmp/dmbd.yaml"
