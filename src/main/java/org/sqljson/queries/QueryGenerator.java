@@ -16,7 +16,7 @@ import org.sqljson.queries.result_types.GeneratedType;
 import org.sqljson.queries.specs.*;
 import org.sqljson.queries.sql.*;
 import org.sqljson.common.util.StringFuns;
-import org.sqljson.common.sql_dialects.SqlDialect;
+import org.sqljson.queries.sql.dialects.SqlDialect;
 import static org.sqljson.common.util.Nullables.*;
 import static org.sqljson.common.util.StatementValidations.*;
 import static org.sqljson.common.util.StringFuns.indentLines;

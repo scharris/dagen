@@ -1,5 +1,5 @@
 @DefaultQualifier(value=NonNull.class, locations=TypeUseLocation.ALL)
-package org.sqljson.common.sql_dialects;
+package org.sqljson.queries.sql.dialects;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.framework.qual.DefaultQualifier;

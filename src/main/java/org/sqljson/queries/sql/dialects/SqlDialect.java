@@ -1,8 +1,9 @@
-package org.sqljson.common.sql_dialects;
+package org.sqljson.queries.sql.dialects;
 
 import java.util.List;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
+
 import org.sqljson.dbmd.DatabaseMetadata;
 import org.sqljson.queries.sql.ColumnMetadata;
 

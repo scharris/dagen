@@ -1,4 +1,4 @@
-Add a comment for each json aggregate and base query.
+
 
 # Generate database metadata.
 ./mvn exec:java@dbmd -DpropsFile="example/db/dbmd-pg.props" -DoutputFile="../../tmp/dmbd.yaml"

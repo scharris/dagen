@@ -1,18 +1,19 @@
-package org.sqljson.common.sql_dialects;
+package org.sqljson.queries.sql.dialects;
 
 import java.util.List;
 import static java.util.stream.Collectors.joining;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
+
 import org.sqljson.queries.sql.ColumnMetadata;
-import org.sqljson.common.util.StringFuns;
+import static org.sqljson.common.util.StringFuns.*;
 
 
-public class PostgresDialect implements SqlDialect
+public class OracleDialect implements SqlDialect
 {
    private final int indentSpaces;
 
-   public PostgresDialect(int indentSpaces)
+   public OracleDialect(int indentSpaces)
    {
       this.indentSpaces = indentSpaces;
    }
@@ -26,13 +27,14 @@ public class PostgresDialect implements SqlDialect
    {
       String objectFieldDecls =
          columnMetadatas.stream()
-         .map(col -> "'" + StringFuns.unDoubleQuote(col.getName()) + "', " + fromAlias + "." + col.getName())
+         .map(col -> "'" + unDoubleQuote(col.getName()) + "' value " + fromAlias + "." + col.getName())
          .collect(joining(",\n"));
 
-         return
-            "jsonb_build_object(\n" +
-               StringFuns.indentLines(objectFieldDecls, indentSpaces) + "\n" +
-            ")";
+      return
+         "json_object(\n" +
+            indentLines(objectFieldDecls, indentSpaces) + "\n" +
+            "  returning clob\n" +
+         ")";
    }
 
    @Override
@@ -43,27 +45,28 @@ public class PostgresDialect implements SqlDialect
          String fromAlias
       )
    {
-
       return
-         "coalesce(jsonb_agg(" +
+         "treat(coalesce(json_arrayagg(" +
             getRowObjectExpression(columnMetadatas, fromAlias) +
             (orderBy != null ? " order by " + orderBy.replace("$$", fromAlias) : "") +
-         "),'[]'::jsonb)";
+            " returning clob" +
+         "), to_clob('[]')) as json)";
    }
 
    @Override
    public String getAggregatedColumnValuesExpression
       (
-          ColumnMetadata columnMetadata,
-          @Nullable String orderBy,
-          String fromAlias
+         ColumnMetadata columnMetadata,
+         @Nullable String orderBy,
+         String fromAlias
       )
    {
       return
-         "coalesce(jsonb_agg(" +
+         "treat(coalesce(json_arrayagg(" +
             fromAlias + "." + columnMetadata.getName() +
             (orderBy != null ? " order by " + orderBy.replace("$$", fromAlias) : "") +
-         "))";
+            " returning clob" +
+         "), to_clob('[]')) as json)";
    }
 }
 
