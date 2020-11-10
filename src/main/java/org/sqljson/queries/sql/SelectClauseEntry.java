@@ -1,7 +1,7 @@
 package org.sqljson.queries.sql;
 
-
 import org.checkerframework.checker.nullness.qual.Nullable;
+
 
 public class SelectClauseEntry
 {

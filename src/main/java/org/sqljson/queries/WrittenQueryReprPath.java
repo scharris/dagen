@@ -3,9 +3,9 @@ package org.sqljson.queries;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
-
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toMap;
+
 import org.checkerframework.checker.nullness.qual.Nullable;
 
 import org.sqljson.queries.specs.ResultsRepr;

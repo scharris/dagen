@@ -1,6 +1,7 @@
 package org.sqljson.queries.specs;
 
 import java.util.*;
+
 import org.checkerframework.checker.nullness.qual.Nullable;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;

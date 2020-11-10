@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.unmodifiableList;
+
 import org.checkerframework.checker.nullness.qual.Nullable;
 
 import static org.sqljson.queries.specs.OutputFieldNameDefault.CAMELCASE;

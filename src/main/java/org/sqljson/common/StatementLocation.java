@@ -1,5 +1,6 @@
 package org.sqljson.common;
 
+
 public class StatementLocation
 {
    private final String queryName;

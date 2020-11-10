@@ -7,16 +7,16 @@ import java.nio.file.Path;
 import java.sql.Types;
 import java.time.Instant;
 import java.util.*;
+import static java.util.Objects.requireNonNull;
+import static java.util.stream.Collectors.toList;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
+
 import org.sqljson.queries.GeneratedQuery;
 import org.sqljson.queries.WrittenQueryReprPath;
 import org.sqljson.queries.result_types.*;
 import org.sqljson.queries.specs.ResultsRepr;
 import org.sqljson.common.util.IO;
-
-import static java.util.Objects.requireNonNull;
-import static java.util.stream.Collectors.toList;
 import static org.sqljson.queries.WrittenQueryReprPath.getWrittenSqlPathsForQuery;
 import static org.sqljson.common.util.IO.writeString;
 import static org.sqljson.common.util.Nullables.*;
@@ -118,7 +118,7 @@ public class TypeScriptWriter implements SourceCodeWriter
    {
       writeQuerySqlFileReferenceMembers(bw, q, writtenQueryPaths);
 
-      writeParamMembers(q.getParamNames(), bw, true);
+      writeParamMembers(q.getParamNames(), bw);
 
       if ( !q.getGeneratedResultTypes().isEmpty() )
       {
@@ -130,7 +130,7 @@ public class TypeScriptWriter implements SourceCodeWriter
                  !generatedType.isUnwrapped() )
             {
                bw.write('\n');
-               bw.write(makeGeneratedTypeSource(generatedType));
+               bw.write(getTypeDeclaration(generatedType));
 
                writtenTypeNames.add(generatedType.getTypeName());
             }
@@ -163,37 +163,22 @@ public class TypeScriptWriter implements SourceCodeWriter
    private void writeParamMembers
       (
          List<String> paramNames,
-         BufferedWriter bw,
-         boolean hasNamedParams
+         BufferedWriter bw
       )
       throws IOException
    {
-      for ( int paramIx = 0; paramIx < paramNames.size(); ++paramIx )
+      for ( String paramName: paramNames )
       {
-         String paramName = paramNames.get(paramIx);
-
          bw.write("export const ");
-
-         if ( hasNamedParams )
-         {
-            bw.write(paramName);
-            bw.write("Param");
-            bw.write(" = '");
-            bw.write(paramName);
-            bw.write("';\n\n");
-         }
-         else
-         {
-            bw.write(paramName);
-            bw.write("ParamNum");
-            bw.write(" = ");
-            bw.write(String.valueOf(paramIx + 1));
-            bw.write(";\n\n");
-         }
+         bw.write(paramName);
+         bw.write("Param");
+         bw.write(" = '");
+         bw.write(paramName);
+         bw.write("';\n\n");
       }
    }
 
-   public String makeGeneratedTypeSource
+   public String getTypeDeclaration
       (
          GeneratedType genType
       )
@@ -326,11 +311,6 @@ public class TypeScriptWriter implements SourceCodeWriter
    private List<ResultsRepr> sorted(Collection<ResultsRepr> xs)
    {
       return xs.stream().sorted().collect(toList());
-   }
-
-   private static String asStringLiteral(String s)
-   {
-      return "\"" + s.replace("\"", "\\\"") + "\"";
    }
 
    private static String makeModuleName(String statementName)
