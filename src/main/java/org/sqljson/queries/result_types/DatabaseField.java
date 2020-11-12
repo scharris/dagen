@@ -7,7 +7,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.sqljson.dbmd.Field;
 
 
-/// A field to be included as part of a generated type whose data source is a database column.
+/// A field to be included as part of a result type whose data source is a database column.
 public class DatabaseField
 {
    private final String name;
@@ -17,13 +17,13 @@ public class DatabaseField
    private final @Nullable Integer precision;
    private final @Nullable Integer fractionalDigits;
    private final @Nullable Boolean nullable;
-   private final @Nullable String generatedFieldType;
+   private final @Nullable String specifiedSourceCodeFieldType;
 
    DatabaseField
       (
          String name,
          Field dbField,
-         @Nullable String generatedFieldType
+         @Nullable String specifiedSourceCodeFieldType
       )
    {
       this.name = name;
@@ -33,7 +33,7 @@ public class DatabaseField
       this.precision = dbField.getPrecision();
       this.fractionalDigits = dbField.getFractionalDigits();
       this.nullable = dbField.getNullable();
-      this.generatedFieldType = generatedFieldType;
+      this.specifiedSourceCodeFieldType = specifiedSourceCodeFieldType;
    }
 
    private DatabaseField
@@ -45,7 +45,7 @@ public class DatabaseField
          @Nullable Integer precision,
          @Nullable Integer fractionalDigits,
          @Nullable Boolean nullable,
-         @Nullable String generatedFieldType
+         @Nullable String specifiedSourceCodeFieldType
       )
    {
       this.name = name;
@@ -55,7 +55,7 @@ public class DatabaseField
       this.precision = precision;
       this.fractionalDigits = fractionalDigits;
       this.nullable = nullable;
-      this.generatedFieldType = generatedFieldType;
+      this.specifiedSourceCodeFieldType = specifiedSourceCodeFieldType;
    }
 
    public String getName() { return name; }
@@ -65,7 +65,7 @@ public class DatabaseField
    public @Nullable Integer getPrecision() { return precision; }
    public @Nullable Integer getFractionalDigits() { return fractionalDigits; }
    public @Nullable Boolean getNullable() { return nullable; }
-   public @Nullable String getGeneratedFieldType() { return generatedFieldType; }
+   public @Nullable String getSpecifiedSourceCodeFieldType() { return specifiedSourceCodeFieldType; }
 
    DatabaseField toNullable()
    {
@@ -73,7 +73,7 @@ public class DatabaseField
          return this;
       else
          return new DatabaseField(
-            name, jdbcTypeCode, databaseType, length, precision, fractionalDigits, true, generatedFieldType
+            name, jdbcTypeCode, databaseType, length, precision, fractionalDigits, true, specifiedSourceCodeFieldType
          );
    }
 
@@ -91,13 +91,13 @@ public class DatabaseField
          Objects.equals(precision, that.precision) &&
          Objects.equals(fractionalDigits, that.fractionalDigits) &&
          Objects.equals(nullable, that.nullable) &&
-         Objects.equals(generatedFieldType, that.generatedFieldType);
+         Objects.equals(specifiedSourceCodeFieldType, that.specifiedSourceCodeFieldType);
    }
 
    @Override
    public int hashCode()
    {
-      return Objects.hash(name, jdbcTypeCode, databaseType, length, precision, fractionalDigits, nullable, generatedFieldType);
+      return Objects.hash(name, jdbcTypeCode, databaseType, length, precision, fractionalDigits, nullable, specifiedSourceCodeFieldType);
    }
 
    @Override
@@ -111,7 +111,7 @@ public class DatabaseField
          ", precision=" + precision +
          ", fractionalDigits=" + fractionalDigits +
          ", nullable=" + nullable +
-         ", generatedFieldType=" + generatedFieldType +
+         ", specifiedSourceCodeFieldType=" + specifiedSourceCodeFieldType +
          '}';
    }
 }

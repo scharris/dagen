@@ -14,10 +14,10 @@ import static java.util.stream.Collectors.toList;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
 import org.sqljson.queries.GeneratedQuery;
-import org.sqljson.queries.WrittenQueryReprPath;
+import org.sqljson.queries.QueryReprSqlPath;
 import org.sqljson.queries.result_types.*;
 import org.sqljson.queries.specs.ResultsRepr;
-import static org.sqljson.queries.WrittenQueryReprPath.getWrittenSqlPathsForQuery;
+import static org.sqljson.queries.QueryReprSqlPath.getReprToSqlPathMapForQuery;
 import static org.sqljson.common.util.IO.newFileOrStdoutWriter;
 import static org.sqljson.common.util.IO.writeString;
 import static org.sqljson.common.util.Nullables.*;
@@ -64,7 +64,7 @@ public class JavaWriter implements SourceCodeWriter
    public void writeQueries
       (
          List<GeneratedQuery> generatedQueries,
-         List<WrittenQueryReprPath> writtenQueryPaths,
+         List<QueryReprSqlPath> writtenQueryPaths,
          boolean includeTimestamp
       )
       throws IOException
@@ -130,7 +130,7 @@ public class JavaWriter implements SourceCodeWriter
          BufferedWriter bw,
          String queryClassName,
          GeneratedQuery q,
-         List<WrittenQueryReprPath> writtenQueryPaths
+         List<QueryReprSqlPath> writtenQueryPaths
       )
       throws IOException
    {
@@ -150,18 +150,18 @@ public class JavaWriter implements SourceCodeWriter
 
          Set<String> writtenTypeNames = new HashSet<>();
 
-         for ( GeneratedType generatedType: q.getGeneratedResultTypes() )
+         for ( ResultType resultType : q.getGeneratedResultTypes() )
          {
-            if ( !writtenTypeNames.contains(generatedType.getTypeName()) &&
-                 !generatedType.isUnwrapped() )
+            if ( !writtenTypeNames.contains(resultType.getTypeName()) &&
+                 !resultType.isUnwrapped() )
             {
-               String srcCode = makeGeneratedTypeSource(generatedType);
+               String srcCode = makeGeneratedTypeSource(resultType);
 
                bw.write('\n');
                bw.write(indentLines(srcCode, 3));
                bw.write('\n');
 
-               writtenTypeNames.add(generatedType.getTypeName());
+               writtenTypeNames.add(resultType.getTypeName());
             }
          }
       }
@@ -174,11 +174,11 @@ public class JavaWriter implements SourceCodeWriter
       (
          BufferedWriter bw,
          GeneratedQuery q,
-         List<WrittenQueryReprPath> writtenQueryPaths
+         List<QueryReprSqlPath> writtenQueryPaths
       )
       throws IOException
    {
-      Map<ResultsRepr,Path> sqlPathsByRepr = getWrittenSqlPathsForQuery(q.getQueryName(), writtenQueryPaths);
+      Map<ResultsRepr,Path> sqlPathsByRepr = getReprToSqlPathMapForQuery(q.getQueryName(), writtenQueryPaths);
 
       // Write members holding resource/file names for the result representations that were written for this query.
       for ( ResultsRepr resultsRepr : sorted(sqlPathsByRepr.keySet()) )
@@ -247,7 +247,7 @@ public class JavaWriter implements SourceCodeWriter
       return applyIfPresent(packageOutputDir, d -> d.resolve(className + ".java"));
    }
 
-   private String makeGeneratedTypeSource(GeneratedType genType)
+   private String makeGeneratedTypeSource(ResultType genType)
    {
       StringBuilder sb = new StringBuilder();
 
@@ -324,7 +324,7 @@ public class JavaWriter implements SourceCodeWriter
 
    private String getJavaTypeNameForExpressionField(ExpressionField f)
    {
-      return valueOrThrow(f.getTypeDeclaration(), () ->
+      return valueOrThrow(f.getSpecifiedSourceCodeFieldType(), () ->
           new RuntimeException("Field type override is required for expression field " + f.getFieldExpression())
       );
    }
@@ -342,7 +342,7 @@ public class JavaWriter implements SourceCodeWriter
    {
       boolean notNull = !valueOr(f.getNullable(), true);
 
-      @Nullable String typeDecl = f.getGeneratedFieldType();
+      @Nullable String typeDecl = f.getSpecifiedSourceCodeFieldType();
       if ( typeDecl != null )
          return typeDecl;
 
@@ -408,13 +408,13 @@ public class JavaWriter implements SourceCodeWriter
 
    private String getChildCollectionDeclaredType(ChildCollectionField childCollField)
    {
-      GeneratedType genType = childCollField.getGeneratedType();
+      ResultType genType = childCollField.getGeneratedType();
       String elType = !genType.isUnwrapped() ? genType.getTypeName() : getSoleFieldDeclaredBoxedType(genType);
       String bareChildCollType = "List<" + elType + ">";
       return !childCollField.isNullable() ? bareChildCollType : nullableType(bareChildCollType);
    }
 
-   private String getSoleFieldDeclaredBoxedType(GeneratedType genType)
+   private String getSoleFieldDeclaredBoxedType(ResultType genType)
    {
       if ( genType.getFieldsCount() != 1 )
          throw new RuntimeException("Expected single field when unwrapping " + genType.getTypeName() + ".");

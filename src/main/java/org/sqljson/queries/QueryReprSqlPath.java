@@ -11,41 +11,40 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.sqljson.queries.specs.ResultsRepr;
 
 
-public class WrittenQueryReprPath
+public class QueryReprSqlPath
 {
    private String queryName;
    private ResultsRepr resultsRepr;
-   private @Nullable Path outputFilePath;
+   private @Nullable Path sqlPath;
 
-   public WrittenQueryReprPath
+   public QueryReprSqlPath
       (
          String queryName,
          ResultsRepr resultsRepr,
-         @Nullable Path outputFilePath
+         @Nullable Path sqlPath
       )
    {
       this.queryName = queryName;
       this.resultsRepr = resultsRepr;
-      this.outputFilePath = outputFilePath;
+      this.sqlPath = sqlPath;
    }
 
    public String getQueryName() { return queryName; }
 
    public ResultsRepr getResultsRepr() { return resultsRepr; }
 
-   public @Nullable Path getOutputFilePath() { return outputFilePath; }
+   public @Nullable Path getSqlPath() { return sqlPath; }
 
-
-   public static Map<ResultsRepr, Path> getWrittenSqlPathsForQuery
+   public static Map<ResultsRepr,Path> getReprToSqlPathMapForQuery
       (
          String queryName,
-         List<WrittenQueryReprPath> writtenPathsAllQueries
+         List<QueryReprSqlPath> writtenPathsAllQueries
       )
    {
       return
          writtenPathsAllQueries.stream()
-         .filter(wqr -> wqr.getQueryName().equals(queryName) && wqr.getOutputFilePath() != null)
-         .collect(toMap(WrittenQueryReprPath::getResultsRepr, wqr -> requireNonNull(wqr.getOutputFilePath())));
+         .filter(wqr -> wqr.getQueryName().equals(queryName) && wqr.getSqlPath() != null)
+         .collect(toMap(QueryReprSqlPath::getResultsRepr, wqr -> requireNonNull(wqr.getSqlPath())));
    }
 }
 

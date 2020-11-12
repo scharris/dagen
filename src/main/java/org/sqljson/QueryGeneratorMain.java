@@ -16,7 +16,7 @@ import org.sqljson.queries.QueryGenerator;
 import org.sqljson.queries.source_writers.SourceCodeWriter;
 import org.sqljson.queries.source_writers.JavaWriter;
 import org.sqljson.queries.source_writers.TypeScriptWriter;
-import org.sqljson.queries.WrittenQueryReprPath;
+import org.sqljson.queries.QueryReprSqlPath;
 import org.sqljson.queries.specs.QueryGroupSpec;
 import org.sqljson.queries.specs.ResultsRepr;
 import org.sqljson.common.StatementSpecificationException;
@@ -128,11 +128,11 @@ public class QueryGeneratorMain
             .map(gen::generateQuery)
             .collect(toList());
 
-         List<WrittenQueryReprPath> writtenQueryPaths = writeQueries(generatedQueries, queriesOutputDirPath);
+         List<QueryReprSqlPath> writtenQueryPaths = writeQueries(generatedQueries, queriesOutputDirPath);
 
          List<GeneratedQuery> queriesWithSourceCodeEnabled =
             generatedQueries.stream()
-            .filter(GeneratedQuery::getGenerateSourceEnabled)
+            .filter(gq -> !gq.getGeneratedResultTypes().isEmpty())
             .collect(toList());
 
          if ( !queriesWithSourceCodeEnabled.isEmpty() )
@@ -230,14 +230,14 @@ public class QueryGeneratorMain
     * @throws IOException if the output directory could not be created or a write operation fails
     * @return A list of structures identifying the output locations of written queries.
     */
-   private static List<WrittenQueryReprPath> writeQueries
+   private static List<QueryReprSqlPath> writeQueries
       (
          List<GeneratedQuery> generatedQueries,
          @Nullable Path outputDir
       )
       throws IOException
    {
-      List<WrittenQueryReprPath> res = new ArrayList<>();
+      List<QueryReprSqlPath> res = new ArrayList<>();
 
       if ( outputDir != null )
          Files.createDirectories(outputDir);
@@ -259,7 +259,7 @@ public class QueryGeneratorMain
                   q.getSql(repr) + "\n"
                );
 
-               res.add(new WrittenQueryReprPath(q.getQueryName(), repr, outputFilePath));
+               res.add(new QueryReprSqlPath(q.getQueryName(), repr, outputFilePath));
             }
             finally
             {

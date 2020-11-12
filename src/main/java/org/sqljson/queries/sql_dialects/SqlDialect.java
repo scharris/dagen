@@ -1,11 +1,10 @@
-package org.sqljson.queries.sql.dialects;
+package org.sqljson.queries.sql_dialects;
 
 import java.util.List;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
 
 import org.sqljson.dbmd.DatabaseMetadata;
-import org.sqljson.queries.sql.ColumnMetadata;
 
 
 public interface SqlDialect
@@ -14,7 +13,7 @@ public interface SqlDialect
 
    String getRowObjectExpression
       (
-         List<ColumnMetadata> columnMetadatas,
+         List<String> columnNames,
          String fromAlias
       );
 
@@ -22,14 +21,14 @@ public interface SqlDialect
    /// which builds an array of json objects from a source relation having the given column names and table alias.
    String getAggregatedRowObjectsExpression
       (
-         List<ColumnMetadata> columnMetadatas,
+         List<String> columnNames,
          @Nullable String orderBy,
          String fromAlias
       );
 
    String getAggregatedColumnValuesExpression
       (
-         ColumnMetadata columnMetadata,
+         String columnName,
          @Nullable String orderBy,
          String fromAlias
       );

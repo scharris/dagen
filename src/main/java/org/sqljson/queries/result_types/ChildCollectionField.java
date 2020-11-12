@@ -8,31 +8,31 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 public class ChildCollectionField
 {
    String name;
-   GeneratedType generatedType;
+   ResultType resultType;
    boolean nullable;
 
    public ChildCollectionField
       (
          String name,
-         GeneratedType generatedType,
+         ResultType resultType,
          boolean nullable
       )
    {
       this.name = name;
-      this.generatedType = generatedType;
+      this.resultType = resultType;
       this.nullable = nullable;
    }
 
    public String getName() { return name; }
 
-   public GeneratedType getGeneratedType() { return generatedType; }
+   public ResultType getGeneratedType() { return resultType; }
 
    public boolean isNullable() { return nullable; }
 
    public ChildCollectionField toNullable()
    {
       if ( nullable ) return this;
-      else return new ChildCollectionField(name, generatedType, true);
+      else return new ChildCollectionField(name, resultType, true);
    }
 
    @Override
@@ -44,13 +44,13 @@ public class ChildCollectionField
       return
          nullable == that.nullable &&
          name.equals(that.name) &&
-         generatedType.equals(that.generatedType);
+         resultType.equals(that.resultType);
    }
 
    @Override
    public int hashCode()
    {
-      return Objects.hash(name, generatedType, nullable);
+      return Objects.hash(name, resultType, nullable);
    }
 
    @Override
@@ -58,7 +58,7 @@ public class ChildCollectionField
    {
       return "ChildCollectionField{" +
          "name='" + name + '\'' +
-         ", generatedType=" + generatedType +
+         ", resultType=" + resultType +
          ", nullable=" + nullable +
          '}';
    }

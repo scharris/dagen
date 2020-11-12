@@ -8,7 +8,7 @@ import static java.util.Collections.unmodifiableList;
 import static java.util.stream.Collectors.toList;
 
 
-public class GeneratedType
+public class ResultType
 {
    private final String typeName; // always unqualified by module/package
    private final List<DatabaseField> databaseFields;
@@ -18,7 +18,7 @@ public class GeneratedType
    // NOTE: Fields from inline parents are included in the above.
    private final boolean unwrapped;
 
-   GeneratedType
+   ResultType
       (
          String typeName,
          List<DatabaseField> databaseFields,
@@ -37,7 +37,7 @@ public class GeneratedType
        );
    }
 
-   GeneratedType
+   ResultType
       (
          String typeName,
          List<DatabaseField> databaseFields,
@@ -85,12 +85,12 @@ public class GeneratedType
 
    public boolean isUnwrapped() { return unwrapped; }
 
-   public GeneratedType withUnwrapped(boolean unwrap)
+   public ResultType withUnwrapped(boolean unwrap)
    {
       if ( unwrap == this.unwrapped )
          return this;
       else
-         return new GeneratedType(typeName, databaseFields, expressionFields, childCollectionFields, parentReferenceFields, unwrap);
+         return new ResultType(typeName, databaseFields, expressionFields, childCollectionFields, parentReferenceFields, unwrap);
    }
 
    public int getFieldsCount()
@@ -98,7 +98,7 @@ public class GeneratedType
       return databaseFields.size() + expressionFields.size() + childCollectionFields.size() + parentReferenceFields.size();
    }
 
-   public boolean equalsIgnoringName(GeneratedType that)
+   public boolean equalsIgnoringName(ResultType that)
    {
       return
          databaseFields.equals(that.databaseFields) &&
@@ -113,7 +113,7 @@ public class GeneratedType
    {
       if (this == o) return true;
       if (o == null || getClass() != o.getClass()) return false;
-      GeneratedType that = (GeneratedType) o;
+      ResultType that = (ResultType) o;
       return
          typeName.equals(that.typeName) &&
          databaseFields.equals(that.databaseFields) &&
@@ -133,7 +133,7 @@ public class GeneratedType
    @Override
    public String toString()
    {
-      return "GeneratedType{" +
+      return "ResultType{" +
          "typeName='" + typeName + '\'' +
          ", databaseFields=" + databaseFields +
          ", expressionFields=" + expressionFields +

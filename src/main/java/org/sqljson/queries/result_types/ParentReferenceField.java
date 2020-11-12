@@ -8,31 +8,31 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 public class ParentReferenceField
 {
    String name;
-   GeneratedType generatedType;
+   ResultType resultType;
    boolean nullable;
 
    public ParentReferenceField
       (
          String name,
-         GeneratedType generatedType,
+         ResultType resultType,
          boolean nullable
       )
    {
       this.name = name;
-      this.generatedType = generatedType;
+      this.resultType = resultType;
       this.nullable = nullable;
    }
 
    public String getName() { return name; }
 
-   public GeneratedType getGeneratedType() { return generatedType; }
+   public ResultType getGeneratedType() { return resultType; }
 
    public boolean isNullable() { return nullable; }
 
    public ParentReferenceField toNullable()
    {
       if ( nullable ) return this;
-      else return new ParentReferenceField(name, generatedType, true);
+      else return new ParentReferenceField(name, resultType, true);
    }
 
    @Override
@@ -44,13 +44,13 @@ public class ParentReferenceField
       return
          nullable == that.nullable &&
          name.equals(that.name) &&
-         generatedType.equals(that.generatedType);
+         resultType.equals(that.resultType);
    }
 
    @Override
    public int hashCode()
    {
-      return Objects.hash(name, generatedType, nullable);
+      return Objects.hash(name, resultType, nullable);
    }
 
    @Override
@@ -58,7 +58,7 @@ public class ParentReferenceField
    {
       return "ParentReferenceField{" +
          "name='" + name + '\'' +
-         ", generatedType=" + generatedType +
+         ", resultType=" + resultType +
          ", isNullable=" + nullable +
          '}';
    }

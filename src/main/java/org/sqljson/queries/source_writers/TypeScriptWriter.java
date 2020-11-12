@@ -13,11 +13,11 @@ import static java.util.stream.Collectors.toList;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
 import org.sqljson.queries.GeneratedQuery;
-import org.sqljson.queries.WrittenQueryReprPath;
+import org.sqljson.queries.QueryReprSqlPath;
 import org.sqljson.queries.result_types.*;
 import org.sqljson.queries.specs.ResultsRepr;
 import org.sqljson.common.util.IO;
-import static org.sqljson.queries.WrittenQueryReprPath.getWrittenSqlPathsForQuery;
+import static org.sqljson.queries.QueryReprSqlPath.getReprToSqlPathMapForQuery;
 import static org.sqljson.common.util.IO.writeString;
 import static org.sqljson.common.util.Nullables.*;
 import static org.sqljson.common.util.StringFuns.upperCamelCase;
@@ -45,7 +45,7 @@ public class TypeScriptWriter implements SourceCodeWriter
    public void writeQueries
       (
          List<GeneratedQuery> generatedQueries,
-         List<WrittenQueryReprPath> writtenQueryPaths,
+         List<QueryReprSqlPath> writtenQueryPaths,
          boolean includeTimestamp
       )
       throws IOException
@@ -112,7 +112,7 @@ public class TypeScriptWriter implements SourceCodeWriter
       (
          BufferedWriter bw,
          GeneratedQuery q,
-         List<WrittenQueryReprPath> writtenQueryPaths
+         List<QueryReprSqlPath> writtenQueryPaths
       )
       throws IOException
    {
@@ -124,15 +124,15 @@ public class TypeScriptWriter implements SourceCodeWriter
       {
          Set<String> writtenTypeNames = new HashSet<>();
 
-         for ( GeneratedType generatedType: q.getGeneratedResultTypes() )
+         for ( ResultType resultType : q.getGeneratedResultTypes() )
          {
-            if ( !writtenTypeNames.contains(generatedType.getTypeName()) &&
-                 !generatedType.isUnwrapped() )
+            if ( !writtenTypeNames.contains(resultType.getTypeName()) &&
+                 !resultType.isUnwrapped() )
             {
                bw.write('\n');
-               bw.write(getTypeDeclaration(generatedType));
+               bw.write(getTypeDeclaration(resultType));
 
-               writtenTypeNames.add(generatedType.getTypeName());
+               writtenTypeNames.add(resultType.getTypeName());
             }
          }
       }
@@ -143,11 +143,11 @@ public class TypeScriptWriter implements SourceCodeWriter
       (
          BufferedWriter bw,
          GeneratedQuery q,
-         List<WrittenQueryReprPath> writtenQueryPaths
+         List<QueryReprSqlPath> writtenQueryPaths
       )
       throws IOException
    {
-      Map<ResultsRepr,Path> sqlPathsByRepr = getWrittenSqlPathsForQuery(q.getQueryName(), writtenQueryPaths);
+      Map<ResultsRepr,Path> sqlPathsByRepr = getReprToSqlPathMapForQuery(q.getQueryName(), writtenQueryPaths);
 
       // Write members holding resource/file names for the result representations that were written for this query.
       for ( ResultsRepr resultsRepr : sorted(sqlPathsByRepr.keySet()) )
@@ -180,7 +180,7 @@ public class TypeScriptWriter implements SourceCodeWriter
 
    public String getTypeDeclaration
       (
-         GeneratedType genType
+         ResultType genType
       )
    {
       StringBuilder sb = new StringBuilder();
@@ -224,7 +224,7 @@ public class TypeScriptWriter implements SourceCodeWriter
    {
       boolean notNull = !valueOr(f.getNullable(), true);
 
-      @Nullable String typeOverride = f.getGeneratedFieldType();
+      @Nullable String typeOverride = f.getSpecifiedSourceCodeFieldType();
       if ( typeOverride != null )
          return typeOverride;
 
@@ -264,7 +264,7 @@ public class TypeScriptWriter implements SourceCodeWriter
 
    private String getTSTypeNameForExpressionField(ExpressionField f)
    {
-      return valueOrThrow(f.getTypeDeclaration(), () ->
+      return valueOrThrow(f.getSpecifiedSourceCodeFieldType(), () ->
           new RuntimeException("Field type override is required for expression field " + f.getFieldExpression())
       );
    }
@@ -280,13 +280,13 @@ public class TypeScriptWriter implements SourceCodeWriter
 
    private String getChildCollectionDeclaredType(ChildCollectionField childCollField)
    {
-      GeneratedType genType = childCollField.getGeneratedType();
+      ResultType genType = childCollField.getGeneratedType();
       String elType = !genType.isUnwrapped() ? genType.getTypeName() : getSoleFieldDeclaredType(genType);
       String bareChildCollType = elType + "[]";
       return !childCollField.isNullable() ? bareChildCollType : bareChildCollType + " | null";
    }
 
-   private String getSoleFieldDeclaredType(GeneratedType genType)
+   private String getSoleFieldDeclaredType(ResultType genType)
    {
       if ( genType.getFieldsCount() != 1 )
          throw new RuntimeException("Expected single field when unwrapping " + genType.getTypeName() + ".");

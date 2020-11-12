@@ -1,4 +1,4 @@
-
+Add TS version of ResultTypesGenerator to result_types module.
 
 # Generate database metadata.
 ./mvn exec:java@dbmd -DpropsFile="example/db/dbmd-pg.props" -DoutputFile="../../tmp/dmbd.yaml"

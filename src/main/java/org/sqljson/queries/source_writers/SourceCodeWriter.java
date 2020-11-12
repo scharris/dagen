@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.util.List;
 
 import org.sqljson.queries.GeneratedQuery;
-import org.sqljson.queries.WrittenQueryReprPath;
+import org.sqljson.queries.QueryReprSqlPath;
 
 
 public interface SourceCodeWriter
@@ -12,7 +12,7 @@ public interface SourceCodeWriter
    void writeQueries
       (
          List<GeneratedQuery> generatedQueries,
-         List<WrittenQueryReprPath> writtenPaths,
+         List<QueryReprSqlPath> writtenPaths,
          boolean includeTimestamp
       )
       throws IOException;

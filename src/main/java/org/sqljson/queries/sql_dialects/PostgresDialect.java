@@ -1,11 +1,10 @@
-package org.sqljson.queries.sql.dialects;
+package org.sqljson.queries.sql_dialects;
 
 import java.util.List;
 import static java.util.stream.Collectors.joining;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
 
-import org.sqljson.queries.sql.ColumnMetadata;
 import org.sqljson.common.util.StringFuns;
 
 
@@ -21,13 +20,13 @@ public class PostgresDialect implements SqlDialect
    @Override
    public String getRowObjectExpression
       (
-         List<ColumnMetadata> columnMetadatas,
+         List<String> columnNames,
          String fromAlias
       )
    {
       String objectFieldDecls =
-         columnMetadatas.stream()
-         .map(col -> "'" + StringFuns.unDoubleQuote(col.getName()) + "', " + fromAlias + "." + col.getName())
+         columnNames.stream()
+         .map(colName -> "'" + StringFuns.unDoubleQuote(colName) + "', " + fromAlias + "." + colName)
          .collect(joining(",\n"));
 
          return
@@ -39,7 +38,7 @@ public class PostgresDialect implements SqlDialect
    @Override
    public String getAggregatedRowObjectsExpression
       (
-         List<ColumnMetadata> columnMetadatas,
+         List<String> columnNames,
          @Nullable String orderBy,
          String fromAlias
       )
@@ -47,7 +46,7 @@ public class PostgresDialect implements SqlDialect
 
       return
          "coalesce(jsonb_agg(" +
-            getRowObjectExpression(columnMetadatas, fromAlias) +
+            getRowObjectExpression(columnNames, fromAlias) +
             (orderBy != null ? " order by " + orderBy.replace("$$", fromAlias) : "") +
          "),'[]'::jsonb)";
    }
@@ -55,14 +54,14 @@ public class PostgresDialect implements SqlDialect
    @Override
    public String getAggregatedColumnValuesExpression
       (
-          ColumnMetadata columnMetadata,
+          String columnName,
           @Nullable String orderBy,
           String fromAlias
       )
    {
       return
          "coalesce(jsonb_agg(" +
-            fromAlias + "." + columnMetadata.getName() +
+            fromAlias + "." + columnName +
             (orderBy != null ? " order by " + orderBy.replace("$$", fromAlias) : "") +
          "))";
    }
