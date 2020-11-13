@@ -92,6 +92,11 @@ public class ResultType
          return new ResultType(typeName, simpleTableFieldProperties, tableExpressionProperties, childCollectionProperties, parentReferenceProperties, unwrap);
    }
 
+   public ResultType withTypeName(String newTypeName)
+   {
+      return new ResultType(newTypeName, simpleTableFieldProperties, tableExpressionProperties, childCollectionProperties, parentReferenceProperties, unwrapped);
+   }
+
    public int getFieldsCount()
    {
       return simpleTableFieldProperties.size() + tableExpressionProperties.size() + childCollectionProperties.size() + parentReferenceProperties.size();

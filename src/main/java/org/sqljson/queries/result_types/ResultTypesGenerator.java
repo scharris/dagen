@@ -35,17 +35,17 @@ public class ResultTypesGenerator
 
    public List<ResultType> generateResultTypes(TableJsonSpec tjs)
    {
-      return this.generateResultTypes(tjs, emptyMap());
+      return this.generateResultTypesWithTypesInScope(tjs, emptyMap());
    }
 
    @SuppressWarnings("keyfor")
-   private List<ResultType> generateResultTypes
+   private List<ResultType> generateResultTypesWithTypesInScope
       (
          TableJsonSpec tjs,
-         Map<String,ResultType> previouslyGeneratedTypesByName
+         Map<String,ResultType> envTypesInScope // types by type name
       )
    {
-      Map<String,ResultType> typesInScope = new HashMap<>(previouslyGeneratedTypesByName);
+      Map<String,ResultType> typesInScope = new HashMap<>(envTypesInScope);
 
       ResultTypeBuilder typeBuilder = new ResultTypeBuilder();
       List<ResultType> resultTypes = new ArrayList<>();
@@ -68,31 +68,35 @@ public class ResultTypesGenerator
       RefdParentContrs refdParentsContr = getRefdParentContrs(relId, tjs.getReferencedParentTablesList(), typesInScope);
       typeBuilder.addParentReferenceProperties(refdParentsContr.parentReferenceProperties);
       resultTypes.addAll(refdParentsContr.resultTypes);
-      inlineParentsContr.resultTypes.forEach(t -> typesInScope.put(t.getTypeName(), t));
+      refdParentsContr.resultTypes.forEach(t -> typesInScope.put(t.getTypeName(), t));
 
       // Get the child collection fields and result types, with result types from related tables.
       ChildCollectionContrs childCollsContr = getChildCollectionContrs(tjs.getChildTableCollectionsList(), typesInScope);
       typeBuilder.addChildCollectionProperties(childCollsContr.childCollectionProperties);
       resultTypes.addAll(childCollsContr.resultTypes);
-      inlineParentsContr.resultTypes.forEach(t -> typesInScope.put(t.getTypeName(), t));
+      childCollsContr.resultTypes.forEach(t -> typesInScope.put(t.getTypeName(), t));
 
       // The top table's type must be added at leading position in the returned list.
-      // If the type is essentially identical to one already in scope, ignoring only any name
-      // extension added to make the name unique, then add the previously generated instance
-      // instead.
+      // If the type is identical to one already in scope when ignoring only any name
+      // extension added to make the name unique, then add the previously generated
+      // instance instead.
       String baseTypeName = StringFuns.upperCamelCase(tjs.getTable()); // Base type name is the desired name, without any trailing digits.
+      ResultType bnResType = typeBuilder.build(baseTypeName);
       if ( !typesInScope.containsKey(baseTypeName) ) // No previously generated type of same base name.
-         resultTypes.add(0, typeBuilder.build(baseTypeName));
+         resultTypes.add(0, bnResType);
       else
       {
-         @Nullable ResultType existingIdenticalType =
-            findTypeIgnoringNameExtensions(typeBuilder.build(baseTypeName), previouslyGeneratedTypesByName);
+         // Search the previous scope (prior to this type-building) for a type which is identical
+         // except for any additions to the name to make it unique. Note: Only the original
+         // scope (prior to this type building) is searched because the additions made here
+         // to typesInScope are proper parts of the type and so not identical to the whole type.
+         @Nullable ResultType existingIdenticalType = findTypeIgnoringNameExtensions(bnResType, envTypesInScope);
          if ( existingIdenticalType != null ) // Identical previously generated type found, use it as top type.
             resultTypes.add(0, existingIdenticalType);
          else // This type does not match any previously generated, but needs a new name.
          {
             String uniqueName = StringFuns.makeNameNotInSet(baseTypeName, typesInScope.keySet(), "_");
-            resultTypes.add(0, typeBuilder.build(uniqueName));
+            resultTypes.add(0, bnResType.withTypeName(uniqueName));
          }
       }
 
@@ -144,7 +148,7 @@ public class ResultTypesGenerator
       return fields;
    }
 
-   // Build the inline parents part of the generated type.
+   /// Get the inline parent contributions of properties and result types for the type to be generated.
    private InlineParentContrs getInlineParentContrs
       (
          RelId relId,
@@ -160,13 +164,13 @@ public class ResultTypesGenerator
       for ( InlineParentSpec parentSpec :  inlineParentSpecs )
       {
          // Generate types for the parent table and any related tables it includes recursively.
-         List<ResultType> parentResultTypes = generateResultTypes(parentSpec.getParentTableJsonSpec(), typesInScope);
+         List<ResultType> parentResultTypes = generateResultTypesWithTypesInScope(parentSpec.getParentTableJsonSpec(), typesInScope);
          ResultType parentType = parentResultTypes.get(0); // will not be generated
 
          // If the parent record might be absent, then all inline fields must be nullable.
          boolean forceNullable =
             parentSpec.getParentTableJsonSpec().hasCondition() ||
-            noFkFieldKnownNotNullable(relId, parentSpec);
+            !someFkFieldKnownNotNullable(parentSpec, relId);
 
          typeBuilder.addAllFieldsFrom(parentType, forceNullable);
 
@@ -194,12 +198,12 @@ public class ResultTypesGenerator
       for ( ReferencedParentSpec parentSpec : referencedParentSpecs )
       {
          // Generate types by traversing the parent table and its parents and children.
-         List<ResultType> parentResultTypes = generateResultTypes(parentSpec.getParentTableJsonSpec(), typesInScope);
+         List<ResultType> parentResultTypes = generateResultTypesWithTypesInScope(parentSpec.getParentTableJsonSpec(), typesInScope);
          ResultType parentType = parentResultTypes.get(0);
 
          boolean forceNullable =
             parentSpec.getParentTableJsonSpec().hasCondition() ||
-            noFkFieldKnownNotNullable(relId, parentSpec);
+            !someFkFieldKnownNotNullable(parentSpec, relId);
 
          parentRefFields.add(new ParentReferenceProperty(parentSpec.getReferenceName(), parentType, forceNullable));
 
@@ -224,7 +228,7 @@ public class ResultTypesGenerator
       for ( ChildCollectionSpec childCollSpec : childCollectionSpecs )
       {
          // Generate types by traversing the child table and its parents and children recursively.
-         List<ResultType> childResultTypes = generateResultTypes(childCollSpec.getTableJson(), typesInScope);
+         List<ResultType> childResultTypes = generateResultTypesWithTypesInScope(childCollSpec.getTableJson(), typesInScope);
 
          // Mark the top-level child type as unwrapped if specified.
          ResultType childType = childResultTypes.get(0).withUnwrapped(valueOr(childCollSpec.getUnwrap(), false));
@@ -279,7 +283,7 @@ public class ResultTypesGenerator
       return null;
    }
 
-   private boolean noFkFieldKnownNotNullable(RelId childRelId, ParentSpec parentSpec)
+   private boolean someFkFieldKnownNotNullable(ParentSpec parentSpec, RelId childRelId)
    {
       RelId parentRelId = dbmd.toRelId(parentSpec.getParentTableJsonSpec().getTable(), defaultSchema);
       @Nullable Set<String> specFkFields = parentSpec.getChildForeignKeyFieldsSet();
@@ -296,10 +300,10 @@ public class ResultTypesGenerator
          );
 
          if ( !valueOr(fkField.getNullable(), true) )
-            return false;
+            return true;
       }
 
-      return true;
+      return false;
    }
 }
 

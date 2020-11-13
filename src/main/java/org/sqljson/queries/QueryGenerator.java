@@ -87,7 +87,7 @@ public class QueryGenerator
          .collect(toMap(identity(), repr -> makeQuerySql(querySpec, repr, propNameFn)));
 
       List<ResultType> resultTypes = querySpec.getGenerateResultTypesOrDeault() ?
-            resultTypesGenerator.generateResultTypes(querySpec.getTableJson())
+            resultTypesGenerator.generateResultTypesWithTypeInScope(querySpec.getTableJson())
             : emptyList();
 
       return new
