@@ -1,38 +1,37 @@
 package org.sqljson.queries.result_types;
 
 import java.util.*;
-
-import org.checkerframework.checker.nullness.qual.Nullable;
-
 import static java.util.Collections.unmodifiableList;
 import static java.util.stream.Collectors.toList;
+
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 
 public class ResultType
 {
    private final String typeName; // always unqualified by module/package
-   private final List<DatabaseField> databaseFields;
-   private final List<ExpressionField> expressionFields;
-   private final List<ChildCollectionField> childCollectionFields;
-   private final List<ParentReferenceField> parentReferenceFields;
+   private final List<SimpleTableFieldProperty> simpleTableFieldProperties;
+   private final List<TableExpressionProperty> tableExpressionProperties;
+   private final List<ChildCollectionProperty> childCollectionProperties;
+   private final List<ParentReferenceProperty> parentReferenceProperties;
    // NOTE: Fields from inline parents are included in the above.
    private final boolean unwrapped;
 
    ResultType
       (
          String typeName,
-         List<DatabaseField> databaseFields,
-         List<ExpressionField> expressionFields,
-         List<ChildCollectionField> childCollectionFields,
-         List<ParentReferenceField> parentReferenceFields
+         List<SimpleTableFieldProperty> simpleTableFieldProperties,
+         List<TableExpressionProperty> tableExpressionProperties,
+         List<ChildCollectionProperty> childCollectionProperties,
+         List<ParentReferenceProperty> parentReferenceProperties
       )
    {
        this(
           typeName,
-          databaseFields,
-          expressionFields,
-          childCollectionFields,
-          parentReferenceFields,
+          simpleTableFieldProperties,
+          tableExpressionProperties,
+          childCollectionProperties,
+          parentReferenceProperties,
           false
        );
    }
@@ -40,47 +39,47 @@ public class ResultType
    ResultType
       (
          String typeName,
-         List<DatabaseField> databaseFields,
-         List<ExpressionField> expressionFields,
-         List<ChildCollectionField> childCollectionFields,
-         List<ParentReferenceField> parentReferenceFields,
+         List<SimpleTableFieldProperty> simpleTableFieldProperties,
+         List<TableExpressionProperty> tableExpressionProperties,
+         List<ChildCollectionProperty> childCollectionProperties,
+         List<ParentReferenceProperty> parentReferenceProperties,
          boolean unwrapped
       )
    {
       this.typeName = typeName;
-      this.databaseFields = unmodifiableList(new ArrayList<>(databaseFields));
-      this.expressionFields = unmodifiableList(new ArrayList<>(expressionFields));
-      this.childCollectionFields = unmodifiableList(new ArrayList<>(childCollectionFields));
-      this.parentReferenceFields = unmodifiableList(new ArrayList<>(parentReferenceFields));
+      this.simpleTableFieldProperties = unmodifiableList(new ArrayList<>(simpleTableFieldProperties));
+      this.tableExpressionProperties = unmodifiableList(new ArrayList<>(tableExpressionProperties));
+      this.childCollectionProperties = unmodifiableList(new ArrayList<>(childCollectionProperties));
+      this.parentReferenceProperties = unmodifiableList(new ArrayList<>(parentReferenceProperties));
       this.unwrapped = unwrapped;
    }
 
    public String getTypeName() { return typeName; }
 
-   public List<DatabaseField> getDatabaseFields() { return databaseFields; }
+   public List<SimpleTableFieldProperty> getSimpleTableFieldProperties() { return simpleTableFieldProperties; }
 
    /// Get nullable variants of the database fields.
-   public List<DatabaseField> getDatabaseFieldsNullable()
+   public List<SimpleTableFieldProperty> getSimpleTableFieldPropertiesNullable()
    {
-      return databaseFields.stream().map(DatabaseField::toNullable).collect(toList());
+      return simpleTableFieldProperties.stream().map(SimpleTableFieldProperty::toNullable).collect(toList());
    }
 
-   public List<ExpressionField> getExpressionFields() { return expressionFields; }
+   public List<TableExpressionProperty> getTableExpressionProperties() { return tableExpressionProperties; }
 
-   public List<ChildCollectionField> getChildCollectionFields() { return childCollectionFields; }
+   public List<ChildCollectionProperty> getChildCollectionProperties() { return childCollectionProperties; }
 
    /// Get nullable variants of the child collection fields.
-   public List<ChildCollectionField> getChildCollectionFieldsNullable()
+   public List<ChildCollectionProperty> getChildCollectionPropertiesNullable()
    {
-      return childCollectionFields.stream().map(ChildCollectionField::toNullable).collect(toList());
+      return childCollectionProperties.stream().map(ChildCollectionProperty::toNullable).collect(toList());
    }
 
-   public List<ParentReferenceField> getParentReferenceFields() { return parentReferenceFields; }
+   public List<ParentReferenceProperty> getParentReferenceProperties() { return parentReferenceProperties; }
 
    /// Get nullable variants of the parent reference fields.
-   public List<ParentReferenceField> getParentReferenceFieldsNullable()
+   public List<ParentReferenceProperty> getParentReferencePropertiesNullable()
    {
-      return parentReferenceFields.stream().map(ParentReferenceField::toNullable).collect(toList());
+      return parentReferenceProperties.stream().map(ParentReferenceProperty::toNullable).collect(toList());
    }
 
    public boolean isUnwrapped() { return unwrapped; }
@@ -90,21 +89,21 @@ public class ResultType
       if ( unwrap == this.unwrapped )
          return this;
       else
-         return new ResultType(typeName, databaseFields, expressionFields, childCollectionFields, parentReferenceFields, unwrap);
+         return new ResultType(typeName, simpleTableFieldProperties, tableExpressionProperties, childCollectionProperties, parentReferenceProperties, unwrap);
    }
 
    public int getFieldsCount()
    {
-      return databaseFields.size() + expressionFields.size() + childCollectionFields.size() + parentReferenceFields.size();
+      return simpleTableFieldProperties.size() + tableExpressionProperties.size() + childCollectionProperties.size() + parentReferenceProperties.size();
    }
 
    public boolean equalsIgnoringName(ResultType that)
    {
       return
-         databaseFields.equals(that.databaseFields) &&
-         expressionFields.equals(that.expressionFields) &&
-         childCollectionFields.equals(that.childCollectionFields) &&
-         parentReferenceFields.equals(that.parentReferenceFields) &&
+         simpleTableFieldProperties.equals(that.simpleTableFieldProperties) &&
+         tableExpressionProperties.equals(that.tableExpressionProperties) &&
+         childCollectionProperties.equals(that.childCollectionProperties) &&
+         parentReferenceProperties.equals(that.parentReferenceProperties) &&
          unwrapped == that.unwrapped;
    }
 
@@ -116,10 +115,10 @@ public class ResultType
       ResultType that = (ResultType) o;
       return
          typeName.equals(that.typeName) &&
-         databaseFields.equals(that.databaseFields) &&
-         expressionFields.equals(that.expressionFields) &&
-         childCollectionFields.equals(that.childCollectionFields) &&
-         parentReferenceFields.equals(that.parentReferenceFields) &&
+         simpleTableFieldProperties.equals(that.simpleTableFieldProperties) &&
+         tableExpressionProperties.equals(that.tableExpressionProperties) &&
+         childCollectionProperties.equals(that.childCollectionProperties) &&
+         parentReferenceProperties.equals(that.parentReferenceProperties) &&
          unwrapped == that.unwrapped;
 
    }
@@ -127,7 +126,7 @@ public class ResultType
    @Override
    public int hashCode()
    {
-      return Objects.hash(typeName, databaseFields, expressionFields, childCollectionFields, parentReferenceFields, unwrapped);
+      return Objects.hash(typeName, simpleTableFieldProperties, tableExpressionProperties, childCollectionProperties, parentReferenceProperties, unwrapped);
    }
 
    @Override
@@ -135,10 +134,10 @@ public class ResultType
    {
       return "ResultType{" +
          "typeName='" + typeName + '\'' +
-         ", databaseFields=" + databaseFields +
-         ", expressionFields=" + expressionFields +
-         ", childCollectionFields=" + childCollectionFields +
-         ", parentReferenceFields=" + parentReferenceFields +
+         ", simpleTableFieldProperties=" + simpleTableFieldProperties +
+         ", tableExpressionProperties=" + tableExpressionProperties +
+         ", childCollectionProperties=" + childCollectionProperties +
+         ", parentReferenceProperties=" + parentReferenceProperties +
          ", unwrapped=" + unwrapped +
          '}';
    }

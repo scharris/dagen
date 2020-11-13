@@ -51,11 +51,10 @@ public class ResultTypesGenerator
       List<ResultType> resultTypes = new ArrayList<>();
 
       RelId relId = dbmd.toRelId(tjs.getTable(), defaultSchema);
-      Map<String,Field> dbFieldsByName = getTableFieldsByName(relId);
 
       // Add the table's own fields and expressions involving those fields.
-      typeBuilder.addDatabaseFields(getDatabaseFields(relId, tjs.getFieldExpressionsList(), dbFieldsByName));
-      typeBuilder.addExpressionFields(getExpressionFields(relId, tjs.getFieldExpressionsList()));
+      typeBuilder.addSimpleTableFieldProperties(getSimpleTableFieldProperties(relId, tjs.getFieldExpressionsList()));
+      typeBuilder.addTableExpressionProperties(getTableExpressionProperties(relId, tjs.getFieldExpressionsList()));
 
       // Inline parents can contribute fields to any primary field category (table field,
       // expression, parent ref, child collection). Get the inline parent fields, and the result
@@ -67,13 +66,13 @@ public class ResultTypesGenerator
 
       // Get referenced parent fields and result types, with result types from related tables.
       RefdParentContrs refdParentsContr = getRefdParentContrs(relId, tjs.getReferencedParentTablesList(), typesInScope);
-      typeBuilder.addParentReferenceFields(refdParentsContr.parentReferenceFields);
+      typeBuilder.addParentReferenceProperties(refdParentsContr.parentReferenceProperties);
       resultTypes.addAll(refdParentsContr.resultTypes);
       inlineParentsContr.resultTypes.forEach(t -> typesInScope.put(t.getTypeName(), t));
 
       // Get the child collection fields and result types, with result types from related tables.
       ChildCollectionContrs childCollsContr = getChildCollectionContrs(tjs.getChildTableCollectionsList(), typesInScope);
-      typeBuilder.addChildCollectionFields(childCollsContr.childCollectionFields);
+      typeBuilder.addChildCollectionProperties(childCollsContr.childCollectionProperties);
       resultTypes.addAll(childCollsContr.resultTypes);
       inlineParentsContr.resultTypes.forEach(t -> typesInScope.put(t.getTypeName(), t));
 
@@ -100,14 +99,15 @@ public class ResultTypesGenerator
       return resultTypes;
    }
 
-   private List<DatabaseField> getDatabaseFields
+   private List<SimpleTableFieldProperty> getSimpleTableFieldProperties
       (
          RelId relId,
-         List<TableFieldExpr> tableFieldExpressions,
-         Map<String,Field> dbFieldsByName
+         List<TableFieldExpr> tableFieldExpressions
       )
    {
-      List<DatabaseField> fields = new ArrayList<>();
+      List<SimpleTableFieldProperty> fields = new ArrayList<>();
+
+      Map<String,Field> dbFieldsByName = getTableFieldsByName(relId);
 
       for ( TableFieldExpr tfe : tableFieldExpressions )
       {
@@ -115,20 +115,20 @@ public class ResultTypesGenerator
          {
             Field dbField = requireNonNull(dbFieldsByName.get(dbmd.normalizeName(requireNonNull(tfe.getField()))),
                "no metadata for field " + relId + "." + tfe.getField());
-            fields.add(new DatabaseField(getOutputFieldName(tfe, dbField), dbField, tfe.getGeneratedFieldType()));
+            fields.add(new SimpleTableFieldProperty(getOutputFieldName(tfe, dbField), dbField, tfe.getGeneratedFieldType()));
          }
       }
 
       return fields;
    }
 
-   private List<ExpressionField> getExpressionFields
+   private List<TableExpressionProperty> getTableExpressionProperties
       (
          RelId relId,
          List<TableFieldExpr> tableFieldExpressions
       )
    {
-      List<ExpressionField> fields = new ArrayList<>();
+      List<TableExpressionProperty> fields = new ArrayList<>();
 
       for ( TableFieldExpr tfe : tableFieldExpressions )
       {
@@ -137,7 +137,7 @@ public class ResultTypesGenerator
             String jsonProperty = valueOrThrow(tfe.getJsonProperty(), () ->
                 new RuntimeException("Expression field " + relId + "." + tfe + " requires a json property.")
             );
-            fields.add(new ExpressionField(jsonProperty, tfe.getExpression(), tfe.getGeneratedFieldType()));
+            fields.add(new TableExpressionProperty(jsonProperty, tfe.getExpression(), tfe.getGeneratedFieldType()));
          }
       }
 
@@ -186,7 +186,7 @@ public class ResultTypesGenerator
          Map<String, ResultType> envTypesInScope
       )
    {
-      List<ParentReferenceField> parentRefFields = new ArrayList<>();
+      List<ParentReferenceProperty> parentRefFields = new ArrayList<>();
       List<ResultType> resultTypes = new ArrayList<>();
 
       Map<String, ResultType> typesInScope = new HashMap<>(envTypesInScope);
@@ -201,7 +201,7 @@ public class ResultTypesGenerator
             parentSpec.getParentTableJsonSpec().hasCondition() ||
             noFkFieldKnownNotNullable(relId, parentSpec);
 
-         parentRefFields.add(new ParentReferenceField(parentSpec.getReferenceName(), parentType, forceNullable));
+         parentRefFields.add(new ParentReferenceProperty(parentSpec.getReferenceName(), parentType, forceNullable));
 
          resultTypes.addAll(parentResultTypes);
          parentResultTypes.forEach(t -> typesInScope.put(t.getTypeName(), t));
@@ -216,7 +216,7 @@ public class ResultTypesGenerator
          Map<String, ResultType> envTypesInScope
       )
    {
-      List<ChildCollectionField> childCollectionFields = new ArrayList<>();
+      List<ChildCollectionProperty> childCollectionProperties = new ArrayList<>();
       List<ResultType> resultTypes = new ArrayList<>();
 
       Map<String, ResultType> typesInScope = new HashMap<>(envTypesInScope);
@@ -230,13 +230,13 @@ public class ResultTypesGenerator
          ResultType childType = childResultTypes.get(0).withUnwrapped(valueOr(childCollSpec.getUnwrap(), false));
          childResultTypes.set(0, childType);
 
-         childCollectionFields.add(new ChildCollectionField(childCollSpec.getCollectionName(), childType, false));
+         childCollectionProperties.add(new ChildCollectionProperty(childCollSpec.getCollectionName(), childType, false));
 
          resultTypes.addAll(childResultTypes);
          childResultTypes.forEach(t -> typesInScope.put(t.getTypeName(), t));
       }
 
-      return new ChildCollectionContrs(childCollectionFields, resultTypes);
+      return new ChildCollectionContrs(childCollectionProperties, resultTypes);
    }
 
    private String getOutputFieldName
@@ -321,32 +321,32 @@ class InlineParentContrs
 
 class RefdParentContrs
 {
-   List<ParentReferenceField> parentReferenceFields;
+   List<ParentReferenceProperty> parentReferenceProperties;
    List<ResultType> resultTypes;
 
    RefdParentContrs
       (
-         List<ParentReferenceField> parentReferenceFields,
+         List<ParentReferenceProperty> parentReferenceProperties,
          List<ResultType> resultTypes
       )
    {
-      this.parentReferenceFields = parentReferenceFields;
+      this.parentReferenceProperties = parentReferenceProperties;
       this.resultTypes = resultTypes;
    }
 }
 
 class ChildCollectionContrs
 {
-   List<ChildCollectionField> childCollectionFields;
+   List<ChildCollectionProperty> childCollectionProperties;
    List<ResultType> resultTypes;
 
    ChildCollectionContrs
       (
-         List<ChildCollectionField> childCollectionFields,
+         List<ChildCollectionProperty> childCollectionProperties,
          List<ResultType> resultTypes
       )
    {
-      this.childCollectionFields = childCollectionFields;
+      this.childCollectionProperties = childCollectionProperties;
       this.resultTypes = resultTypes;
    }
 }

@@ -8,7 +8,7 @@ import org.sqljson.dbmd.Field;
 
 
 /// A field to be included as part of a result type whose data source is a database column.
-public class DatabaseField
+public class SimpleTableFieldProperty
 {
    private final String name;
    private final int jdbcTypeCode;
@@ -19,7 +19,7 @@ public class DatabaseField
    private final @Nullable Boolean nullable;
    private final @Nullable String specifiedSourceCodeFieldType;
 
-   DatabaseField
+   SimpleTableFieldProperty
       (
          String name,
          Field dbField,
@@ -36,7 +36,7 @@ public class DatabaseField
       this.specifiedSourceCodeFieldType = specifiedSourceCodeFieldType;
    }
 
-   private DatabaseField
+   private SimpleTableFieldProperty
       (
          String name,
          int jdbcTypeCode,
@@ -67,12 +67,12 @@ public class DatabaseField
    public @Nullable Boolean getNullable() { return nullable; }
    public @Nullable String getSpecifiedSourceCodeFieldType() { return specifiedSourceCodeFieldType; }
 
-   DatabaseField toNullable()
+   SimpleTableFieldProperty toNullable()
    {
       if ( nullable != null && nullable )
          return this;
       else
-         return new DatabaseField(
+         return new SimpleTableFieldProperty(
             name, jdbcTypeCode, databaseType, length, precision, fractionalDigits, true, specifiedSourceCodeFieldType
          );
    }
@@ -82,7 +82,7 @@ public class DatabaseField
    {
       if (this == o) return true;
       if (o == null || getClass() != o.getClass()) return false;
-      DatabaseField that = (DatabaseField) o;
+      SimpleTableFieldProperty that = (SimpleTableFieldProperty) o;
       return
          jdbcTypeCode == that.jdbcTypeCode &&
          name.equals(that.name) &&
@@ -103,7 +103,7 @@ public class DatabaseField
    @Override
    public String toString()
    {
-      return "DatabaseField{" +
+      return "SimpleTableFieldProperty{" +
          "name='" + name + '\'' +
          ", jdbcTypeCode=" + jdbcTypeCode +
          ", databaseType='" + databaseType + '\'' +

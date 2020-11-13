@@ -5,13 +5,13 @@ import java.util.Objects;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
 
-public class ParentReferenceField
+public class ChildCollectionProperty
 {
    String name;
    ResultType resultType;
    boolean nullable;
 
-   public ParentReferenceField
+   public ChildCollectionProperty
       (
          String name,
          ResultType resultType,
@@ -29,10 +29,10 @@ public class ParentReferenceField
 
    public boolean isNullable() { return nullable; }
 
-   public ParentReferenceField toNullable()
+   public ChildCollectionProperty toNullable()
    {
       if ( nullable ) return this;
-      else return new ParentReferenceField(name, resultType, true);
+      else return new ChildCollectionProperty(name, resultType, true);
    }
 
    @Override
@@ -40,7 +40,7 @@ public class ParentReferenceField
    {
       if (this == o) return true;
       if (o == null || getClass() != o.getClass()) return false;
-      ParentReferenceField that = (ParentReferenceField) o;
+      ChildCollectionProperty that = (ChildCollectionProperty) o;
       return
          nullable == that.nullable &&
          name.equals(that.name) &&
@@ -56,11 +56,10 @@ public class ParentReferenceField
    @Override
    public String toString()
    {
-      return "ParentReferenceField{" +
+      return "ChildCollectionProperty{" +
          "name='" + name + '\'' +
          ", resultType=" + resultType +
-         ", isNullable=" + nullable +
+         ", nullable=" + nullable +
          '}';
    }
 }
-

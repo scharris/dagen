@@ -192,16 +192,16 @@ public class TypeScriptWriter implements SourceCodeWriter
       sb.append("\n{\n");
 
       List<FieldInfo> fields = new ArrayList<>();
-      genType.getDatabaseFields().forEach(f ->
-         fields.add(new FieldInfo(f.getName(), getTSTypeNameForDatabaseField(f)))
+      genType.getSimpleTableFieldProperties().forEach(f ->
+         fields.add(new FieldInfo(f.getName(), getTSTypeNameForSimpleTableField(f)))
       );
-      genType.getExpressionFields().forEach(f ->
-         fields.add(new FieldInfo(f.getName(), getTSTypeNameForExpressionField(f)))
+      genType.getTableExpressionProperties().forEach(f ->
+         fields.add(new FieldInfo(f.getName(), getTSTypeNameForTableExpressionProperty(f)))
       );
-      genType.getChildCollectionFields().forEach(f ->
+      genType.getChildCollectionProperties().forEach(f ->
          fields.add(new FieldInfo(f.getName(), getChildCollectionDeclaredType(f)))
       );
-      genType.getParentReferenceFields().forEach(f ->
+      genType.getParentReferenceProperties().forEach(f ->
          fields.add(new FieldInfo(f.getName(), getParentRefDeclaredType(f)))
       );
 
@@ -220,7 +220,7 @@ public class TypeScriptWriter implements SourceCodeWriter
       return sb.toString();
    }
 
-   private String getTSTypeNameForDatabaseField(DatabaseField f)
+   private String getTSTypeNameForSimpleTableField(SimpleTableFieldProperty f)
    {
       boolean notNull = !valueOr(f.getNullable(), true);
 
@@ -262,15 +262,15 @@ public class TypeScriptWriter implements SourceCodeWriter
       }
    }
 
-   private String getTSTypeNameForExpressionField(ExpressionField f)
+   private String getTSTypeNameForTableExpressionProperty(TableExpressionProperty f)
    {
       return valueOrThrow(f.getSpecifiedSourceCodeFieldType(), () ->
-          new RuntimeException("Field type override is required for expression field " + f.getFieldExpression())
+          new RuntimeException("Field type override is required for expression field " + f.getTableExpression())
       );
    }
 
 
-   private String getParentRefDeclaredType(ParentReferenceField parentRefField)
+   private String getParentRefDeclaredType(ParentReferenceProperty parentRefField)
    {
       return
          !parentRefField.isNullable() ?
@@ -278,7 +278,7 @@ public class TypeScriptWriter implements SourceCodeWriter
             : parentRefField.getGeneratedType().getTypeName() + " | null";
    }
 
-   private String getChildCollectionDeclaredType(ChildCollectionField childCollField)
+   private String getChildCollectionDeclaredType(ChildCollectionProperty childCollField)
    {
       ResultType genType = childCollField.getGeneratedType();
       String elType = !genType.isUnwrapped() ? genType.getTypeName() : getSoleFieldDeclaredType(genType);
@@ -291,14 +291,14 @@ public class TypeScriptWriter implements SourceCodeWriter
       if ( genType.getFieldsCount() != 1 )
          throw new RuntimeException("Expected single field when unwrapping " + genType.getTypeName() + ".");
 
-      if ( genType.getDatabaseFields().size() == 1 )
-         return getTSTypeNameForDatabaseField(genType.getDatabaseFields().get(0));
-      else if ( genType.getExpressionFields().size() == 1 )
-         return getTSTypeNameForExpressionField(genType.getExpressionFields().get(0));
-      else if ( genType.getChildCollectionFields().size() == 1 )
-         return getChildCollectionDeclaredType(genType.getChildCollectionFields().get(0));
-      else if ( genType.getParentReferenceFields().size() == 1 )
-         return getParentRefDeclaredType(genType.getParentReferenceFields().get(0));
+      if ( genType.getSimpleTableFieldProperties().size() == 1 )
+         return getTSTypeNameForSimpleTableField(genType.getSimpleTableFieldProperties().get(0));
+      else if ( genType.getTableExpressionProperties().size() == 1 )
+         return getTSTypeNameForTableExpressionProperty(genType.getTableExpressionProperties().get(0));
+      else if ( genType.getChildCollectionProperties().size() == 1 )
+         return getChildCollectionDeclaredType(genType.getChildCollectionProperties().get(0));
+      else if ( genType.getParentReferenceProperties().size() == 1 )
+         return getParentRefDeclaredType(genType.getParentReferenceProperties().get(0));
       throw
           new RuntimeException("Unhandled field category when unwrapping " + genType.getTypeName() + ".");
    }

@@ -262,16 +262,16 @@ public class JavaWriter implements SourceCodeWriter
       sb.append("\n{\n");
 
       List<FieldInfo> fields = new ArrayList<>();
-      genType.getDatabaseFields().forEach(f ->
-         fields.add(new FieldInfo(f.getName(), getJavaTypeNameForDatabaseField(f)))
+      genType.getSimpleTableFieldProperties().forEach(f ->
+         fields.add(new FieldInfo(f.getName(), getJavaTypeNameForSimpleTableField(f)))
       );
-      genType.getExpressionFields().forEach(f ->
-         fields.add(new FieldInfo(f.getName(), getJavaTypeNameForExpressionField(f)))
+      genType.getTableExpressionProperties().forEach(f ->
+         fields.add(new FieldInfo(f.getName(), getJavaTypeNameForTableExpressionProperty(f)))
       );
-      genType.getChildCollectionFields().forEach(f ->
+      genType.getChildCollectionProperties().forEach(f ->
          fields.add(new FieldInfo(f.getName(), getChildCollectionDeclaredType(f)))
       );
-      genType.getParentReferenceFields().forEach(f ->
+      genType.getParentReferenceProperties().forEach(f ->
          fields.add(new FieldInfo(f.getName(), getParentRefDeclaredType(f)))
       );
 
@@ -322,21 +322,21 @@ public class JavaWriter implements SourceCodeWriter
       return sb.toString();
    }
 
-   private String getJavaTypeNameForExpressionField(ExpressionField f)
+   private String getJavaTypeNameForTableExpressionProperty(TableExpressionProperty f)
    {
       return valueOrThrow(f.getSpecifiedSourceCodeFieldType(), () ->
-          new RuntimeException("Field type override is required for expression field " + f.getFieldExpression())
+          new RuntimeException("Field type override is required for expression field " + f.getTableExpression())
       );
    }
 
-   private String getJavaTypeNameForDatabaseField(DatabaseField f)
+   private String getJavaTypeNameForSimpleTableField(SimpleTableFieldProperty f)
    {
-      return getJavaTypeNameForDatabaseField(f, false);
+      return getJavaTypeNameForSimpleTableField(f, false);
    }
 
-   private String getJavaTypeNameForDatabaseField
+   private String getJavaTypeNameForSimpleTableField
       (
-          DatabaseField f,
+          SimpleTableFieldProperty f,
           boolean box
       )
    {
@@ -398,7 +398,7 @@ public class JavaWriter implements SourceCodeWriter
       }
    }
 
-   private String getParentRefDeclaredType(ParentReferenceField parentRefField)
+   private String getParentRefDeclaredType(ParentReferenceProperty parentRefField)
    {
       return
          !parentRefField.isNullable() ?
@@ -406,7 +406,7 @@ public class JavaWriter implements SourceCodeWriter
             : nullableType(parentRefField.getGeneratedType().getTypeName());
    }
 
-   private String getChildCollectionDeclaredType(ChildCollectionField childCollField)
+   private String getChildCollectionDeclaredType(ChildCollectionProperty childCollField)
    {
       ResultType genType = childCollField.getGeneratedType();
       String elType = !genType.isUnwrapped() ? genType.getTypeName() : getSoleFieldDeclaredBoxedType(genType);
@@ -419,14 +419,14 @@ public class JavaWriter implements SourceCodeWriter
       if ( genType.getFieldsCount() != 1 )
          throw new RuntimeException("Expected single field when unwrapping " + genType.getTypeName() + ".");
 
-      if ( genType.getDatabaseFields().size() == 1 )
-         return getJavaTypeNameForDatabaseField(genType.getDatabaseFields().get(0), true);
-      else if ( genType.getExpressionFields().size() == 1 )
-         return getJavaTypeNameForExpressionField(genType.getExpressionFields().get(0));
-      else if ( genType.getChildCollectionFields().size() == 1 )
-         return getChildCollectionDeclaredType(genType.getChildCollectionFields().get(0));
-      else if ( genType.getParentReferenceFields().size() == 1 )
-         return getParentRefDeclaredType(genType.getParentReferenceFields().get(0));
+      if ( genType.getSimpleTableFieldProperties().size() == 1 )
+         return getJavaTypeNameForSimpleTableField(genType.getSimpleTableFieldProperties().get(0), true);
+      else if ( genType.getTableExpressionProperties().size() == 1 )
+         return getJavaTypeNameForTableExpressionProperty(genType.getTableExpressionProperties().get(0));
+      else if ( genType.getChildCollectionProperties().size() == 1 )
+         return getChildCollectionDeclaredType(genType.getChildCollectionProperties().get(0));
+      else if ( genType.getParentReferenceProperties().size() == 1 )
+         return getParentRefDeclaredType(genType.getParentReferenceProperties().get(0));
       throw
           new RuntimeException("Unhandled field category when unwrapping " + genType.getTypeName() + ".");
    }

@@ -5,27 +5,27 @@ import java.util.Objects;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
 
-public class ExpressionField
+public class TableExpressionProperty
 {
    private final String name;
-   private final @Nullable String fieldExpression;
+   private final @Nullable String tableExpression;
    private final @Nullable String specifiedSourceCodeFieldType;
 
-   public ExpressionField
+   public TableExpressionProperty
       (
          String name,
-         @Nullable String fieldExpression,
+         @Nullable String tableExpression,
          @Nullable String specifiedSourceCodeFieldType
       )
    {
       this.name = name;
-      this.fieldExpression = fieldExpression;
+      this.tableExpression = tableExpression;
       this.specifiedSourceCodeFieldType = specifiedSourceCodeFieldType;
    }
 
    public String getName() { return name; }
 
-   public @Nullable String getFieldExpression() { return fieldExpression; }
+   public @Nullable String getTableExpression() { return tableExpression; }
 
    public @Nullable String getSpecifiedSourceCodeFieldType() { return specifiedSourceCodeFieldType; }
 
@@ -34,9 +34,9 @@ public class ExpressionField
    {
       if (this == o) return true;
       if (o == null || getClass() != o.getClass()) return false;
-      ExpressionField that = (ExpressionField) o;
+      TableExpressionProperty that = (TableExpressionProperty) o;
       return
-         Objects.equals(fieldExpression, that.fieldExpression) &&
+         Objects.equals(tableExpression, that.tableExpression) &&
          Objects.equals(name, that.name) &&
          Objects.equals(specifiedSourceCodeFieldType, that.specifiedSourceCodeFieldType);
    }
@@ -44,14 +44,14 @@ public class ExpressionField
    @Override
    public int hashCode()
    {
-      return Objects.hash(fieldExpression, name, specifiedSourceCodeFieldType);
+      return Objects.hash(tableExpression, name, specifiedSourceCodeFieldType);
    }
 
    @Override
    public String toString()
    {
-      return "ExpressionField{" +
-         "fieldExpression=" + fieldExpression +
+      return "TableExpressionProperty{" +
+         "fieldExpression=" + tableExpression +
          ", name=" + name +
          ", specifiedSourceCodeFieldType=" + specifiedSourceCodeFieldType +
          '}';
