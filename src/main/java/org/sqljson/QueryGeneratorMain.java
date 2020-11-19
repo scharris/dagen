@@ -5,31 +5,28 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
-import static java.util.Collections.emptyList;
-import static java.util.stream.Collectors.toList;
+import java.util.function.Function;
+import static java.util.Objects.requireNonNull;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
 
-import org.sqljson.common.SourcesLanguage;
-import org.sqljson.queries.GeneratedQuery;
-import org.sqljson.queries.QueryGenerator;
+import org.sqljson.queries.QuerySqlGenerator;
+import org.sqljson.queries.result_types.ResultType;
+import org.sqljson.queries.result_types.ResultTypesGenerator;
 import org.sqljson.queries.source_writers.SourceCodeWriter;
 import org.sqljson.queries.source_writers.JavaWriter;
 import org.sqljson.queries.source_writers.TypeScriptWriter;
 import org.sqljson.queries.QueryReprSqlPath;
-import org.sqljson.queries.specs.QueryGroupSpec;
-import org.sqljson.queries.specs.ResultsRepr;
-import org.sqljson.common.StatementSpecificationException;
-import org.sqljson.common.util.AppUtils.SplitArgs;
+import org.sqljson.queries.specs.*;
+import org.sqljson.queries.specs.SpecError;
+import org.sqljson.util.AppUtils.SplitArgs;
 import org.sqljson.dbmd.DatabaseMetadata;
-import static org.sqljson.common.util.AppUtils.splitOptionsAndRequiredArgs;
-import static org.sqljson.common.util.AppUtils.throwError;
-import static org.sqljson.common.util.IO.newFileOrStdoutWriter;
-import static org.sqljson.common.util.IO.readString;
-import static org.sqljson.common.util.Nullables.ifPresent;
-import static org.sqljson.common.util.Nullables.applyIfPresent;
-import static org.sqljson.common.util.Serialization.getObjectMapper;
-import static org.sqljson.common.util.Serialization.writeJsonSchema;
+import static org.sqljson.util.AppUtils.splitOptionsAndRequiredArgs;
+import static org.sqljson.util.AppUtils.throwError;
+import static org.sqljson.util.IO.newFileOrStdoutWriter;
+import static org.sqljson.util.IO.readString;
+import static org.sqljson.util.Serialization.getObjectMapper;
+import static org.sqljson.util.Serialization.writeJsonSchema;
 
 
 public class QueryGeneratorMain
@@ -46,9 +43,7 @@ public class QueryGeneratorMain
    private static void printUsage()
    {
       PrintStream ps = System.out;
-      ps.println("Expected arguments: [options] <db-metadata-file> <queries-spec-file> " +
-                 "[<types-output-base-dir> <sql-output-dir>]");
-      ps.println("If output directories are not provided, then all output is written to standard out.");
+      ps.println("Expected arguments: [options] <db-metadata-file> <queries-spec-file> <types-output-base-dir> <sql-output-dir>");
       ps.println("Options:");
       ps.println("   " + sqlResourcePathInGeneratedSourceOptPrefix + "<path>: a prefix to the SQL file name written into source code.");
       ps.println("   " + langOptPrefix + "<language>  Output language, \"Java\"|\"TypeScript\".");
@@ -81,81 +76,45 @@ public class QueryGeneratorMain
       }
 
       SplitArgs args = splitOptionsAndRequiredArgs(allArgs);
-
-      if ( args.required.size() != 2 && args.required.size() != 4 )
-         throw new RuntimeException("expected 2 or 4 non-option arguments");
+      if ( args.required.size() != 4 ) throw new RuntimeException("expected 4 non-option arguments");
 
       Path dbmdPath = Paths.get(args.required.get(0));
-      if ( !Files.isRegularFile(dbmdPath) )
-         throwError("Database metadata file not found.");
+      if ( !Files.isRegularFile(dbmdPath) ) throwError("Database metadata file not found.");
 
       Path queriesSpecFilePath = Paths.get(args.required.get(1));
-      if ( !Files.isRegularFile(queriesSpecFilePath) )
-         throwError("Queries specification file not found.");
+      if ( !Files.isRegularFile(queriesSpecFilePath) ) throwError("Queries specification file not found.");
 
+      Path srcOutputBaseDirPath = Paths.get(args.required.get(2));
+      if ( !Files.isDirectory(srcOutputBaseDirPath) ) throwError("Source output base directory not found.");
 
-      List<Path> outputDirs = args.required.size() > 2 ?
-          Arrays.asList(Paths.get(args.required.get(2)), Paths.get(args.required.get(3)))
-          : emptyList();
+      Path queriesOutputDirPath = Paths.get(args.required.get(3));
+      if ( !Files.isDirectory(queriesOutputDirPath) ) throwError("Queries output directory not found.");
+
+      boolean includeSrcGenTimestamp = args.optional.contains(includeSourceGenerationTimestamp);
+
+      SourceCodeWriter srcWriter = getSourceCodeWriter(args.optional, srcOutputBaseDirPath);
 
       try ( InputStream dbmdIS = Files.newInputStream(dbmdPath);
             InputStream queriesSpecIS = Files.newInputStream(queriesSpecFilePath) )
       {
          DatabaseMetadata dbmd = getObjectMapper(dbmdPath).readValue(dbmdIS, DatabaseMetadata.class);
+
          QueryGroupSpec queryGroupSpec = getObjectMapper(queriesSpecFilePath).readValue(queriesSpecIS, QueryGroupSpec.class);
 
-         @Nullable Path srcOutputBaseDirPath = outputDirs.size() > 0 ? outputDirs.get(0) : null;
-         ifPresent(srcOutputBaseDirPath, path ->  {
-            if ( !Files.isDirectory(path) ) throwError("Source output base directory not found.");
-         });
-
-         @Nullable Path queriesOutputDirPath = outputDirs.size() > 1 ? outputDirs.get(1) : null;
-         ifPresent(queriesOutputDirPath, path ->  {
-            if ( !Files.isDirectory(path) ) throwError("Queries output directory not found.");
-         });
-
-         QueryGenerator gen =
-            new QueryGenerator(
-               dbmd,
-               queryGroupSpec.getDefaultSchema(),
-               new HashSet<>(queryGroupSpec.getGenerateUnqualifiedNamesForSchemas()),
-               queryGroupSpec.getOutputFieldNameDefault().toFunctionOfFieldName(),
-               queriesSpecFilePath.getFileName().toString()
-            );
-
-         List<GeneratedQuery> generatedQueries =
-            queryGroupSpec.getQuerySpecs().stream()
-            .map(gen::generateQuery)
-            .collect(toList());
-
-         List<QueryReprSqlPath> writtenQueryPaths = writeQueries(generatedQueries, queriesOutputDirPath);
-
-         List<GeneratedQuery> queriesWithSourceCodeEnabled =
-            generatedQueries.stream()
-            .filter(gq -> !gq.getGeneratedResultTypes().isEmpty())
-            .collect(toList());
-
-         if ( !queriesWithSourceCodeEnabled.isEmpty() )
-         {
-            SourceCodeWriter srcWriter = getSourceCodeWriter(args, srcOutputBaseDirPath);
-            boolean includeTimestamp = args.optional.contains(includeSourceGenerationTimestamp);
-            srcWriter.writeQueries(queriesWithSourceCodeEnabled, writtenQueryPaths, includeTimestamp);
-         }
+         generateQueries(queryGroupSpec, queriesOutputDirPath, dbmd, srcWriter, includeSrcGenTimestamp);
       }
-      catch( StatementSpecificationException sse )
+      catch( SpecError sse )
       {
-         System.err.println();
-         System.err.println();
-         System.err.println("----------------------------------------------------------------------");
-         System.err.println("Error in specification: " + sse.getStatementsSource());
-         System.err.println("  in query: " + sse.getStatementLocation().getStatementName());
-         System.err.println("  at part: " + sse.getStatementLocation().getStatementPart());
-         System.err.println("  problem: " + sse.getProblem());
-         System.err.println("----------------------------------------------------------------------");
-         System.err.println();
-         System.err.println();
+         System.err.println("\n\n" +
+            "----------------------------------------------------------------------\n" +
+            "Error in query specification:\n" +
+            "  in query: " + sse.getStatementLocation().getStatementName() + "\n" +
+            "  at part: " + sse.getStatementLocation().getStatementPart() + "\n" +
+            "  problem: " + sse.getProblem() + "\n" +
+            "----------------------------------------------------------------------\n\n\n"
+         );
       }
-      catch(Exception e)
+      catch( Exception e )
       {
          e.printStackTrace();
          System.err.println(e.getMessage());
@@ -163,9 +122,58 @@ public class QueryGeneratorMain
       }
    }
 
+   private static void generateQueries
+      (
+         QueryGroupSpec queryGroupSpec,
+         Path queriesOutputDirPath,
+         DatabaseMetadata dbmd,
+         SourceCodeWriter srcWriter,
+         boolean includeSrcGenTimestamp
+      )
+      throws IOException
+   {
+      QuerySqlGenerator sqlGen =
+         new QuerySqlGenerator(
+            dbmd,
+            queryGroupSpec.getDefaultSchema(),
+            new HashSet<>(queryGroupSpec.getGenerateUnqualifiedNamesForSchemas()),
+            getPropertyNamer(queryGroupSpec)
+         );
+
+      ResultTypesGenerator resultTypesGen =
+         new ResultTypesGenerator(
+            dbmd,
+            queryGroupSpec.getDefaultSchema(),
+            getPropertyNamer(queryGroupSpec)
+         );
+
+      for ( QuerySpec querySpec : queryGroupSpec.getQuerySpecs() )
+      {
+         // Generate SQL for each of the query's specified result representations.
+         Map<ResultRepr,String> queryReprSqls = sqlGen.generateSqls(querySpec);
+
+         // Write query SQLs.
+         List<QueryReprSqlPath> sqlPaths = writeQuerySqls(querySpec.getQueryName(), queryReprSqls, queriesOutputDirPath);
+
+         if ( querySpec.getGenerateResultTypesOrDefault() )
+         {
+            List<ResultType> resultTypes = resultTypesGen.generateResultTypes(querySpec.getTableJson());
+
+            srcWriter.writeQuerySourceCode(
+               querySpec.getQueryName(),
+               resultTypes,
+               getParamNames(querySpec),
+               sqlPaths,
+               querySpec.getTypesFileHeader(),
+               includeSrcGenTimestamp
+            );
+         }
+      }
+   }
+
    private static SourceCodeWriter getSourceCodeWriter
       (
-         SplitArgs args,
+         List<String> optionalArgs,
          @Nullable Path srcOutputBaseDir
       )
    {
@@ -177,7 +185,7 @@ public class QueryGeneratorMain
 
       JavaWriter.NullableFieldRepr nullableFieldRepr = JavaWriter.NullableFieldRepr.ANNOTATED;
       @Nullable String typeFilesHeader = null;
-      for ( String opt : args.optional )
+      for ( String opt : optionalArgs )
       {
          if ( opt.startsWith(sqlResourcePathInGeneratedSourceOptPrefix) )
             sqlResourceNamePrefix = opt.substring(sqlResourcePathInGeneratedSourceOptPrefix.length());
@@ -222,54 +230,65 @@ public class QueryGeneratorMain
       }
    }
 
-   /**
-    *
-    * @param generatedQueries The queries to be written.
-    * @param outputDir The output directory in which to write directories if provided. If not provided, all queries
-    *                  will be written to stdout.
-    * @throws IOException if the output directory could not be created or a write operation fails
-    * @return A list of structures identifying the output locations of written queries.
-    */
-   private static List<QueryReprSqlPath> writeQueries
+   private static List<QueryReprSqlPath> writeQuerySqls
       (
-         List<GeneratedQuery> generatedQueries,
-         @Nullable Path outputDir
+         String queryName,
+         Map<ResultRepr,String> resultReprToSqlMap,
+         Path outputDir
       )
       throws IOException
    {
       List<QueryReprSqlPath> res = new ArrayList<>();
 
-      if ( outputDir != null )
-         Files.createDirectories(outputDir);
-
-      for ( GeneratedQuery q : generatedQueries )
+      for ( Map.Entry<ResultRepr,String> entry : resultReprToSqlMap.entrySet() )
       {
-         for ( ResultsRepr repr: q.getResultRepresentations() )
+         ResultRepr repr = entry.getKey();
+         String sql = entry.getValue();
+         String fileName = queryName + "(" + repr.toString().toLowerCase().replace('_',' ') + ").sql";
+         Path outputFilePath = outputDir.resolve(fileName);
+
+         try ( BufferedWriter bw = newFileOrStdoutWriter(outputFilePath) )
          {
-            String fileName = q.getQueryName() + "(" + repr.toString().toLowerCase().replace('_',' ') + ").sql";
-            @Nullable Path outputFilePath = applyIfPresent(outputDir, d -> d.resolve(fileName));
+            bw.write(
+               "-- [ THIS QUERY WAS AUTO-GENERATED, ANY CHANGES MADE HERE MAY BE LOST. ]\n" +
+                  "-- " + repr + " results representation for " + queryName + "\n" +
+                  sql + "\n"
+            );
 
-            BufferedWriter bw = newFileOrStdoutWriter(outputFilePath);
-
-            try
-            {
-               bw.write(
-                  "-- [ THIS QUERY WAS AUTO-GENERATED, ANY CHANGES MADE HERE MAY BE LOST. ]\n" +
-                  "-- " + repr + " results representation for " + q.getQueryName() + "\n" +
-                  q.getSql(repr) + "\n"
-               );
-
-               res.add(new QueryReprSqlPath(q.getQueryName(), repr, outputFilePath));
-            }
-            finally
-            {
-               if ( outputFilePath != null ) bw.close();
-               else bw.flush();
-            }
+            res.add(new QueryReprSqlPath(queryName, repr, outputFilePath));
          }
       }
 
       return res;
    }
-}
 
+   private static List<String> getParamNames(QuerySpec querySpec)
+   {
+      return getParamNames(querySpec.getTableJson());
+   }
+
+   private static List<String> getParamNames(TableJsonSpec tableSpec)
+   {
+      List<String> paramNames = new ArrayList<>();
+
+      for ( ChildCollectionSpec childSpec: tableSpec.getChildTableCollectionsList() )
+         paramNames.addAll(getParamNames(childSpec.getTableJson()));
+
+      for ( InlineParentSpec parentSpec : tableSpec.getInlineParentTablesList() )
+         paramNames.addAll(getParamNames(parentSpec.getParentTableJsonSpec()));
+
+      for ( ReferencedParentSpec parentSpec : tableSpec.getReferencedParentTablesList() )
+         paramNames.addAll(getParamNames(parentSpec.getParentTableJsonSpec()));
+
+      @Nullable RecordCondition recCond = tableSpec.getRecordCondition();
+      if ( recCond != null && recCond.getParamNames() != null )
+         paramNames.addAll(requireNonNull(recCond.getParamNames()));
+
+      return paramNames;
+   }
+
+   private static Function<String,String> getPropertyNamer(QueryGroupSpec queryGroupSpec)
+   {
+      return queryGroupSpec.getOutputFieldNameDefault().toFunctionOfFieldName();
+   }
+}

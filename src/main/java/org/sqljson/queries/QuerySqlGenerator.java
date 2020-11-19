@@ -4,35 +4,35 @@ import java.util.*;
 import java.util.function.Function;
 import static java.util.Collections.*;
 import static java.util.Objects.requireNonNull;
-import static java.util.stream.Collectors.*;
 import static java.util.function.Function.identity;
+import static java.util.stream.Collectors.*;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
 
-import org.sqljson.common.util.StringFuns;
-import org.sqljson.common.StatementLocation;
-import org.sqljson.common.StatementSpecificationException;
-import static org.sqljson.common.util.Nullables.*;
-import static org.sqljson.common.util.StatementValidations.*;
-import static org.sqljson.common.util.StringFuns.indentLines;
-import org.sqljson.dbmd.*;
-import static org.sqljson.dbmd.ForeignKeyScope.REGISTERED_TABLES_ONLY;
-import org.sqljson.queries.result_types.ResultTypesGenerator;
-import org.sqljson.queries.sql_dialects.SqlDialect;
-import org.sqljson.queries.result_types.ResultType;
+import org.sqljson.util.StringFuns;
+import org.sqljson.dbmd.DatabaseMetadata;
+import org.sqljson.dbmd.ForeignKey;
+import org.sqljson.dbmd.RelId;
 import org.sqljson.queries.specs.*;
+import org.sqljson.queries.sql_dialects.SqlDialect;
+import static org.sqljson.queries.QuerySqlGenerator.SelectEntry.Source.HIDDEN_PK;
+import static org.sqljson.queries.QuerySqlGenerator.SelectEntry.Source.NATIVE_FIELD;
+import static org.sqljson.queries.specs.ResultRepr.MULTI_COLUMN_ROWS;
+import static org.sqljson.queries.specs.SpecError.specError;
+import static org.sqljson.util.Nullables.*;
+import static org.sqljson.queries.SpecValidations.*;
+import static org.sqljson.util.StringFuns.indentLines;
+import static org.sqljson.dbmd.ForeignKeyScope.REGISTERED_TABLES_ONLY;
 
 
-public class QueryGenerator
+public class QuerySqlGenerator
 {
    private final DatabaseMetadata dbmd;
    private final SqlDialect sqlDialect;
    private final @Nullable String defaultSchema;
    private final Set<String> unqualifiedNamesSchemas; // Use unqualified names for objects in these schemas.
    private final int indentSpaces;
-   private final ResultTypesGenerator resultTypesGenerator;
    private final Function<String,String> defaultPropNameFn; // default output property naming function
-   private final String queriesSource;
 
    private static final String HIDDEN_PK_PREFIX = "_";
 
@@ -51,13 +51,12 @@ public class QueryGenerator
    Summary: DBMD.quoteIfNeeded is applied to all field names except database field names from the queries spec file.
    */
 
-   public QueryGenerator
+   public QuerySqlGenerator
       (
          DatabaseMetadata dbmd,
          @Nullable String defaultSchema,
          Set<String> unqualifiedNamesSchemas,
-         Function<String,String> defaultPropNameFn,
-         String queriesSource
+         Function<String,String> defaultPropNameFn
       )
    {
       this.dbmd = dbmd;
@@ -66,95 +65,43 @@ public class QueryGenerator
       this.defaultSchema = defaultSchema;
       this.unqualifiedNamesSchemas = unqualifiedNamesSchemas.stream().map(dbmd::normalizeName).collect(toSet());
       this.defaultPropNameFn = defaultPropNameFn;
-      this.queriesSource = queriesSource;
-      this.resultTypesGenerator = new ResultTypesGenerator(dbmd, defaultSchema, defaultPropNameFn);
    }
 
-   public GeneratedQuery generateQuery
-      (
-         QuerySpec querySpec
-      )
+   public Map<ResultRepr,String> generateSqls(QuerySpec querySpec)
    {
-      String queryName = querySpec.getQueryName();
-
       // This query spec may customize the default output field name making function.
       Function<String,String> propNameFn =
          applyOr(querySpec.getOutputFieldNameDefault(), OutputFieldNameDefault::toFunctionOfFieldName,
                  this.defaultPropNameFn);
 
-      Map<ResultsRepr,String> querySqls =
-         querySpec.getResultsRepresentationsList().stream()
-         .collect(toMap(identity(), repr -> makeQuerySql(querySpec, repr, propNameFn)));
-
-      List<ResultType> resultTypes = querySpec.getGenerateResultTypesOrDeault() ?
-            resultTypesGenerator.generateResultTypesWithTypeInScope(querySpec.getTableJson())
-            : emptyList();
-
-      return new
-         GeneratedQuery(
-            queryName,
-            querySqls,
-         resultTypes,
-            querySpec.getTypesFileHeader(),
-            getAllParamNames(querySpec)
-         );
+       return
+         querySpec.getResultRepresentationsList().stream()
+         .collect(toMap(identity(), repr -> queryResultReprSql(querySpec, repr, propNameFn)));
    }
 
-   private String makeQuerySql
+   private String queryResultReprSql
       (
          QuerySpec querySpec,
-         ResultsRepr resultsRepr,
+         ResultRepr resultRepr,
          Function<String,String> propNameFn
       )
    {
-      TableJsonSpec tableSpec = querySpec.getTableJson();
-      String queryName = querySpec.getQueryName();
+      TableJsonSpec tjs = querySpec.getTableJson();
+      SpecLocation specLoc = new SpecLocation(querySpec.getQueryName()); // for error reporting
+      if ( querySpec.getForUpdateOrDefault() && resultRepr != MULTI_COLUMN_ROWS )
+         throw specError(querySpec, "for update clause", "FOR UPDATE only allowed with MULTI_COLUMN_ROWS");
 
-      switch ( resultsRepr )
+      switch ( resultRepr )
       {
-         case MULTI_COLUMN_ROWS:
-         {
-            return
-               makeBaseQuery(
-                  tableSpec,
-                  null,
-                  false,
-                  propNameFn,
-                  querySpec.getOrderBy(),
-                  new StatementLocation(queryName)).sql +
-               (querySpec.getForUpdateOrDefault() ? "\nfor update" : "");
-         }
          case JSON_OBJECT_ROWS:
-         {
-            if ( querySpec.getForUpdateOrDefault() )
-               throw specError(querySpec, "for update clause", "FOR UPDATE is only allowed for MULTI_COLUMN_ROWS results");
-
-            return
-               makeJsonObjectRowsSql(
-                  tableSpec,
-                  null,
-                  propNameFn,
-                  querySpec.getOrderBy(),
-                  new StatementLocation(queryName)
-               );
-         }
+            return jsonObjectRowsSql(tjs, null, propNameFn, querySpec.getOrderBy(), specLoc);
          case JSON_ARRAY_ROW:
-         {
-            if ( querySpec.getForUpdateOrDefault() )
-               throw specError(querySpec, "for update clause", "FOR UPDATE is only allowed for MULTI_COLUMN_ROWS results");
-
-            return
-               makeAggregatedJsonResultSql(
-                  tableSpec,
-                  null,
-                  propNameFn,
-                  false,
-                  querySpec.getOrderBy(),
-                  new StatementLocation(queryName)
-               );
-         }
+            return jsonArrayRowSql(tjs, null, propNameFn, false, querySpec.getOrderBy(), specLoc);
+         case MULTI_COLUMN_ROWS:
+            return baseQuery(tjs, null, false, propNameFn, querySpec.getOrderBy(), specLoc).sql
+                   + (querySpec.getForUpdateOrDefault() ? "\nfor update" : "");
          default:
-            throw specError(querySpec, "resultsRepresentations", "Results representation is not valid.");
+            throw specError(querySpec, "resultRepresentations", "Result representation is not valid.");
       }
    }
 
@@ -177,101 +124,175 @@ public class QueryGenerator
     *    A BaseQuery structure containing the generated SQL and some metadata
     *    about the query (e.g. column names).
     */
-   private BaseQuery makeBaseQuery
+   private BaseQuery baseQuery
       (
          TableJsonSpec tableSpec,
          @Nullable ParentChildCondition parentChildCond,
          boolean exportPkFieldsHidden,
          Function<String,String> propNameFn,
          @Nullable String orderBy,
-         StatementLocation stmtLoc
+         SpecLocation specLoc
       )
    {
       SqlParts q = new SqlParts();
 
-      RelId relId = identifyTable(tableSpec.getTable(), stmtLoc);
+      RelId relId = identifyTable(tableSpec.getTable(), specLoc);
 
       ifPresent(parentChildCond, pcCond ->
-         q.addAliasToScope(pcCond.getOtherTableAlias())
+         q.aliasesInScope.add(pcCond.getOtherTableAlias())
       );
 
       String alias = q.makeNewAliasFor(relId.getName());
-      q.addFromClauseEntry(minimalRelIdentifier(relId) + " " + alias);
+      q.fromEntries.add(minimalRelIdentifier(relId) + " " + alias);
 
-      // If exporting pk fields, add any that aren't already in the output fields list to the select clause.
       if ( exportPkFieldsHidden )
-         for ( String pkFieldName : dbmd.getPrimaryKeyFieldNames(relId) )
-         {
-            String pkFieldDbName = dbmd.quoteIfNeeded(pkFieldName);
-            String pkFieldOutputName = dbmd.quoteIfNeeded(HIDDEN_PK_PREFIX + pkFieldName);
-            q.addSelectClauseEntry(
-               alias + "." + pkFieldDbName,
-               pkFieldOutputName,
-               SelectClauseEntry.Source.HIDDEN_PK
-            );
-         }
+         q.selectEntries.addAll(hiddenPkSelectEntries(relId, alias));
 
-      // Add this table's own field expressions to the select clause.
-      verifySimpleSelectFieldsExist(tableSpec, defaultSchema, dbmd, queriesSource, stmtLoc);
-      for ( TableFieldExpr tfe : tableSpec.getFieldExpressionsList() )
-         q.addSelectClauseEntry(
-            getTableFieldExpressionSql(tfe, alias),
-            dbmd.quoteIfNeeded(getJsonPropertyName(tfe, propNameFn, stmtLoc.withPart("table " + tableSpec.getTable()))),
-            SelectClauseEntry.Source.NATIVE_FIELD
-         );
+      q.selectEntries.addAll(
+         nativeFieldExpressionSelectEntries(tableSpec, alias, propNameFn, specLoc)
+      );
 
-      // Add child record collections to the select clause.
-      for ( ChildCollectionSpec childSpec : tableSpec.getChildTableCollectionsList() )
-      {
-         StatementLocation childLoc =  stmtLoc.withPart("child collection '" + childSpec.getCollectionName() + "'");
-         String childQuery = makeChildRecordsQuery(childSpec, relId, alias, propNameFn, childLoc);
-         q.addSelectClauseEntry(
-            lineCommentChildCollectionSelectExpression(childSpec) + "\n" +
-            "(" + "\n" +
-               indent(childQuery) + "\n" +
-            ")",
-            dbmd.quoteIfNeeded(childSpec.getCollectionName()),
-            SelectClauseEntry.Source.CHILD_COLLECTION
-         );
-      }
+      q.selectEntries.addAll(
+         childCollectionSelectEntries(tableSpec, relId, alias, propNameFn, specLoc)
+      );
 
-      // Add query parts for inline parents.
-      for ( InlineParentSpec parentSpec : tableSpec.getInlineParentTablesList() )
-      {
-         StatementLocation parentLoc = stmtLoc.withPart("inline parent '" + parentSpec.getTableJson().getTable() + "'");
-         Set<String> aliases = q.getAliasesInScope();
-         q.addParts(
-            getInlineParentBaseQueryParts(parentSpec, relId, alias, aliases, propNameFn, parentLoc)
-         );
-      }
-
-      // Add parts for referenced parents.
-      for ( ReferencedParentSpec parentSpec : tableSpec.getReferencedParentTablesList() )
-      {
-         StatementLocation parentLoc = stmtLoc.withPart("parent '" + parentSpec.getTableJson().getTable() + "'");
-         q.addParts(
-            getReferencedParentBaseQueryParts(parentSpec, relId, alias, propNameFn, parentLoc)
-         );
-      }
+      q.addParts(
+         inlineParentsSqlParts(tableSpec, relId, alias, q.aliasesInScope, propNameFn, specLoc)
+      );
+      q.addParts(
+         referencedParentsSqlParts(tableSpec, relId, alias, propNameFn, specLoc)
+      );
 
       // Add parent/child relationship filter condition if any to the where clause.
       ifPresent(parentChildCond, pcCond ->
-         q.addWhereClauseEntry(pcCond.asEquationConditionOn(alias, dbmd))
+         q.whereEntries.add(pcCond.asEquationConditionOn(alias, dbmd))
       );
 
-      @Nullable String whereCond = getWhereConditionSql(tableSpec, alias);
-      ifPresent(whereCond, q::addWhereClauseEntry);
+      ifPresent(recordConditionSql(tableSpec, alias),
+         q.whereEntries::add
+      );
 
       if ( orderBy != null )
-         q.setOrderBy(orderBy);
+         q.orderBy = orderBy;
 
       List<String> columnNames =
-         q.getSelectClauseEntries().stream()
-         .filter(e -> e.getSource() != SelectClauseEntry.Source.HIDDEN_PK)
-         .map(SelectClauseEntry::getName)
+         q.selectEntries.stream()
+         .filter(e -> e.getSource() != HIDDEN_PK)
+         .map(SelectEntry::getName)
          .collect(toList());
 
       return new BaseQuery(q.toSql(indentSpaces), columnNames);
+   }
+
+   private List<SelectEntry> hiddenPkSelectEntries(RelId relId, String alias)
+   {
+      return
+         dbmd.getPrimaryKeyFieldNames(relId).stream()
+         .map(pkFieldName -> {
+            String pkFieldDbName = dbmd.quoteIfNeeded(pkFieldName);
+            String pkFieldOutputName = dbmd.quoteIfNeeded(HIDDEN_PK_PREFIX + pkFieldName);
+            return new SelectEntry(alias + "." + pkFieldDbName, pkFieldOutputName, HIDDEN_PK);
+         })
+         .collect(toList());
+   }
+
+   private List<SelectEntry> nativeFieldExpressionSelectEntries
+      (
+         TableJsonSpec tableSpec,
+         String alias,
+         Function<String,String> propNameFn,
+         SpecLocation specLoc
+      )
+   {
+      verifySimpleSelectFieldsExist(tableSpec, defaultSchema, dbmd, specLoc);
+
+      @Nullable List<TableFieldExpr> fieldExprs = tableSpec.getFieldExpressions();
+      if (  fieldExprs == null )
+         return emptyList();
+      else return
+         fieldExprs.stream()
+         .map(tfe -> {
+            SpecLocation loc = specLoc.withPart("field expressions of table " + tableSpec.getTable());
+            String propName = dbmd.quoteIfNeeded(this.jsonPropertyName(tfe, propNameFn, loc));
+            return new SelectEntry(this.tableFieldExpressionSql(tfe, alias), propName, NATIVE_FIELD);
+         })
+         .collect(toList());
+   }
+
+   private List<SelectEntry> childCollectionSelectEntries
+      (
+         TableJsonSpec tableSpec,
+         RelId relId,
+         String alias,
+         Function<String,String> propNameFn,
+         SpecLocation specLoc
+      )
+   {
+      @Nullable List<ChildCollectionSpec> childSpecs = tableSpec.getChildTableCollections();
+
+      if ( childSpecs == null )
+         return emptyList();
+      return
+         childSpecs.stream()
+         .map(childSpec -> {
+            SpecLocation loc =  specLoc.withPart("child collection '" + childSpec.getCollectionName() + "'");
+            return new SelectEntry(
+               lineCommentChildCollectionSelectExpression(childSpec) + "\n" +
+                  "(" + "\n" +
+                     indent(
+                        childRecordsQuery(childSpec, relId, alias, propNameFn, loc)
+                     ) + "\n" +
+                  ")",
+               dbmd.quoteIfNeeded(childSpec.getCollectionName()),
+               SelectEntry.Source.CHILD_COLLECTION
+            );
+         })
+         .collect(toList());
+   }
+
+   private SqlParts inlineParentsSqlParts
+      (
+         TableJsonSpec tableSpec,
+         RelId relId,
+         String alias,
+         Set<String> aliasesInScope,
+         Function<String,String> propNameFn,
+         SpecLocation specLoc
+      )
+   {
+      SqlParts sqlParts = new SqlParts(emptyList(), emptyList(), emptyList(), null, aliasesInScope);
+
+      for ( InlineParentSpec parentSpec : tableSpec.getInlineParentTablesList() )
+      {
+         SpecLocation parentLoc = specLoc.withPart("inline parent '" + parentSpec.getTableJson().getTable() + "'");
+         sqlParts.addParts(
+            inlineParentBaseQueryParts(parentSpec, relId, alias, sqlParts.aliasesInScope, propNameFn, parentLoc)
+         );
+      }
+
+      return sqlParts;
+   }
+
+   private SqlParts referencedParentsSqlParts
+      (
+         TableJsonSpec tableSpec,
+         RelId relId,
+         String alias,
+         Function<String,String> propNameFn,
+         SpecLocation specLoc
+      )
+   {
+      SqlParts sqlParts = new SqlParts();
+
+      for ( ReferencedParentSpec parentSpec : tableSpec.getReferencedParentTablesList() )
+      {
+         SpecLocation parentLoc = specLoc.withPart("parent '" + parentSpec.getTableJson().getTable() + "'");
+         sqlParts.addParts(
+            referencedParentBaseQueryParts(parentSpec, relId, alias, propNameFn, parentLoc)
+         );
+      }
+
+      return sqlParts;
    }
 
    /** Make a query having a single row and column result, with the result value
@@ -282,20 +303,20 @@ public class QueryGenerator
     *                        (accessible from the condition) can be assumed to be in context.
     * @return the generated SQL query
     */
-   private String makeAggregatedJsonResultSql
+   private String jsonArrayRowSql
       (
          TableJsonSpec tableSpec,
          @Nullable ParentChildCondition parentChildCond,
          Function<String,String> propNameFn,
          boolean unwrapSingleColumnValues,
          @Nullable String orderBy,
-         StatementLocation stmtLoc
+         SpecLocation specLoc
       )
    {
-      BaseQuery baseQuery = makeBaseQuery(tableSpec, parentChildCond, false, propNameFn, null, stmtLoc);
+      BaseQuery baseQuery = baseQuery(tableSpec, parentChildCond, false, propNameFn, null, specLoc);
 
       if ( unwrapSingleColumnValues && baseQuery.resultColumnNames.size() != 1 )
-         throw specError(stmtLoc,
+         throw new SpecError(specLoc,
             "Collection of " + tableSpec.getTable() + " rows cannot have " +
              "unwrapped option specified where multiple field expressions are included."
          );
@@ -317,106 +338,92 @@ public class QueryGenerator
    /** Make a query having JSON object result values at the top level of the
     *  result set. The query returns a JSON value in a single column and with
     *  any number of result rows.
-    * @param tableSpec  The output specification for this table, the subject of the query.
+    * @param tjSpec  The output specification for this table, the subject of the query.
     * @param parentChildCond A filter condition on this table (always) from a parent or child table whose alias
     *                        (accessible from the condition) can be assumed to be in context.
     * @return the generated SQL query
     */
-   private String makeJsonObjectRowsSql
+   private String jsonObjectRowsSql
       (
-         TableJsonSpec tableSpec,
+         TableJsonSpec tjSpec,
          @Nullable ParentChildCondition parentChildCond,
          Function<String,String> propNameFn,
          @Nullable String orderBy,
-         StatementLocation stmtLoc
+         SpecLocation specLoc
       )
    {
-      BaseQuery baseQuery =
-         makeBaseQuery(
-            tableSpec,
-            parentChildCond,
-            false,
-            propNameFn,
-            null,
-            stmtLoc
-         );
+      BaseQuery baseQuery = baseQuery(tjSpec, parentChildCond, false, propNameFn, null, specLoc);
 
       String rowObjExpr = sqlDialect.getRowObjectExpression(baseQuery.resultColumnNames, "q");
 
       return
          "select\n" +
-            indent(lineCommentTableRowObject(tableSpec)) + "\n" +
+            indent(lineCommentTableRowObject(tjSpec)) + "\n" +
             indent(rowObjExpr) + " json\n" +
          "from (\n" +
-            indent(lineCommentBaseTableQuery(tableSpec)) + "\n" +
+            indent(lineCommentBaseTableQuery(tjSpec)) + "\n" +
             indent(baseQuery.sql) + "\n" +
          ") q" +
          (orderBy != null ? "\norder by " + orderBy.replace("$$", "q") : "");
    }
 
-   private String makeChildRecordsQuery
+
+   private String childRecordsQuery
       (
          ChildCollectionSpec childSpec,
          RelId parentRelId,
          String parentAlias,
          Function<String,String> propNameFn,
-         StatementLocation stmtLoc
+         SpecLocation specLoc
       )
    {
       TableJsonSpec tableSpec = childSpec.getTableJson();
 
-      RelId childRelId = identifyTable(tableSpec.getTable(), stmtLoc);
+      RelId childRelId = identifyTable(tableSpec.getTable(), specLoc);
 
-      ChildFkCondition pcCond = getChildFkCondition(childSpec, childRelId, parentRelId, parentAlias, stmtLoc);
+      ChildFkCondition pcCond = getChildFkCondition(childSpec, childRelId, parentRelId, parentAlias, specLoc);
 
       boolean unwrapChildValues = valueOr(childSpec.getUnwrap(), false);
       if ( unwrapChildValues && childSpec.getTableJson().getJsonPropertiesCount() > 1 )
-         throw specError(stmtLoc, "Unwrapped child collection option is incompatible with multiple field expressions.");
+         throw new SpecError(specLoc, "Unwrapped child collection option is incompatible with multiple field expressions.");
 
-      return makeAggregatedJsonResultSql(tableSpec, pcCond, propNameFn, unwrapChildValues, childSpec.getOrderBy(), stmtLoc);
+      return jsonArrayRowSql(tableSpec, pcCond, propNameFn, unwrapChildValues, childSpec.getOrderBy(), specLoc);
    }
 
-   private SqlParts getInlineParentBaseQueryParts
+   private SqlParts inlineParentBaseQueryParts
       (
          InlineParentSpec inlineParentSpec,
          RelId childRelId,
          String childAlias,
          Set<String> avoidAliases,
          Function<String,String> propNameFn,
-         StatementLocation stmtLoc
+         SpecLocation specLoc
       )
    {
       SqlParts q = new SqlParts();
 
-      BaseQuery fromClauseQuery =
-         makeBaseQuery(
-            inlineParentSpec.getTableJson(),
-            null,
-            true,
-            propNameFn,
-            null,
-            stmtLoc
-         );
+      TableJsonSpec ptjSpec = inlineParentSpec.getTableJson();
+      BaseQuery fromClauseQuery = baseQuery(ptjSpec, null, true, propNameFn, null, specLoc);
 
       String fromClauseQueryAlias = StringFuns.makeNameNotInSet("q", avoidAliases);
-      q.addAliasToScope(fromClauseQueryAlias);
+      q.aliasesInScope.add(fromClauseQueryAlias);
 
       for (int i = 0; i < fromClauseQuery.resultColumnNames.size(); ++i )
       {
          String parentColumn = fromClauseQuery.resultColumnNames.get(i);
-         q.addSelectClauseEntry(
+         q.selectEntries.add(new SelectEntry(
             fromClauseQueryAlias + "." + parentColumn,
             parentColumn,
-            SelectClauseEntry.Source.INLINE_PARENT,
+            SelectEntry.Source.INLINE_PARENT,
             (i == 0 ? lineCommentInlineParentFieldsBegin(inlineParentSpec): null)
-         );
+         ));
       }
 
       String joinCond =
-         getParentPkCondition(inlineParentSpec, childRelId, childAlias, stmtLoc)
+         getParentPkCondition(inlineParentSpec, childRelId, childAlias, specLoc)
          .asEquationConditionOn(fromClauseQueryAlias, dbmd, HIDDEN_PK_PREFIX);
 
-      q.addFromClauseEntry(
+      q.fromEntries.add(
          lineCommentJoinToParent(inlineParentSpec) + "\n" +
          "left join (\n" +
             indent(fromClauseQuery.sql) + "\n" +
@@ -426,33 +433,33 @@ public class QueryGenerator
       return q;
    }
 
-   private SqlParts getReferencedParentBaseQueryParts
+   private SqlParts referencedParentBaseQueryParts
       (
          ReferencedParentSpec parentSpec,
          RelId childRelId,
          String childAlias,
          Function<String,String> propNameFn,
-         StatementLocation stmtLoc
+         SpecLocation specLoc
       )
    {
       String parentRecordQuery =
-         makeJsonObjectRowsSql(
+         jsonObjectRowsSql(
             parentSpec.getParentTableJsonSpec(),
-            getParentPkCondition(parentSpec, childRelId, childAlias, stmtLoc),
+            getParentPkCondition(parentSpec, childRelId, childAlias, specLoc),
             propNameFn,
             null,
-            stmtLoc
+            specLoc
          );
 
       // A referenced parent only requires a SELECT clause entry.
       return new SqlParts(
-         singletonList(new SelectClauseEntry(
+         singletonList(new SelectEntry(
             lineCommentReferencedParent(parentSpec) + "\n" +
             "(\n" +
                indent(parentRecordQuery) + "\n" +
             ")",
             dbmd.quoteIfNeeded(parentSpec.getReferenceName()),
-            SelectClauseEntry.Source.PARENT_REFERENCE,
+            SelectEntry.Source.PARENT_REFERENCE,
             null
          )),
          emptyList(), emptyList(), null, emptySet()
@@ -464,7 +471,7 @@ public class QueryGenerator
          ParentSpec parentSpec,
          RelId childRelId,
          String childAlias,
-         StatementLocation stmtLoc
+         SpecLocation specLoc
       )
    {
       @Nullable CustomJoinCondition customJoinCond = parentSpec.getCustomJoinCondition();
@@ -472,7 +479,7 @@ public class QueryGenerator
       if ( customJoinCond != null )
       {
          if ( parentSpec.getChildForeignKeyFieldsSet() != null )
-            throw specError(stmtLoc, "Parent with customJoinCondition cannot specify foreignKeyFields.");
+            throw new SpecError(specLoc, "Parent with customJoinCondition cannot specify foreignKeyFields.");
 
          return customJoinParentPkCondition(customJoinCond, childAlias);
       }
@@ -480,8 +487,8 @@ public class QueryGenerator
       {
          @Nullable Set<String> childForeignKeyFieldsSet = parentSpec.getChildForeignKeyFieldsSet();
          TableJsonSpec parentTableSpec = parentSpec.getParentTableJsonSpec();
-         RelId parentRelId = identifyTable(parentTableSpec.getTable(), stmtLoc);
-         ForeignKey fk = getForeignKey(childRelId, parentRelId, childForeignKeyFieldsSet, stmtLoc);
+         RelId parentRelId = identifyTable(parentTableSpec.getTable(), specLoc);
+         ForeignKey fk = getForeignKey(childRelId, parentRelId, childForeignKeyFieldsSet, specLoc);
          return new ParentPkCondition(childAlias, fk.getForeignKeyComponents());
       }
    }
@@ -492,7 +499,7 @@ public class QueryGenerator
          RelId childRelId,
          RelId parentRelId,
          String parentAlias,
-         StatementLocation stmtLoc
+         SpecLocation specLoc
       )
    {
       @Nullable CustomJoinCondition customJoinCond = childCollectionSpec.getCustomJoinCondition();
@@ -500,22 +507,22 @@ public class QueryGenerator
       if ( customJoinCond != null ) // custom join condition specified
       {
          if ( childCollectionSpec.getForeignKeyFields() != null )
-            throw specError(stmtLoc, "Child collection that specifies customJoinCondition cannot specify foreignKeyFields.");
+            throw new SpecError(specLoc, "Child collection that specifies customJoinCondition cannot specify foreignKeyFields.");
 
-         validateCustomJoinCondition(customJoinCond, childRelId, parentRelId, dbmd, queriesSource, stmtLoc.withPart("custom join condition"));
+         validateCustomJoinCondition(customJoinCond, childRelId, parentRelId, dbmd, specLoc.withPart("custom join condition"));
 
          return customJoinChildFkCondition(customJoinCond, parentAlias);
       }
       else // foreign key join condition
       {
          @Nullable Set<String> fkFields = childCollectionSpec.getForeignKeyFieldsSet();
-         ForeignKey fk = getForeignKey(childRelId, parentRelId, fkFields, stmtLoc);
+         ForeignKey fk = getForeignKey(childRelId, parentRelId, fkFields, specLoc);
 
          return new ChildFkCondition(parentAlias, fk.getForeignKeyComponents());
       }
    }
 
-   private @Nullable String getWhereConditionSql
+   private @Nullable String recordConditionSql
       (
          TableJsonSpec tableSpec,
          String tableAlias
@@ -531,7 +538,7 @@ public class QueryGenerator
          return null;
    }
 
-   private String getTableFieldExpressionSql
+   private String tableFieldExpressionSql
       (
          TableFieldExpr tableFieldExpr,
          String tableAlias
@@ -548,44 +555,19 @@ public class QueryGenerator
       }
    }
 
-   private List<String> getAllParamNames(QuerySpec querySpec)
-   {
-      return getAllParamNames(querySpec.getTableJson());
-   }
-
-   private List<String> getAllParamNames(TableJsonSpec tableSpec)
-   {
-      List<String> paramNames = new ArrayList<>();
-
-      for ( ChildCollectionSpec childSpec: tableSpec.getChildTableCollectionsList() )
-         paramNames.addAll(getAllParamNames(childSpec.getTableJson()));
-
-      for ( InlineParentSpec parentSpec : tableSpec.getInlineParentTablesList() )
-         paramNames.addAll(getAllParamNames(parentSpec.getParentTableJsonSpec()));
-
-      for ( ReferencedParentSpec parentSpec : tableSpec.getReferencedParentTablesList() )
-         paramNames.addAll(getAllParamNames(parentSpec.getParentTableJsonSpec()));
-
-      @Nullable RecordCondition recCond = tableSpec.getRecordCondition();
-      if ( recCond != null && recCond.getParamNames() != null )
-         paramNames.addAll(requireNonNull(recCond.getParamNames()));
-
-      return paramNames;
-   }
-
    private ForeignKey getForeignKey
       (
          RelId childRelId,
          RelId parentRelId,
          @Nullable Set<String> foreignKeyFields,
-         StatementLocation stmtLoc
+         SpecLocation specLoc
       )
    {
       @Nullable ForeignKey fk = dbmd.getForeignKeyFromTo(childRelId, parentRelId, foreignKeyFields, REGISTERED_TABLES_ONLY);
 
       if ( fk == null )
       {
-         throw specError(stmtLoc,
+         throw new SpecError(specLoc,
             "No foreign key found from " + childRelId.getName() + " to " + parentRelId.getName() + " via " +
             (foreignKeyFields != null ? "foreign keys " + foreignKeyFields : "implicit foreign key fields") + "."
          );
@@ -594,11 +576,46 @@ public class QueryGenerator
       return fk;
    }
 
-   private String getJsonPropertyName
+   private ParentPkCondition customJoinParentPkCondition
+      (
+         CustomJoinCondition customJoinCond,
+         String childAlias
+      )
+   {
+      List<ForeignKey.Component> virtualForeignKeyComponents =
+         customJoinCond.getEquatedFields().stream()
+            .map(ef -> new ForeignKey.Component(
+               dbmd.normalizeName(ef.getChildField()),
+               dbmd.normalizeName(ef.getParentPrimaryKeyField())
+            ))
+            .collect(toList());
+
+      return new QuerySqlGenerator.ParentPkCondition(childAlias, virtualForeignKeyComponents);
+   }
+
+   private ChildFkCondition customJoinChildFkCondition
+      (
+         CustomJoinCondition customJoinCond,
+         String parentAlias
+      )
+   {
+      List<ForeignKey.Component> virtualForeignKeyComponents =
+         customJoinCond.getEquatedFields().stream()
+            .map(ef -> new ForeignKey.Component(
+               dbmd.normalizeName(ef.getChildField()),
+               dbmd.normalizeName(ef.getParentPrimaryKeyField())
+            ))
+            .collect(toList());
+
+      return new QuerySqlGenerator.ChildFkCondition(parentAlias, virtualForeignKeyComponents);
+   }
+
+
+   private String jsonPropertyName
       (
          TableFieldExpr tfe,
          Function<String,String> defaultFn,
-         StatementLocation stmtLoc
+         SpecLocation specLoc
       )
    {
       if ( tfe.getField() != null )
@@ -607,9 +624,25 @@ public class QueryGenerator
       {
          assert tfe.getExpression() != null;
          return valueOrThrow(tfe.getJsonProperty(), () -> // expression fields must have output name specified
-            specError(stmtLoc, "Json property required for expression field " + tfe.getExpression() + ".")
+            new SpecError(specLoc, "Json property required for expression field " + tfe.getExpression() + ".")
          );
       }
+   }
+
+   /// Return a possibly qualified identifier for the given relation, omitting the schema
+   /// qualifier if it has a schema for which it's specified to use unqualified names.
+   private String minimalRelIdentifier(RelId relId)
+   {
+      @Nullable String schema = relId.getSchema();
+      if ( schema == null || unqualifiedNamesSchemas.contains(dbmd.normalizeName(schema)) )
+         return relId.getName();
+      else
+         return relId.getIdString();
+   }
+
+   private RelId identifyTable(String table, SpecLocation loc)
+   {
+      return SpecValidations.identifyTable(table, defaultSchema, dbmd, loc);
    }
 
    private String lineCommentTableRowObject(TableJsonSpec tableJsonSpec)
@@ -652,83 +685,15 @@ public class QueryGenerator
          " referenced as '" + parentSpec.getReferenceName() + "'";
    }
 
-   /// Return a possibly qualified identifier for the given relation, omitting the schema
-   /// qualifier if it has a schema for which it's specified to use unqualified names.
-   private String minimalRelIdentifier(RelId relId)
-   {
-      @Nullable String schema = relId.getSchema();
-      if ( schema == null || unqualifiedNamesSchemas.contains(dbmd.normalizeName(schema)) )
-         return relId.getName();
-      else
-         return relId.getIdString();
-   }
-
    private String indent(String s)
    {
       return indentLines(s, indentSpaces, true);
    }
 
-   private StatementSpecificationException specError
-      (
-         StatementLocation stmtLoc,
-         String problem
-      )
-   {
-      return new StatementSpecificationException(queriesSource, stmtLoc, problem);
-   }
 
-   private StatementSpecificationException specError
-      (
-         QuerySpec querySpec,
-         String queryPart,
-         String problem
-      )
-   {
-      return specError(new StatementLocation(querySpec.getQueryName(), queryPart), problem);
-   }
-
-   private RelId identifyTable
-      (
-         String table,
-         StatementLocation loc
-      )
-   {
-      return identifySpecificationTable(table, defaultSchema, dbmd, queriesSource, loc);
-   }
-
-   private ParentPkCondition customJoinParentPkCondition
-      (
-         CustomJoinCondition customJoinCond,
-         String childAlias
-      )
-   {
-      List<ForeignKey.Component> virtualForeignKeyComponents =
-         customJoinCond.getEquatedFields().stream()
-            .map(ef -> new ForeignKey.Component(
-               dbmd.normalizeName(ef.getChildField()),
-               dbmd.normalizeName(ef.getParentPrimaryKeyField())
-            ))
-            .collect(toList());
-
-      return new QueryGenerator.ParentPkCondition(childAlias, virtualForeignKeyComponents);
-   }
-
-   private ChildFkCondition customJoinChildFkCondition
-      (
-         CustomJoinCondition customJoinCond,
-         String parentAlias
-      )
-   {
-      List<ForeignKey.Component> virtualForeignKeyComponents =
-         customJoinCond.getEquatedFields().stream()
-         .map(ef -> new ForeignKey.Component(
-            dbmd.normalizeName(ef.getChildField()),
-            dbmd.normalizeName(ef.getParentPrimaryKeyField())
-         ))
-         .collect(toList());
-
-      return new QueryGenerator.ChildFkCondition(parentAlias, virtualForeignKeyComponents);
-   }
+   ///////////////////////////////////////////////////
+   // utility types
+   ///////////////////////////////////////////////////
 
    private static class BaseQuery
    {
@@ -799,38 +764,6 @@ public class QueryGenerator
       }
    }
 
-   private static class SelectClauseEntry
-   {
-      public enum Source { NATIVE_FIELD, INLINE_PARENT, PARENT_REFERENCE, CHILD_COLLECTION, HIDDEN_PK }
-
-      private final String valueExpression;
-      private final String outputName;
-      private final Source source;
-      private final @Nullable String comment;
-
-      public SelectClauseEntry
-         (
-            String valueExpression,
-            String outputName,
-            Source source,
-            @Nullable String comment
-         )
-      {
-         this.valueExpression = valueExpression;
-         this.outputName = outputName;
-         this.source = source;
-         this.comment = comment;
-      }
-
-      String getValueExpression() { return valueExpression; }
-
-      String getName() { return outputName; }
-
-      Source getSource() { return source; }
-
-      @Nullable String getComment() { return comment; }
-   }
-
    private static class ChildFkCondition implements ParentChildCondition
    {
       private final String parentAlias;
@@ -856,15 +789,48 @@ public class QueryGenerator
       {
          return
             matchedFields.stream()
-            .map(mf -> childAlias + "." + dbmd.quoteIfNeeded(mf.getForeignKeyFieldName()) + " = " +
-                       parentAlias + "." + dbmd.quoteIfNeeded(mf.getPrimaryKeyFieldName()))
-            .collect(joining(" and "));
+               .map(mf -> childAlias + "." + dbmd.quoteIfNeeded(mf.getForeignKeyFieldName()) + " = " +
+                  parentAlias + "." + dbmd.quoteIfNeeded(mf.getPrimaryKeyFieldName()))
+               .collect(joining(" and "));
       }
+   }
+
+   static class SelectEntry
+   {
+      enum Source { NATIVE_FIELD, INLINE_PARENT, PARENT_REFERENCE, CHILD_COLLECTION, HIDDEN_PK }
+
+      private final String valueExpression;
+      private final String name;
+      private final Source source;
+      private final @Nullable String comment;
+
+      public SelectEntry(String valueExpression, String name, Source source) { this(valueExpression, name, source, null); }
+      public SelectEntry
+         (
+            String valueExpression,
+            String name,
+            Source source,
+            @Nullable String comment
+         )
+      {
+         this.valueExpression = valueExpression;
+         this.name = name;
+         this.source = source;
+         this.comment = comment;
+      }
+
+      String getValueExpression() { return valueExpression; }
+
+      String getName() { return name; }
+
+      Source getSource() { return source; }
+
+      @Nullable String getComment() { return comment; }
    }
 
    private static class SqlParts
    {
-      private final List<SelectClauseEntry> selectEntries;
+      private final List<SelectEntry> selectEntries;
       private final List<String> fromEntries;
       private final List<String> whereEntries;
       private @Nullable String orderBy;
@@ -881,7 +847,7 @@ public class QueryGenerator
 
       SqlParts
          (
-            List<SelectClauseEntry> selectEntries,
+            List<SelectEntry> selectEntries,
             List<String> fromEntries,
             List<String> whereEntries,
             @Nullable String orderBy,
@@ -895,53 +861,13 @@ public class QueryGenerator
          this.aliasesInScope = new HashSet<>(aliasesInScope);
       }
 
-      void addSelectClauseEntry
-         (
-            String expr,
-            String name,
-            SelectClauseEntry.Source src,
-            @Nullable String comment
-         )
-      {
-         selectEntries.add(new SelectClauseEntry(expr, name, src, comment));
-      }
-
-      void addSelectClauseEntry
-         (
-            String expr,
-            String name,
-            SelectClauseEntry.Source src
-         )
-      {
-         addSelectClauseEntry(expr, name, src, null);
-      }
-
-      void addSelectClauseEntries(List<SelectClauseEntry> entries) { selectEntries.addAll(entries); }
-
-      void addFromClauseEntry(String entry) { fromEntries.add(entry); }
-      void addFromClauseEntries(List<String> entries) { fromEntries.addAll(entries); }
-
-      void addWhereClauseEntry(String entry) { whereEntries.add(entry); }
-      void addWhereClauseEntries(List<String> entries) { whereEntries.addAll(entries); }
-
-      void addAliasToScope(String alias) { aliasesInScope.add(alias); }
-      void addAliasesToScope(Set<String> aliases) { aliasesInScope.addAll(aliases); }
-
-      void setOrderBy(String orderByExpr) { orderBy = orderByExpr; }
-
       void addParts(SqlParts otherParts)
       {
-         addSelectClauseEntries(otherParts.getSelectClauseEntries());
-         addFromClauseEntries(otherParts.getFromClauseEntries());
-         addWhereClauseEntries(otherParts.getWhereClauseEntries());
-         addAliasesToScope(otherParts.getAliasesInScope());
+         selectEntries.addAll(otherParts.selectEntries);
+         fromEntries.addAll(otherParts.fromEntries);
+         whereEntries.addAll(otherParts.whereEntries);
+         aliasesInScope.addAll(otherParts.aliasesInScope);
       }
-
-      List<SelectClauseEntry> getSelectClauseEntries() { return unmodifiableList(selectEntries); }
-      List<String> getFromClauseEntries() { return unmodifiableList(fromEntries); }
-      List<String> getWhereClauseEntries() { return unmodifiableList(whereEntries); }
-      @Nullable String getOrderBy() { return orderBy; }
-      Set<String> getAliasesInScope() { return unmodifiableSet(aliasesInScope); }
 
       String makeNewAliasFor(String dbObjectName)
       {
@@ -953,28 +879,28 @@ public class QueryGenerator
       String toSql(int indentSpaces)
       {
          String selectEntriesStr =
-            getSelectClauseEntries().stream()
+            selectEntries.stream()
             .map(SqlParts::makeSelectClauseEntrySql)
             .collect(joining(",\n"));
 
-         String fromEntriesStr = String.join("\n", getFromClauseEntries());
+         String fromEntriesStr = String.join("\n", fromEntries);
 
-         String whereEntriesStr = String.join(" and\n", getWhereClauseEntries());
+         String whereEntriesStr = String.join(" and\n", whereEntries);
 
          return
             "select\n" +
                indentLines(selectEntriesStr, indentSpaces) + "\n" +
             "from\n" +
                indentLines(fromEntriesStr, indentSpaces) + "\n" +
-            (getWhereClauseEntries().isEmpty() ? "":
+            (whereEntries.isEmpty() ? "":
                "where (\n" +
                   indentLines(whereEntriesStr, indentSpaces) + "\n" +
                ")") +
-            applyOr(getOrderBy(), orderBy -> "\norder by " + orderBy, "");
+            (orderBy != null ? "\norder by " + orderBy: "");
       }
 
       // Make sql string for a select clause entry.
-      private static String makeSelectClauseEntrySql(SelectClauseEntry sce)
+      private static String makeSelectClauseEntrySql(SelectEntry sce)
       {
          String exprNameSep = sce.getName().startsWith("\"") ? " " : " as ";
          @Nullable String comment = sce.getComment();

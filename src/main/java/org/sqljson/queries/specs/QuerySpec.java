@@ -8,15 +8,15 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-import static org.sqljson.common.util.Nullables.valueOr;
-import static org.sqljson.queries.specs.ResultsRepr.JSON_OBJECT_ROWS;
+import static org.sqljson.util.Nullables.valueOr;
+import static org.sqljson.queries.specs.ResultRepr.JSON_OBJECT_ROWS;
 
 
 public final class QuerySpec
 {
    private final String queryName;
    private final TableJsonSpec tableJson;
-   private final @Nullable List<ResultsRepr> resultsRepresentations;
+   private final @Nullable List<ResultRepr> resultRepresentations;
    private final @Nullable Boolean generateResultTypes;
    private final @Nullable Boolean generateSource; // Contains at least the resource name for generated SQL, if not result types.
    private final @Nullable OutputFieldNameDefault outputFieldNameDefault; // inherited from query group spec if empty
@@ -28,7 +28,7 @@ public final class QuerySpec
    {
       this.queryName = "";
       this.tableJson = new TableJsonSpec();
-      this.resultsRepresentations = singletonList(JSON_OBJECT_ROWS);
+      this.resultRepresentations = singletonList(JSON_OBJECT_ROWS);
       this.generateResultTypes = true;
       this.generateSource = true;
       this.outputFieldNameDefault = null;
@@ -41,7 +41,7 @@ public final class QuerySpec
       (
          String queryName,
          TableJsonSpec tableJson,
-         @Nullable List<ResultsRepr> resultsRepresentations,
+         @Nullable List<ResultRepr> resultRepresentations,
          @Nullable Boolean generateResultTypes,
          @Nullable Boolean generateSource,
          @Nullable OutputFieldNameDefault outputFieldNameDefault,
@@ -51,8 +51,8 @@ public final class QuerySpec
       )
    {
       this.queryName = queryName;
-      this.resultsRepresentations = resultsRepresentations != null ?
-         unmodifiableList(new ArrayList<>(resultsRepresentations))
+      this.resultRepresentations = resultRepresentations != null ?
+         unmodifiableList(new ArrayList<>(resultRepresentations))
          : singletonList(JSON_OBJECT_ROWS);
       this.generateResultTypes = generateResultTypes;
       this.generateSource = generateSource;
@@ -71,18 +71,18 @@ public final class QuerySpec
    public String getQueryName() { return queryName; }
 
    /// Generates a SQL query for each of the specified result representations.
-   public @Nullable List<ResultsRepr> getResultsRepresentations() { return resultsRepresentations; }
+   public @Nullable List<ResultRepr> getResultRepresentations() { return resultRepresentations; }
 
    @JsonIgnore
-   public List<ResultsRepr> getResultsRepresentationsList()
+   public List<ResultRepr> getResultRepresentationsList()
    {
-      return resultsRepresentations != null ? resultsRepresentations: singletonList(JSON_OBJECT_ROWS);
+      return resultRepresentations != null ? resultRepresentations : singletonList(JSON_OBJECT_ROWS);
    }
 
    public @Nullable Boolean getGenerateResultTypes() { return generateResultTypes; }
 
    @JsonIgnore
-   public boolean getGenerateResultTypesOrDeault()
+   public boolean getGenerateResultTypesOrDefault()
    {
       return generateResultTypes != null ? generateResultTypes: true;
    }

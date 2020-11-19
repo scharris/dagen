@@ -5,7 +5,7 @@ import static java.util.stream.Collectors.joining;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
 
-import static org.sqljson.common.util.StringFuns.*;
+import static org.sqljson.util.StringFuns.*;
 
 
 public class OracleDialect implements SqlDialect

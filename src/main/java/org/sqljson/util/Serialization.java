@@ -1,4 +1,4 @@
-package org.sqljson.common.util;
+package org.sqljson.util;
 
 import java.io.OutputStream;
 import java.nio.file.Path;

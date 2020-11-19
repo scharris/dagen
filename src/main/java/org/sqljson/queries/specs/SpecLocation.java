@@ -1,26 +1,26 @@
-package org.sqljson.common;
+package org.sqljson.queries.specs;
 
 
-public class StatementLocation
+public class SpecLocation
 {
    private final String queryName;
    private final String queryPart;
 
-   public StatementLocation(String queryName)
+   public SpecLocation(String queryName)
    {
       this.queryName = queryName;
       this.queryPart = "";
    }
 
-   public StatementLocation(String queryName, String queryPart)
+   public SpecLocation(String queryName, String queryPart)
    {
       this.queryName = queryName;
       this.queryPart = queryPart;
    }
 
-   public StatementLocation withPart(String additionalPart)
+   public SpecLocation withPart(String additionalPart)
    {
-      return new StatementLocation(queryName, joinPartDescriptions(queryPart, additionalPart));
+      return new SpecLocation(queryName, joinPartDescriptions(queryPart, additionalPart));
    }
 
    public String getStatementName() { return queryName; }

@@ -10,7 +10,7 @@ import static java.util.stream.Collectors.toMap;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
 
-import org.sqljson.common.util.StringFuns;
+import org.sqljson.util.StringFuns;
 import org.sqljson.dbmd.RelMetadata.RelType;
 import static org.sqljson.dbmd.RelMetadata.RelType.Table;
 import static org.sqljson.dbmd.RelMetadata.RelType.View;

@@ -14,12 +14,12 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 
-import org.sqljson.common.util.IO;
+import org.sqljson.util.IO;
 import org.sqljson.dbmd.DatabaseMetadata;
 import org.sqljson.dbmd.DatabaseMetadataFetcher;
-import static org.sqljson.common.util.Nullables.*;
-import static org.sqljson.common.util.Props.getProperty;
-import static org.sqljson.common.util.Props.requireProperty;
+import static org.sqljson.util.Nullables.*;
+import static org.sqljson.util.Props.getProperty;
+import static org.sqljson.util.Props.requireProperty;
 
 
 public class DatabaseMetadataMain

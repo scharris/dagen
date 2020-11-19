@@ -40,7 +40,7 @@ export interface QueryGroupSpec {
 export interface QuerySpec {
     queryName: string;
     tableJson: TableJsonSpec;
-    resultsRepresentations?: Nullable<ResultsRepr[]>;
+    resultRepresentations?: Nullable<ResultRepr[]>;
     generateResultTypes?: Nullable<boolean>;
     generateSource?: Nullable<boolean>;
     outputFieldNameDefault?: Nullable<OutputFieldNameDefault>;
@@ -78,6 +78,6 @@ export interface TableJsonSpec {
 
 export type OutputFieldNameDefault = "AS_IN_DB" | "CAMELCASE";
 
-export type ResultsRepr = "MULTI_COLUMN_ROWS" | "JSON_OBJECT_ROWS" | "JSON_ARRAY_ROW";
+export type ResultRepr = "MULTI_COLUMN_ROWS" | "JSON_OBJECT_ROWS" | "JSON_ARRAY_ROW";
 
 export type Nullable<T> = T | null | undefined;

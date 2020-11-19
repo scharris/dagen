@@ -2,7 +2,7 @@ defaultSchema: drugs
 generateUnqualifiedNamesForSchemas: ["drugs"]
 querySpecs:
   - queryName: drugs query
-    resultsRepresentations: [JSON_OBJECT_ROWS] # (<- the default, other options: JSON_ARRAY_ROW, MULTI_COLUMN_ROWS)
+    resultRepresentations: [ JSON_OBJECT_ROWS] # (<- the default, other options: JSON_ARRAY_ROW, MULTI_COLUMN_ROWS)
     generateResultTypes: true
     orderBy: '$$.name desc'
     tableJson:

@@ -16,7 +16,7 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
 import static org.sqljson.dbmd.CaseSensitivity.INSENSITIVE_STORED_LOWER;
 import static org.sqljson.dbmd.CaseSensitivity.INSENSITIVE_STORED_UPPER;
-import static org.sqljson.common.util.Nullables.valueOr;
+import static org.sqljson.util.Nullables.valueOr;
 
 @JsonPropertyOrder({
    "schemaName", "dbmsName", "dbmsVersion", "dbmsMajorVersion",

@@ -2,25 +2,19 @@ package org.sqljson.queries.source_writers;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.sql.Types;
 import java.time.Instant;
 import java.util.*;
-import static java.util.Objects.requireNonNull;
-import static java.util.stream.Collectors.toList;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
 
-import org.sqljson.queries.GeneratedQuery;
 import org.sqljson.queries.QueryReprSqlPath;
 import org.sqljson.queries.result_types.*;
-import org.sqljson.queries.specs.ResultsRepr;
-import org.sqljson.common.util.IO;
-import static org.sqljson.queries.QueryReprSqlPath.getReprToSqlPathMapForQuery;
-import static org.sqljson.common.util.IO.writeString;
-import static org.sqljson.common.util.Nullables.*;
-import static org.sqljson.common.util.StringFuns.upperCamelCase;
+import org.sqljson.util.IO;
+import static org.sqljson.util.IO.writeString;
+import static org.sqljson.util.Nullables.*;
+import static org.sqljson.util.StringFuns.upperCamelCase;
 
 
 public class TypeScriptWriter implements SourceCodeWriter
@@ -42,40 +36,37 @@ public class TypeScriptWriter implements SourceCodeWriter
    }
 
    @Override
-   public void writeQueries
+   public void writeQuerySourceCode
       (
-         List<GeneratedQuery> generatedQueries,
-         List<QueryReprSqlPath> writtenQueryPaths,
+         String queryName,
+         List<ResultType> resultTypes,
+         List<String> paramNames,
+         List<QueryReprSqlPath> sqlPaths,
+         @Nullable String queryFileHeader,
          boolean includeTimestamp
       )
       throws IOException
    {
-      if ( srcOutputDir != null )
-         Files.createDirectories(srcOutputDir);
+      String moduleName = makeModuleName(queryName);
 
-      for ( GeneratedQuery q : generatedQueries )
+      @Nullable Path outputPath = getOutputFilePath(moduleName);
+
+      BufferedWriter bw = IO.newFileOrStdoutWriter(outputPath);
+
+      try
       {
-         String moduleName = makeModuleName(q.getQueryName());
+         writeCommonSourceFileHeader(bw, includeTimestamp);
 
-         @Nullable Path outputPath = getOutputFilePath(moduleName);
+         writeQueryModuleFileHeaders(bw, queryFileHeader);
 
-         BufferedWriter bw = IO.newFileOrStdoutWriter(outputPath);
+         bw.write("\n\n");
 
-         try
-         {
-            writeCommonSourceFileHeader(bw, includeTimestamp);
-
-            writeQueryModuleFileHeaders(bw, q);
-
-            bw.write("\n\n");
-
-            writeQueryModuleMembers(bw, q, writtenQueryPaths);
-         }
-         finally
-         {
-            if ( outputPath != null ) bw.close();
-            else bw.flush();
-         }
+         writeQueryModuleMembers(bw, resultTypes, paramNames, sqlPaths);
+      }
+      finally
+      {
+         if ( outputPath != null ) bw.close();
+         else bw.flush();
       }
    }
 
@@ -96,7 +87,7 @@ public class TypeScriptWriter implements SourceCodeWriter
    private void writeQueryModuleFileHeaders
       (
          BufferedWriter bw,
-         GeneratedQuery q
+         @Nullable String queryFileHeader
       )
       throws IOException
    {
@@ -105,26 +96,27 @@ public class TypeScriptWriter implements SourceCodeWriter
          bw.write(filesHeader + "\n");
 
       // Write any additional headers specified in the query.
-      ifPresent(q.getTypesFileHeader(), hdr -> writeString(bw, hdr + "\n"));
+      ifPresent(queryFileHeader, hdr -> writeString(bw, hdr + "\n"));
    }
 
    private void writeQueryModuleMembers
       (
          BufferedWriter bw,
-         GeneratedQuery q,
-         List<QueryReprSqlPath> writtenQueryPaths
+         List<ResultType> resultTypes,
+         List<String> paramNames,
+         List<QueryReprSqlPath> sqlPaths
       )
       throws IOException
    {
-      writeQuerySqlFileReferenceMembers(bw, q, writtenQueryPaths);
+      writeQuerySqlFileReferenceMembers(bw, sqlPaths);
 
-      writeParamMembers(q.getParamNames(), bw);
+      writeParamMembers(paramNames, bw);
 
-      if ( !q.getGeneratedResultTypes().isEmpty() )
+      if ( !resultTypes.isEmpty() )
       {
          Set<String> writtenTypeNames = new HashSet<>();
 
-         for ( ResultType resultType : q.getGeneratedResultTypes() )
+         for ( ResultType resultType : resultTypes )
          {
             if ( !writtenTypeNames.contains(resultType.getTypeName()) &&
                  !resultType.isUnwrapped() )
@@ -142,19 +134,16 @@ public class TypeScriptWriter implements SourceCodeWriter
    private void writeQuerySqlFileReferenceMembers
       (
          BufferedWriter bw,
-         GeneratedQuery q,
-         List<QueryReprSqlPath> writtenQueryPaths
+         List<QueryReprSqlPath> sqlPaths
       )
       throws IOException
    {
-      Map<ResultsRepr,Path> sqlPathsByRepr = getReprToSqlPathMapForQuery(q.getQueryName(), writtenQueryPaths);
-
       // Write members holding resource/file names for the result representations that were written for this query.
-      for ( ResultsRepr resultsRepr : sorted(sqlPathsByRepr.keySet()) )
+      for ( QueryReprSqlPath queryReprSqlPath: sqlPaths )
       {
-         String memberName = sqlPathsByRepr.size() == 1 ? "sqlResource" :
-            "sqlResource" + upperCamelCase(resultsRepr.toString());
-         String resourceName = sqlResourceNamePrefix + requireNonNull(sqlPathsByRepr.get(resultsRepr)).getFileName();
+         String memberName = sqlPaths.size() == 1 ? "sqlResource" :
+            "sqlResource" + upperCamelCase(queryReprSqlPath.getResultRepr().toString());
+         String resourceName = sqlResourceNamePrefix + queryReprSqlPath.getSqlPath().getFileName();
          bw.write("export const " + memberName + " = \"" + resourceName + "\";\n");
       }
       bw.write("\n");
@@ -306,11 +295,6 @@ public class TypeScriptWriter implements SourceCodeWriter
    private @Nullable Path getOutputFilePath(String moduleName)
    {
       return applyIfPresent(srcOutputDir, d -> d.resolve(moduleName + ".ts"));
-   }
-
-   private List<ResultsRepr> sorted(Collection<ResultsRepr> xs)
-   {
-      return xs.stream().sorted().collect(toList());
    }
 
    private static String makeModuleName(String statementName)

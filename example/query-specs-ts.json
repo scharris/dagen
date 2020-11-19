@@ -4,7 +4,7 @@
    "querySpecs": [
       {
          "queryName": "drugs query",
-         "resultsRepresentations": [ "JSON_OBJECT_ROWS" ],
+         "resultRepresentations": [ "JSON_OBJECT_ROWS" ],
          "generateResultTypes": true,
          "tableJson": {
             "table": "drug",

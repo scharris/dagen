@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.regex.Pattern;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
-import org.sqljson.common.util.StringFuns;
+import org.sqljson.util.StringFuns;
 
 class ForeignKeyBuilder
 {

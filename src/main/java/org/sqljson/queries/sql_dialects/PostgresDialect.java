@@ -5,7 +5,7 @@ import static java.util.stream.Collectors.joining;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
 
-import org.sqljson.common.util.StringFuns;
+import org.sqljson.util.StringFuns;
 
 
 public class PostgresDialect implements SqlDialect

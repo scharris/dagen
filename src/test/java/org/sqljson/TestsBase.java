@@ -16,13 +16,10 @@ import org.apache.commons.io.IOUtils;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.PreparedStatementSetter;
 import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
-
 import org.springframework.jdbc.datasource.SingleConnectionDataSource;
 import org.sqljson.dbmd.DatabaseMetadata;
 import org.sqljson.queries.specs.QueryGroupSpec;
@@ -55,14 +52,6 @@ public class TestsBase
    String getGeneratedQuerySql(String resourceName) throws IOException
    {
       try ( InputStream is = getResourceStream("generated/query-sql/" + resourceName) )
-      {
-         return IOUtils.toString(is, StandardCharsets.UTF_8);
-      }
-   }
-
-   String getGeneratedModStatementSql(String resourceName) throws IOException
-   {
-      try ( InputStream is = getResourceStream("generated/mod-stmt-sql/" + resourceName) )
       {
          return IOUtils.toString(is, StandardCharsets.UTF_8);
       }
@@ -118,50 +107,6 @@ public class TestsBase
       npjdbc.query(sql, params, rowCallbackHandler);
    }
 
-   void doUpdate
-      (
-         String sql,
-         PreparedStatementSetter pstmtSetter,
-         AfterUpdateCallback action
-      )
-   {
-      JdbcTemplate jdbc = new JdbcTemplate(makeTestDatabaseDataSource());
-
-      int affectedCount = jdbc.update(sql, pstmtSetter);
-
-      try
-      {
-         action.onStatementFinished(affectedCount, jdbc);
-      }
-      finally
-      {
-         if ( affectedCount > 0 )
-            jdbc.execute("rollback");
-      }
-   }
-
-   void doUpdateWithNamedParams
-      (
-         String sql,
-         SqlParameterSource params,
-         AfterUpdateCallback action
-      )
-   {
-      NamedParameterJdbcTemplate npjdbc = new NamedParameterJdbcTemplate(makeTestDatabaseDataSource());
-
-      int affectedCount = npjdbc.update(sql, params);
-
-      try
-      {
-         action.onStatementFinished(affectedCount, npjdbc.getJdbcTemplate());
-      }
-      finally
-      {
-         if ( affectedCount > 0 )
-            npjdbc.getJdbcOperations().execute("rollback");
-      }
-   }
-
    static void assertTestDatabaseAvailable()
    {
       try ( Connection conn = getTestDatabaseConnection();
@@ -213,11 +158,6 @@ public class TestsBase
 
          return params;
       }
-   }
-
-   public interface AfterUpdateCallback
-   {
-      void onStatementFinished(int affectedRowCount, JdbcTemplate npjdbc);
    }
 }
 

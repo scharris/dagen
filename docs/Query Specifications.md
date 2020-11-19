@@ -36,7 +36,7 @@ The list of specifications for the queries to be generated.
 Each query specification entry in `querySpecs` should have the form:
 ```
   - queryName: <query name>
-    resultsRepresentations: [<result reprs>]
+    resultRepresentations: [<result reprs>]
     generateResultTypes: true | false
     tableJson:
         <TABLE-JSON-SPEC>
@@ -52,7 +52,7 @@ The Java class also contains the name of the generated resource file in a
 static member, so in code it's best to obtain the SQL resource file name from
 this class member to prevent runtime errors. 
 
-`resultsRepresentation` is a list of results representations to be generated,
+`resultRepresentation` is a list of results representations to be generated,
 with one SQL file produced for each representation. The choices are as follows:
 
   - JSON_OBJECT_ROWS (the default)

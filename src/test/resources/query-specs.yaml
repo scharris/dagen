@@ -4,7 +4,7 @@ querySpecs:
 
   # Query for a single drug with only a subset of native fields (no parent or child tables involved).
   - queryName: drug fields query with param
-    resultsRepresentations: [JSON_OBJECT_ROWS, MULTI_COLUMN_ROWS]
+    resultRepresentations: [JSON_OBJECT_ROWS, MULTI_COLUMN_ROWS]
     generateResultTypes: true
     tableJson:
       table: drug
@@ -17,7 +17,7 @@ querySpecs:
          paramNames: ["id"]
 
   - queryName: drug fields query with other cond
-    resultsRepresentations: [JSON_OBJECT_ROWS, MULTI_COLUMN_ROWS]
+    resultRepresentations: [JSON_OBJECT_ROWS, MULTI_COLUMN_ROWS]
     generateResultTypes: true
     tableJson:
       table: drug
@@ -28,7 +28,7 @@ querySpecs:
 
   # Like the above but with an additional field with a customized type provided here.
   - queryName: drug fields customized type query
-    resultsRepresentations: [JSON_OBJECT_ROWS]
+    resultRepresentations: [JSON_OBJECT_ROWS]
     generateResultTypes: true
     typesFileHeader: "import java.math.BigDecimal;"
     tableJson:
@@ -42,7 +42,7 @@ querySpecs:
          paramNames: ["id"]
 
   - queryName: drug with field expression query
-    resultsRepresentations: [JSON_OBJECT_ROWS]
+    resultRepresentations: [JSON_OBJECT_ROWS]
     generateResultTypes: true
     tableJson:
       table: drug
@@ -58,7 +58,7 @@ querySpecs:
 
   # Drug with brands child collection.
   - queryName: drug with brands query
-    resultsRepresentations: [JSON_OBJECT_ROWS]
+    resultRepresentations: [JSON_OBJECT_ROWS]
     generateResultTypes: true
     tableJson:
       table: drug
@@ -78,7 +78,7 @@ querySpecs:
 
   # drug with brands via custom join condition
   - queryName: drug with brands custom join query
-    resultsRepresentations: [JSON_OBJECT_ROWS]
+    resultRepresentations: [JSON_OBJECT_ROWS]
     generateResultTypes: true
     tableJson:
       table: drug
@@ -102,7 +102,7 @@ querySpecs:
 
   # drug with brands and advisories
   - queryName: drug with brands and advisories query
-    resultsRepresentations: [JSON_OBJECT_ROWS]
+    resultRepresentations: [JSON_OBJECT_ROWS]
     generateResultTypes: true
     tableJson:
       table: drug
@@ -128,7 +128,7 @@ querySpecs:
 
   # drug with unwrapped advisory ids
   - queryName: drug with unwrapped advisory ids query
-    resultsRepresentations: [JSON_OBJECT_ROWS]
+    resultRepresentations: [JSON_OBJECT_ROWS]
     generateResultTypes: true
     tableJson:
       table: drug
@@ -148,7 +148,7 @@ querySpecs:
 
   # drug with unwrapped advisory texts
   - queryName: drug with unwrapped advisory texts query
-    resultsRepresentations: [JSON_OBJECT_ROWS]
+    resultRepresentations: [JSON_OBJECT_ROWS]
     generateResultTypes: true
     tableJson:
       table: drug
@@ -168,7 +168,7 @@ querySpecs:
 
   # drug with unwrapped advisory type names
   - queryName: drug with unwrapped advisory type names query
-    resultsRepresentations: [JSON_OBJECT_ROWS]
+    resultRepresentations: [JSON_OBJECT_ROWS]
     generateResultTypes: true
     tableJson:
       table: drug
@@ -191,7 +191,7 @@ querySpecs:
 
   # Inline parent query, where parent's fields are included inline in the child table.
   - queryName: advisory with inline advisory type query
-    resultsRepresentations: [JSON_OBJECT_ROWS]
+    resultRepresentations: [JSON_OBJECT_ROWS]
     generateResultTypes: true
     tableJson:
       table: advisory
@@ -214,7 +214,7 @@ querySpecs:
 
   # Inline parent query with custom join condition.
   - queryName: advisory with inline custom joined advisory type query
-    resultsRepresentations: [JSON_OBJECT_ROWS]
+    resultRepresentations: [JSON_OBJECT_ROWS]
     generateResultTypes: true
     tableJson:
       table: advisory
@@ -241,7 +241,7 @@ querySpecs:
 
   # Referenced (wrapped) parent query, where parent is available through an object reference.
   - queryName: drug with wrapped analyst query
-    resultsRepresentations: [JSON_OBJECT_ROWS]
+    resultRepresentations: [JSON_OBJECT_ROWS]
     generateResultTypes: true
     tableJson:
       table: drug
@@ -262,7 +262,7 @@ querySpecs:
 
   # Referenced (wrapped) parent with custom join condition.
   - queryName: drug with wrapped analyst via custom join query
-    resultsRepresentations: [JSON_OBJECT_ROWS]
+    resultRepresentations: [JSON_OBJECT_ROWS]
     generateResultTypes: true
     tableJson:
       table: drug
@@ -286,7 +286,7 @@ querySpecs:
          paramNames: ["id"]
 
   - queryName: drug with explicit compound reference query
-    resultsRepresentations: [JSON_OBJECT_ROWS]
+    resultRepresentations: [JSON_OBJECT_ROWS]
     generateResultTypes: true
     tableJson:
       table: drug

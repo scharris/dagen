@@ -9,8 +9,8 @@ import static java.util.function.Function.identity;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
 
-import static org.sqljson.common.util.Nullables.*;
-import org.sqljson.common.util.StringFuns;
+import static org.sqljson.util.Nullables.*;
+import org.sqljson.util.StringFuns;
 import org.sqljson.dbmd.*;
 import org.sqljson.queries.specs.*;
 

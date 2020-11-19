@@ -6,7 +6,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-import static org.sqljson.common.util.Nullables.applyIfPresent;
+import static org.sqljson.util.Nullables.applyIfPresent;
 
 
 public final class InlineParentSpec implements ParentSpec

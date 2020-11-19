@@ -1,4 +1,4 @@
-package org.sqljson.common.util;
+package org.sqljson.util;
 
 import java.util.Set;
 import java.util.regex.Pattern;

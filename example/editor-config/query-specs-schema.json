@@ -173,7 +173,7 @@
               }
             }
           },
-          "resultsRepresentations" : {
+          "resultRepresentations" : {
             "type" : "array",
             "items" : {
               "type" : "string",

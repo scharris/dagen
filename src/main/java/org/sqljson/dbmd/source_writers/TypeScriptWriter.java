@@ -15,9 +15,9 @@ import org.sqljson.dbmd.DatabaseMetadata;
 import org.sqljson.dbmd.Field;
 import org.sqljson.dbmd.RelId;
 import org.sqljson.dbmd.RelMetadata;
-import static org.sqljson.common.util.IO.newFileOrStdoutWriter;
-import static org.sqljson.common.util.Nullables.*;
-import static org.sqljson.common.util.StringFuns.indentLines;
+import static org.sqljson.util.IO.newFileOrStdoutWriter;
+import static org.sqljson.util.Nullables.*;
+import static org.sqljson.util.StringFuns.indentLines;
 
 
 public class TypeScriptWriter implements SourceCodeWriter
