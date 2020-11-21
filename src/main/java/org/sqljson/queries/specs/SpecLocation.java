@@ -18,7 +18,7 @@ public class SpecLocation
       this.queryPart = queryPart;
    }
 
-   public SpecLocation withPart(String additionalPart)
+   public SpecLocation addPart(String additionalPart)
    {
       return new SpecLocation(queryName, joinPartDescriptions(queryPart, additionalPart));
    }

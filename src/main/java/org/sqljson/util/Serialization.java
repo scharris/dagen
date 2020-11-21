@@ -1,7 +1,6 @@
 package org.sqljson.util;
 
 import java.io.OutputStream;
-import java.nio.file.Path;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -36,17 +35,17 @@ public final class Serialization
       }
    }
 
-   public static ObjectMapper getObjectMapper(Path file)
+   public static ObjectMapper getObjectMapper(String fileExt)
    {
-      String lcName = file.getFileName().toString().toLowerCase();
+      String lcExt = fileExt.toLowerCase();
 
-      if ( lcName.endsWith(".yaml") | lcName.endsWith(".yml") )
+      if ( lcExt.equals("yaml") | lcExt.equals("yml") )
       {
          ObjectMapper yamlMapper = new ObjectMapper(new YAMLFactory());
          yamlMapper.registerModule(new Jdk8Module());
          return yamlMapper;
       }
-      else if ( lcName.endsWith(".json") || lcName.endsWith(".json5") )
+      else if ( lcExt.equals("json") || lcExt.equals("json5") )
       {
          ObjectMapper jsonMapper = new JsonMapper();
          jsonMapper.registerModule(new Jdk8Module());
@@ -54,7 +53,8 @@ public final class Serialization
       }
       else
          throw new RuntimeException(
-            "Unrecognized extension for " + file + ": expected one of 'json','yaml','yml'."
+            "Unrecognized file extension '" + fileExt + "': " +
+               "expected one of 'json','json5', 'yaml','yml'."
          );
    }
 

@@ -34,7 +34,7 @@ public class TableExpressionProperty
    {
       if (this == o) return true;
       if (o == null || getClass() != o.getClass()) return false;
-      TableExpressionProperty that = (TableExpressionProperty) o;
+      var that = (TableExpressionProperty) o;
       return
          Objects.equals(tableExpression, that.tableExpression) &&
          Objects.equals(name, that.name) &&

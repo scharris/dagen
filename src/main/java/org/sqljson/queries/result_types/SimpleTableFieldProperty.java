@@ -82,7 +82,7 @@ public class SimpleTableFieldProperty
    {
       if (this == o) return true;
       if (o == null || getClass() != o.getClass()) return false;
-      SimpleTableFieldProperty that = (SimpleTableFieldProperty) o;
+      var that = (SimpleTableFieldProperty) o;
       return
          jdbcTypeCode == that.jdbcTypeCode &&
          name.equals(that.name) &&

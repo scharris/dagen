@@ -71,9 +71,9 @@ public final class SpecValidations
       @Nullable RelMetadata childMd = dbmd.getRelationMetadata(childRelId);
 
       if ( parentMd == null )
-         throw new SpecError(stmtLoc.withPart("custom join condition"), "Parent table not found.");
+         throw new SpecError(stmtLoc.addPart("custom join condition"), "Parent table not found.");
       if ( childMd == null )
-         throw new SpecError(stmtLoc.withPart("custom join condition"), "Child table not found.");
+         throw new SpecError(stmtLoc.addPart("custom join condition"), "Child table not found.");
 
       List<String> parentMatchFields =
          customJoinCond.getEquatedFields().stream()

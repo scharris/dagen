@@ -32,33 +32,6 @@ public class DatabaseMetadataFetcher
       this.dateMapping = mapping;
    }
 
-   public void setDateMapping(DateMapping mapping)
-   {
-      this.dateMapping = mapping;
-   }
-
-   public DatabaseMetadata fetchMetadata
-      (
-         Connection conn,
-         @Nullable String schema,
-         boolean includeTables,
-         boolean includeViews,
-         boolean includeFks,
-         @Nullable Pattern excludeRelsPattern
-      )
-      throws SQLException
-   {
-      return
-         fetchMetadata(
-            conn.getMetaData(),
-            schema,
-            includeTables,
-            includeViews,
-            includeFks,
-            excludeRelsPattern
-         );
-   }
-
    public DatabaseMetadata fetchMetadata
       (
          DatabaseMetaData dbmd,
@@ -276,12 +249,6 @@ public class DatabaseMetadataFetcher
       return fks;
    }
 
-
-   public CaseSensitivity getDatabaseCaseSensitivity(Connection conn) throws SQLException
-   {
-      return getDatabaseCaseSensitivity(conn.getMetaData());
-   }
-
    public CaseSensitivity getDatabaseCaseSensitivity(DatabaseMetaData dbmd) throws SQLException
    {
       if ( dbmd.storesLowerCaseIdentifiers() )
@@ -383,4 +350,3 @@ public class DatabaseMetadataFetcher
       return driverReportedTypeCode;
    }
 }
-

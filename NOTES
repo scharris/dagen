@@ -1,4 +1,4 @@
-Add single method in SpecValidations to do all validations for a query spec.
+Use var where it improves readability.
 
 # Generate database metadata.
 ./mvn exec:java@dbmd -DpropsFile="example/db/dbmd-pg.props" -DoutputFile="../../tmp/dmbd.yaml"

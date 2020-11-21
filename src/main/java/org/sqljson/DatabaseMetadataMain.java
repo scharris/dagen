@@ -77,8 +77,8 @@ public class DatabaseMetadataMain
 
       Properties props = new Properties();
 
-      try (OutputStream os = IO.outputStream(outputFilePath);
-           InputStream propsIS = new FileInputStream(jdbcPropsFilePath) )
+      try ( var os = IO.outputStream(outputFilePath);
+            var propsIS = new FileInputStream(jdbcPropsFilePath) )
       {
          props.load(propsIS);
 
@@ -89,7 +89,7 @@ public class DatabaseMetadataMain
 
          Class.forName(driverClassname);
 
-         try ( Connection conn = DriverManager.getConnection(connStr, user, password) )
+         try ( var conn = DriverManager.getConnection(connStr, user, password) )
          {
             ifPresent(dbmdPropsFilePath, path -> {
                try
@@ -101,7 +101,7 @@ public class DatabaseMetadataMain
             });
 
             @Nullable String dateMappingStr = getProperty(props, "date-mapping");
-            DatabaseMetadataFetcher.DateMapping dateMapping =
+            var dateMapping =
                dateMappingStr != null ? DatabaseMetadataFetcher.DateMapping.valueOf(dateMappingStr)
                   : DatabaseMetadataFetcher.DateMapping.DATES_AS_DRIVER_REPORTED;
 
@@ -129,7 +129,7 @@ public class DatabaseMetadataMain
             {
                case "json":
                {
-                  ObjectMapper mapper = new ObjectMapper();
+                  var mapper = new ObjectMapper();
                   mapper.registerModule(new Jdk8Module());
                   mapper.enable(SerializationFeature.INDENT_OUTPUT);
                   mapper.writeValue(os, dbmd);
@@ -137,7 +137,7 @@ public class DatabaseMetadataMain
                }
                case "yaml":
                {
-                  ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
+                  var mapper = new ObjectMapper(new YAMLFactory());
                   mapper.registerModule(new Jdk8Module());
                   mapper.writeValue(os, dbmd);
                   break;

@@ -68,7 +68,7 @@ public class DatabaseRelationClassesGeneratorMain
 
       @Nullable Path outputDir = args.required.size() > 1 ? Paths.get(args.required.get(1)) : null;
 
-      try ( InputStream dbmdIS = Files.newInputStream(dbmdPath) )
+      try ( var dbmdIS = Files.newInputStream(dbmdPath) )
       {
          ObjectMapper yamlMapper = new ObjectMapper(new YAMLFactory());
          yamlMapper.registerModule(new Jdk8Module());
@@ -83,7 +83,7 @@ public class DatabaseRelationClassesGeneratorMain
          boolean includeTimestamp = args.optional.contains(includeSourceGenerationTimestamp);
          srcWriter.writeRelationDefinitions(dbmd, includeTimestamp);
       }
-      catch(Exception e)
+      catch( Exception e )
       {
          e.printStackTrace();
          System.err.println(e.getMessage());
@@ -110,7 +110,7 @@ public class DatabaseRelationClassesGeneratorMain
             throw new RuntimeException("Unrecognized option \"" + opt + "\".");
       }
 
-      SourcesLanguage sourcesLanguage = SourcesLanguage.valueOf(langStr);
+      var sourcesLanguage = SourcesLanguage.valueOf(langStr);
 
       switch ( sourcesLanguage )
       {
@@ -123,4 +123,3 @@ public class DatabaseRelationClassesGeneratorMain
       }
    }
 }
-

@@ -1,5 +1,6 @@
 package org.sqljson.util;
 
+import java.nio.file.Path;
 import java.util.Set;
 import java.util.regex.Pattern;
 
@@ -19,18 +20,6 @@ public final class StringFuns
       )
    {
       return makeNameNotInSet(baseName, existingNames, "");
-   }
-
-   public static int countOccurrences
-      (
-         String s,
-         char c
-      )
-   {
-      int count = 0;
-      for (int i = 0; i < s.length(); ++i)
-         if ( s.charAt(i) == c ) ++count;
-      return count;
    }
 
    public static String makeNameNotInSet
@@ -151,27 +140,12 @@ public final class StringFuns
       return pat != null && pat.matcher(s).matches();
    }
 
-   public static String maybeQualify
-      (
-         @Nullable String qualifier,
-         String objectName
-      )
+   public static String fileExtension(Path filePath)
    {
-      return (qualifier != null ? qualifier + "." : "") + objectName;
-   }
-
-   public static String replaceStringsInWith
-      (
-         String s,
-         String s1,
-         String v1,
-         String s2,
-         String v2
-      )
-   {
-      return ( s2.length() >= s1.length() ) ?
-         s.replace(s2, v2).replace(s1, v1)
-         : s.replace(s1, v1).replace(s2, v2);
+      String fileName = filePath.getFileName().toString();
+      int dotIx = fileName.lastIndexOf('.');
+      if ( dotIx == -1 ) return "";
+      else return fileName.substring(dotIx + 1);
    }
 
    private StringFuns() {}

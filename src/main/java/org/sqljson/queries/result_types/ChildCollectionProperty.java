@@ -40,7 +40,7 @@ public class ChildCollectionProperty
    {
       if (this == o) return true;
       if (o == null || getClass() != o.getClass()) return false;
-      ChildCollectionProperty that = (ChildCollectionProperty) o;
+      var that = (ChildCollectionProperty) o;
       return
          nullable == that.nullable &&
          name.equals(that.name) &&

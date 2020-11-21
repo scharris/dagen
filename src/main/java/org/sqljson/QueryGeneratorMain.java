@@ -27,6 +27,7 @@ import static org.sqljson.util.IO.newFileOrStdoutWriter;
 import static org.sqljson.util.IO.readString;
 import static org.sqljson.util.Serialization.getObjectMapper;
 import static org.sqljson.util.Serialization.writeJsonSchema;
+import static org.sqljson.util.StringFuns.fileExtension;
 
 
 public class QueryGeneratorMain
@@ -58,13 +59,15 @@ public class QueryGeneratorMain
       ps.println("   " + javaGenerateSetters + "  Include setters in generated Java types.");
       ps.println("   " + generatedTypesHeaderFileOptPrefix + "<file>  Contents of this file will be included at the " +
          "top of each generated type's source file (e.g. additional imports for overridden field types).");
+      ps.println("   " + includeSourceGenerationTimestamp + "  Whether to include a generation timestamp " +
+         "in generated source code.");
       ps.println("    --print-spec-json-schema: Print a json schema for the query group spec, to " +
          "facilitate editing.");
    }
 
    public static void main(String[] allArgs)
    {
-      if ( allArgs.length == 1 && allArgs[0].equals("-h") || allArgs[0].equals("--help") )
+      if ( allArgs.length == 1 && (allArgs[0].equals("-h") || allArgs[0].equals("--help")) )
       {
          printUsage();
          return;
@@ -94,12 +97,12 @@ public class QueryGeneratorMain
 
       SourceCodeWriter srcWriter = getSourceCodeWriter(args.optional, srcOutputBaseDirPath);
 
-      try ( InputStream dbmdIS = Files.newInputStream(dbmdPath);
-            InputStream queriesSpecIS = Files.newInputStream(queriesSpecFilePath) )
+      try ( var dbmdIS = Files.newInputStream(dbmdPath);
+            var queriesSpecIS = Files.newInputStream(queriesSpecFilePath) )
       {
-         DatabaseMetadata dbmd = getObjectMapper(dbmdPath).readValue(dbmdIS, DatabaseMetadata.class);
+         DatabaseMetadata dbmd = getObjectMapper(fileExtension(dbmdPath)).readValue(dbmdIS, DatabaseMetadata.class);
 
-         QueryGroupSpec queryGroupSpec = getObjectMapper(queriesSpecFilePath).readValue(queriesSpecIS, QueryGroupSpec.class);
+         QueryGroupSpec queryGroupSpec = getObjectMapper(fileExtension(queriesSpecFilePath)).readValue(queriesSpecIS, QueryGroupSpec.class);
 
          generateQueries(queryGroupSpec, queriesOutputDirPath, dbmd, srcWriter, includeSrcGenTimestamp);
       }
@@ -132,7 +135,7 @@ public class QueryGeneratorMain
       )
       throws IOException
    {
-      QuerySqlGenerator sqlGen =
+      var sqlGenerator =
          new QuerySqlGenerator(
             dbmd,
             queryGroupSpec.getDefaultSchema(),
@@ -140,7 +143,7 @@ public class QueryGeneratorMain
             getPropertyNamer(queryGroupSpec)
          );
 
-      ResultTypesGenerator resultTypesGen =
+      var resultTypesGenerator =
          new ResultTypesGenerator(
             dbmd,
             queryGroupSpec.getDefaultSchema(),
@@ -150,14 +153,14 @@ public class QueryGeneratorMain
       for ( QuerySpec querySpec : queryGroupSpec.getQuerySpecs() )
       {
          // Generate SQL for each of the query's specified result representations.
-         Map<ResultRepr,String> queryReprSqls = sqlGen.generateSqls(querySpec);
+         Map<ResultRepr,String> queryReprSqls = sqlGenerator.generateSqls(querySpec);
 
          // Write query SQLs.
          List<QueryReprSqlPath> sqlPaths = writeQuerySqls(querySpec.getQueryName(), queryReprSqls, queriesOutputDirPath);
 
          if ( querySpec.getGenerateResultTypesOrDefault() )
          {
-            List<ResultType> resultTypes = resultTypesGen.generateResultTypes(querySpec.getTableJson());
+            List<ResultType> resultTypes = resultTypesGenerator.generateResultTypes(querySpec.getTableJson());
 
             srcWriter.writeQuerySourceCode(
                querySpec.getQueryName(),
@@ -183,7 +186,7 @@ public class QueryGeneratorMain
       boolean generateJavaGetters = false;
       boolean generateJavaSetters = false;
 
-      JavaWriter.NullableFieldRepr nullableFieldRepr = JavaWriter.NullableFieldRepr.ANNOTATED;
+      var nullableFieldRepr = JavaWriter.NullableFieldRepr.ANNOTATED;
       @Nullable String typeFilesHeader = null;
       for ( String opt : optionalArgs )
       {
@@ -205,7 +208,7 @@ public class QueryGeneratorMain
             throw new RuntimeException("Unrecognized option \"" + opt + "\".");
       }
 
-      SourcesLanguage sourcesLanguage = SourcesLanguage.valueOf(langStr);
+      var sourcesLanguage = SourcesLanguage.valueOf(langStr);
 
       switch ( sourcesLanguage )
       {
@@ -238,9 +241,9 @@ public class QueryGeneratorMain
       )
       throws IOException
    {
-      List<QueryReprSqlPath> res = new ArrayList<>();
+      var res = new ArrayList<QueryReprSqlPath>();
 
-      for ( Map.Entry<ResultRepr,String> entry : resultReprToSqlMap.entrySet() )
+      for ( var entry : resultReprToSqlMap.entrySet() )
       {
          ResultRepr repr = entry.getKey();
          String sql = entry.getValue();
@@ -271,13 +274,13 @@ public class QueryGeneratorMain
    {
       List<String> paramNames = new ArrayList<>();
 
-      for ( ChildCollectionSpec childSpec: tableSpec.getChildTableCollectionsList() )
+      for ( var childSpec: tableSpec.getChildTableCollectionsList() )
          paramNames.addAll(getParamNames(childSpec.getTableJson()));
 
-      for ( InlineParentSpec parentSpec : tableSpec.getInlineParentTablesList() )
+      for ( var parentSpec : tableSpec.getInlineParentTablesList() )
          paramNames.addAll(getParamNames(parentSpec.getParentTableJsonSpec()));
 
-      for ( ReferencedParentSpec parentSpec : tableSpec.getReferencedParentTablesList() )
+      for ( var parentSpec : tableSpec.getReferencedParentTablesList() )
          paramNames.addAll(getParamNames(parentSpec.getParentTableJsonSpec()));
 
       @Nullable RecordCondition recCond = tableSpec.getRecordCondition();

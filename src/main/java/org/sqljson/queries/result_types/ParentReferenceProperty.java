@@ -40,7 +40,7 @@ public class ParentReferenceProperty
    {
       if (this == o) return true;
       if (o == null || getClass() != o.getClass()) return false;
-      ParentReferenceProperty that = (ParentReferenceProperty) o;
+      var that = (ParentReferenceProperty) o;
       return
          nullable == that.nullable &&
          name.equals(that.name) &&

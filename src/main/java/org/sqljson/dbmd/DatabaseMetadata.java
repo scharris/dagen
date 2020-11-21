@@ -104,53 +104,6 @@ public class DatabaseMetadata
       return relMDsByRelId().get(relId);
    }
 
-   public @Nullable RelMetadata getRelationMetadata
-      (
-         @Nullable String schema,
-         String relName
-      )
-   {
-      return getRelationMetadata(makeRelId(schema, relName));
-   }
-
-   public List<String> getFieldNames
-      (
-         RelId relId,
-         @Nullable String alias
-      )
-   {
-      RelMetadata relMd = requireNonNull(getRelationMetadata(relId));
-
-      return
-         relMd.getFields().stream()
-         .map(f -> dotQualify(alias, f.getName()))
-         .collect(toList());
-   }
-
-   public List<String> getFieldNames(RelId relId)
-   {
-      return getFieldNames(relId, null);
-   }
-
-   public List<String> getFieldNames
-      (
-         @Nullable String schema,
-         String relName
-      )
-   {
-      return getFieldNames(makeRelId(schema, relName));
-   }
-
-   public List<String> getFieldNames
-      (
-         @Nullable String schema,
-         String relName,
-         @Nullable String alias
-      )
-   {
-      return getFieldNames(makeRelId(schema, relName), alias);
-   }
-
    public List<String> getPrimaryKeyFieldNames
       (
          RelId relId,
@@ -165,67 +118,6 @@ public class DatabaseMetadata
    public List<String> getPrimaryKeyFieldNames(RelId relId)
    {
       return getPrimaryKeyFieldNames(relId, null);
-   }
-
-   public List<String> getPrimaryKeyFieldNames
-      (
-         @Nullable String schema,
-         String relName
-      )
-   {
-      return getPrimaryKeyFieldNames(makeRelId(schema, relName));
-   }
-
-   public List<String> getPrimaryKeyFieldNames
-      (
-         @Nullable String schema,
-         String relName,
-         @Nullable String alias
-      )
-   {
-      return getPrimaryKeyFieldNames(makeRelId(schema, relName), alias);
-   }
-
-   public List<ForeignKey> getForeignKeysToParentsFrom(RelId relId)
-   {
-      return getForeignKeysFromTo(relId, null);
-   }
-
-   public List<ForeignKey> getForeignKeysToParentsFrom
-      (
-         @Nullable String schema,
-         String relName
-      )
-   {
-      return getForeignKeysFromTo(makeRelId(schema, relName), null);
-   }
-
-   public List<ForeignKey> getForeignKeysFromChildrenTo(RelId relId)
-   {
-      return getForeignKeysFromTo(null, relId);
-   }
-
-   public List<ForeignKey> getForeignKeysFromChildrenTo
-      (
-         @Nullable String schema,
-         String relName
-      )
-   {
-      return getForeignKeysFromTo(null, makeRelId(schema, relName));
-   }
-
-   public List<ForeignKey> getForeignKeysFromTo
-      (
-         String fromSchema,
-         String fromRelName,
-         String toSchema,
-         String toRelName
-      )
-   {
-      RelId fromRelId = makeRelId(fromSchema, fromRelName);
-      RelId toRelId = makeRelId(toSchema, toRelName);
-
-      return getForeignKeysFromTo(fromRelId, toRelId);
    }
 
    public List<ForeignKey> getForeignKeysFromTo
@@ -261,20 +153,6 @@ public class DatabaseMetadata
          return res;
    }
 
-   public List<ForeignKey> getForeignKeysFromTo
-      (
-         @Nullable RelId childRelId,
-         @Nullable RelId parentRelId
-      )
-   {
-      return
-         getForeignKeysFromTo(
-            childRelId,
-            parentRelId,
-            ForeignKeyScope.REGISTERED_TABLES_ONLY
-         );
-   }
-
    /** Return a single foreign key between the passed tables, having the specified field names if specified,
     *  or null if not found. IllegalArgumentException is thrown if multiple foreign keys satisfy the requirements.
     */
@@ -307,63 +185,6 @@ public class DatabaseMetadata
       }
 
       return soughtFk;
-   }
-
-   /** Return the field names in the passed table involved in foreign keys (to parents). */
-   public Set<String> getForeignKeyFieldNames
-      (
-         RelId relId,
-         @Nullable String alias
-      )
-   {
-      return
-         getForeignKeysToParentsFrom(relId).stream()
-         .flatMap(fk -> fk.getForeignKeyComponents().stream())
-         .map(fkComp -> dotQualify(alias, fkComp.getForeignKeyFieldName()))
-         .collect(toSet());
-   }
-
-   public Set<RelId> getMultiplyReferencingChildTablesForParent(RelId parentRelId)
-   {
-      Set<RelId> rels = new HashSet<>();
-      Set<RelId> repeatedChildren = new HashSet<>();
-
-      for ( ForeignKey fk : getForeignKeysFromChildrenTo(parentRelId) )
-      {
-         if ( !rels.add(fk.getSourceRelationId()) )
-            repeatedChildren.add(fk.getSourceRelationId());
-      }
-
-      return repeatedChildren;
-   }
-
-   public Set<RelId> getMultiplyReferencedParentTablesForChild(RelId childRelId)
-   {
-      Set<RelId> rels = new HashSet<>();
-      Set<RelId> repeatedParents = new HashSet<>();
-
-      for ( ForeignKey fk : getForeignKeysToParentsFrom(childRelId) )
-      {
-         if ( !rels.add(fk.getTargetRelationId()) )
-            repeatedParents.add(fk.getTargetRelationId());
-      }
-
-      return repeatedParents;
-   }
-
-   public @Nullable ForeignKey getForeignKeyHavingFieldSetAmong
-      (
-         Set<String> srcFieldNames,
-         Collection<ForeignKey> fks
-      )
-   {
-      Set<String> normdFieldNames = normalizeNames(srcFieldNames);
-
-      return
-         fks.stream()
-         .filter(fk -> fk.sourceFieldNamesSetEqualsNormalizedNamesSet(normdFieldNames))
-         .findAny()
-         .orElse(null);
    }
 
    /////////////////////////////////////////////////////////
@@ -509,46 +330,6 @@ public class DatabaseMetadata
    private Set<String> normalizeNames(Set<String> names)
    {
       return names.stream().map(this::normalizeName).collect(toSet());
-   }
-
-   private static String dotQualify
-      (
-         @Nullable String alias,
-         String name
-      )
-   {
-      return alias != null ? alias + "." + name : name;
-   }
-
-
-   public RelId makeRelId
-      (
-         @Nullable String schema,
-         String relName
-      )
-   {
-      return new RelId(schema != null ? normalizeName(schema) : null, normalizeName(relName));
-   }
-
-   public RelId makeRelId(String possiblySchemaQualifiedRelName)
-   {
-      @Nullable String schema;
-      String relName;
-
-      int dotix = possiblySchemaQualifiedRelName.indexOf('.');
-
-      if ( dotix == -1 )
-      {
-         schema = getSchemaName();
-         relName = possiblySchemaQualifiedRelName;
-      }
-      else
-      {
-         schema = possiblySchemaQualifiedRelName.substring(0, dotix);
-         relName = possiblySchemaQualifiedRelName.substring(dotix + 1);
-      }
-
-      return new RelId(schema != null ? normalizeName(schema) : null, normalizeName(relName));
    }
 
    /// Make a relation id from a given qualified or unqualified table identifier

@@ -47,8 +47,8 @@ public class ResultTypesGenerator
    {
       Map<String,ResultType> typesInScope = new HashMap<>(envTypesInScope);
 
-      ResultTypeBuilder typeBuilder = new ResultTypeBuilder();
-      List<ResultType> resultTypes = new ArrayList<>();
+      var typeBuilder = new ResultTypeBuilder();
+      var resultTypes = new ArrayList<ResultType>();
 
       RelId relId = dbmd.toRelId(tjs.getTable(), defaultSchema);
 
@@ -59,19 +59,19 @@ public class ResultTypesGenerator
       // Inline parents can contribute fields to any primary field category (table field,
       // expression, parent ref, child collection). Get the inline parent fields, and the result
       // types from the tables themselves and recursively from their specified related tables.
-      InlineParentContrs inlineParentsContr = getInlineParentContrs(relId, tjs.getInlineParentTablesList(), typesInScope);
+      var inlineParentsContr = getInlineParentContrs(relId, tjs.getInlineParentTablesList(), typesInScope);
       typeBuilder.addAllFieldsFrom(inlineParentsContr.typeBuilder);
       resultTypes.addAll(inlineParentsContr.resultTypes);
       inlineParentsContr.resultTypes.forEach(t -> typesInScope.put(t.getTypeName(), t));
 
       // Get referenced parent fields and result types, with result types from related tables.
-      RefdParentContrs refdParentsContr = getRefdParentContrs(relId, tjs.getReferencedParentTablesList(), typesInScope);
+      var refdParentsContr = getRefdParentContrs(relId, tjs.getReferencedParentTablesList(), typesInScope);
       typeBuilder.addParentReferenceProperties(refdParentsContr.parentReferenceProperties);
       resultTypes.addAll(refdParentsContr.resultTypes);
       refdParentsContr.resultTypes.forEach(t -> typesInScope.put(t.getTypeName(), t));
 
       // Get the child collection fields and result types, with result types from related tables.
-      ChildCollectionContrs childCollsContr = getChildCollectionContrs(tjs.getChildTableCollectionsList(), typesInScope);
+      var childCollsContr = getChildCollectionContrs(tjs.getChildTableCollectionsList(), typesInScope);
       typeBuilder.addChildCollectionProperties(childCollsContr.childCollectionProperties);
       resultTypes.addAll(childCollsContr.resultTypes);
       childCollsContr.resultTypes.forEach(t -> typesInScope.put(t.getTypeName(), t));
@@ -109,7 +109,7 @@ public class ResultTypesGenerator
          List<TableFieldExpr> tableFieldExpressions
       )
    {
-      List<SimpleTableFieldProperty> fields = new ArrayList<>();
+      var fields = new ArrayList<SimpleTableFieldProperty>();
 
       Map<String,Field> dbFieldsByName = getTableFieldsByName(relId);
 
@@ -132,7 +132,7 @@ public class ResultTypesGenerator
          List<TableFieldExpr> tableFieldExpressions
       )
    {
-      List<TableExpressionProperty> fields = new ArrayList<>();
+      var fields = new ArrayList<TableExpressionProperty>();
 
       for ( TableFieldExpr tfe : tableFieldExpressions )
       {
@@ -156,12 +156,12 @@ public class ResultTypesGenerator
          Map<String,ResultType> envTypesInScope
       )
    {
-      ResultTypeBuilder typeBuilder = new ResultTypeBuilder();
-      List<ResultType> resultTypes = new ArrayList<>();
+      var typeBuilder = new ResultTypeBuilder();
+      var resultTypes = new ArrayList<ResultType>();
 
-      Map<String,ResultType> typesInScope = new HashMap<>(envTypesInScope);
+      var typesInScope = new HashMap<>(envTypesInScope);
 
-      for ( InlineParentSpec parentSpec :  inlineParentSpecs )
+      for ( var parentSpec :  inlineParentSpecs )
       {
          // Generate types for the parent table and any related tables it includes recursively.
          List<ResultType> parentResultTypes = generateResultTypesWithTypesInScope(parentSpec.getParentTableJsonSpec(), typesInScope);
@@ -174,7 +174,7 @@ public class ResultTypesGenerator
 
          typeBuilder.addAllFieldsFrom(parentType, forceNullable);
 
-         List<ResultType> actuallyGeneratedParentTypes = parentResultTypes.subList(1, parentResultTypes.size());
+         var actuallyGeneratedParentTypes = parentResultTypes.subList(1, parentResultTypes.size());
          resultTypes.addAll(actuallyGeneratedParentTypes);
          actuallyGeneratedParentTypes.forEach(t -> typesInScope.put(t.getTypeName(), t));
       }
@@ -190,12 +190,12 @@ public class ResultTypesGenerator
          Map<String, ResultType> envTypesInScope
       )
    {
-      List<ParentReferenceProperty> parentRefFields = new ArrayList<>();
-      List<ResultType> resultTypes = new ArrayList<>();
+      var parentRefFields = new ArrayList<ParentReferenceProperty>();
+      var resultTypes = new ArrayList<ResultType>();
 
-      Map<String, ResultType> typesInScope = new HashMap<>(envTypesInScope);
+      var typesInScope = new HashMap<String,ResultType>(envTypesInScope);
 
-      for ( ReferencedParentSpec parentSpec : referencedParentSpecs )
+      for ( var parentSpec : referencedParentSpecs )
       {
          // Generate types by traversing the parent table and its parents and children.
          List<ResultType> parentResultTypes = generateResultTypesWithTypesInScope(parentSpec.getParentTableJsonSpec(), typesInScope);
@@ -220,12 +220,12 @@ public class ResultTypesGenerator
          Map<String, ResultType> envTypesInScope
       )
    {
-      List<ChildCollectionProperty> childCollectionProperties = new ArrayList<>();
-      List<ResultType> resultTypes = new ArrayList<>();
+      var childCollectionProperties = new ArrayList<ChildCollectionProperty>();
+      var resultTypes = new ArrayList<ResultType>();
 
-      Map<String, ResultType> typesInScope = new HashMap<>(envTypesInScope);
+      var typesInScope = new HashMap<>(envTypesInScope);
 
-      for ( ChildCollectionSpec childCollSpec : childCollectionSpecs )
+      for ( var childCollSpec : childCollectionSpecs )
       {
          // Generate types by traversing the child table and its parents and children recursively.
          List<ResultType> childResultTypes = generateResultTypesWithTypesInScope(childCollSpec.getTableJson(), typesInScope);
@@ -269,7 +269,7 @@ public class ResultTypesGenerator
    {
       String baseName = typeToFind.getTypeName();
 
-      for ( Map.Entry<String, ResultType> entry: inMap.entrySet() )
+      for ( var entry: inMap.entrySet() )
       {
          boolean baseNamesMatch =
             entry.getKey().startsWith(baseName) &&
