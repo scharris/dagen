@@ -17,15 +17,9 @@ import static org.sqljson.dbmd.RelMetadata.RelType.View;
 
 public class DatabaseMetadataFetcher
 {
-
    public enum DateMapping { DATES_AS_DRIVER_REPORTED, DATES_AS_TIMESTAMPS, DATES_AS_DATES }
 
-   private DateMapping dateMapping;
-
-   public DatabaseMetadataFetcher()
-   {
-      this(DateMapping.DATES_AS_DRIVER_REPORTED);
-   }
+   private final DateMapping dateMapping;
 
    public DatabaseMetadataFetcher(DateMapping mapping)
    {
@@ -55,20 +49,8 @@ public class DatabaseMetadataFetcher
 
       String dbmsName = dbmd.getDatabaseProductName();
       String dbmsVer = dbmd.getDatabaseProductVersion();
-      int dbmsMajorVer = dbmd.getDatabaseMajorVersion();
-      int dbmsMinorVer = dbmd.getDatabaseMinorVersion();
 
-      return
-         new DatabaseMetadata(
-            nSchema,
-            relMds,
-            fks,
-            caseSens,
-            dbmsName,
-            dbmsVer,
-            dbmsMajorVer,
-            dbmsMinorVer
-         );
+      return new DatabaseMetadata(relMds, fks, caseSens, dbmsName, dbmsVer);
    }
 
 
@@ -175,7 +157,7 @@ public class DatabaseMetadataFetcher
                   if ( rmdBldr != null )
                      relMds.add(rmdBldr.build());
 
-                  rmdBldr = new RelMetadataBuilder(relId, relDescr.getRelationType(), relDescr.getRelationComment());
+                  rmdBldr = new RelMetadataBuilder(relId, relDescr.getRelationType());
                }
 
                rmdBldr.addField(f);
@@ -227,6 +209,7 @@ public class DatabaseMetadataFetcher
                   fks.add(fkBldr.build());
 
                fkBldr = new ForeignKeyBuilder(
+                  null,
                   new RelId(rs.getString("FKTABLE_SCHEM"),
                      requireNonNull(rs.getString("FKTABLE_NAME"))),
                   new RelId(rs.getString("PKTABLE_SCHEM"),
@@ -305,7 +288,7 @@ public class DatabaseMetadataFetcher
          pkRS.close();
 
          String name = requireNonNull(colsRS.getString("COLUMN_NAME"));
-         int typeCode = requireNonNull(colsRS.getInt("DATA_TYPE"));
+         int typeCode = colsRS.getInt("DATA_TYPE");
          String dbType = requireNonNull(colsRS.getString("TYPE_NAME"));
 
          // Handle special cases/conversions for the type code.
@@ -324,10 +307,10 @@ public class DatabaseMetadataFetcher
             : null;
          @Nullable Integer fracDigs = Field.isJdbcTypeNumeric(typeCode) ? getRSInt(colsRS, "DECIMAL_DIGITS") : null;
          @Nullable Integer prec = Field.isJdbcTypeNumeric(typeCode) ? size : null;
+         @Nullable Integer precRadix = null; // TODO: Radix column?
          @Nullable Integer pkPart = pkSeqNumsByName.get(name);
-         @Nullable String comment = colsRS.getString("REMARKS");
 
-         return new Field(name, typeCode, dbType, length, prec, fracDigs, nullable, pkPart, comment);
+         return new Field(name, typeCode, dbType, length, prec, precRadix, fracDigs, nullable, pkPart);
       }
    }
 

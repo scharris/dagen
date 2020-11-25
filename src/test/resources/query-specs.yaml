@@ -36,7 +36,7 @@ querySpecs:
       fieldExpressions:
         - field: id
         - field: cid
-          generatedFieldType: "@Nullable BigDecimal"
+          fieldTypeInGeneratedSource: "@Nullable BigDecimal"
       recordCondition:
          sql: "$$.id = :id"
          paramNames: ["id"]
@@ -51,7 +51,7 @@ querySpecs:
         - expression: "$d.cid + 1000"
           withTableAliasAs: $d # custom table alias used in expression
           jsonProperty: cidPlus1000
-          generatedFieldType: "@Nullable Integer"
+          fieldTypeInGeneratedSource: "@Nullable Integer"
       recordCondition:
          sql: "$$.id = :id"
          paramNames: ["id"]
@@ -207,7 +207,7 @@ querySpecs:
                 jsonProperty: advisoryType
               - expression: "(select 1 + 1)"
                 jsonProperty: exprYieldingTwo
-                generatedFieldType: long
+                fieldTypeInGeneratedSource: long
       recordCondition:
          sql: "$$.id = :id"
          paramNames: ["id"]
@@ -230,7 +230,7 @@ querySpecs:
                 jsonProperty: advisoryType
               - expression: "(select 1 + 1)"
                 jsonProperty: exprYieldingTwo
-                generatedFieldType: long
+                fieldTypeInGeneratedSource: long
           customJoinCondition:
             equatedFields:
               - childField: advisory_type_id

@@ -103,7 +103,7 @@ table.
         fieldExpressions:
           - [field: <field-name> | expression: <value expression with $$ as table alias>]
             [jsonProperty: <property-name>]               # (required for expressions)
-            [generatedFieldType: <Java type declaration>] # (required for expressions)
+            [fieldTypeInGeneratedSource: <Java type declaration>] # (required for expressions)
           ...
 ```
 
@@ -111,12 +111,12 @@ Here the field name or expression value, provided via `field` or `expression`
 in the first line of each array entry, provides the value for the corresponding
 property in the output object. The `jsonProperty` provides the output property
 name for the value. If result types are being generated (e.g. in Java), then 
-`generatedFieldType` can be used to set the type declaration to be used for the
+`fieldTypeInGeneratedSource` can be used to set the type declaration to be used for the
 field member in the generated source code for result types. The type declaration
 can include decorations on the type such as annotations as well, for example
 `@NotNull String`.
 
-For the `field` variant, both `jsonProperty` and `generatedFieldType` are
+For the `field` variant, both `jsonProperty` and `fieldTypeInGeneratedSource` are
 optional, as they can be derived from the database table field name
 (transformed to camelCase) and from its database type, respectively. Expression
 fields require these properties however, because otherwise there would be no way
@@ -126,7 +126,7 @@ below:
 ```      
         - expression: "$$.first_name || ' ' || $$.last_name"
           jsonProperty: fullName 
-          generatedFieldType: @Nullable String
+          fieldTypeInGeneratedSource: @Nullable String
 ```
 Here the occurrences of `$$` in the expression value stand for the table alias
 which is automatically generated for the table specified in the `table` field.

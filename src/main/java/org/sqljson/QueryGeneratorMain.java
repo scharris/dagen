@@ -111,8 +111,9 @@ public class QueryGeneratorMain
          System.err.println("\n\n" +
             "----------------------------------------------------------------------\n" +
             "Error in query specification:\n" +
-            "  in query: " + sse.getStatementLocation().getStatementName() + "\n" +
-            "  at part: " + sse.getStatementLocation().getStatementPart() + "\n" +
+            "  in query: " + sse.getSpecLocation().getQueryName() + "\n" +
+            (sse.getSpecLocation().getQueryPart().length() > 0 ?
+               "At part: " + sse.getSpecLocation().getQueryPart() + "\n": "") +
             "  problem: " + sse.getProblem() + "\n" +
             "----------------------------------------------------------------------\n\n\n"
          );

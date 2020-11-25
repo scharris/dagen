@@ -2,6 +2,9 @@ package org.sqljson.dbmd;
 
 import java.io.Serializable;
 import java.util.*;
+
+import org.checkerframework.checker.nullness.qual.Nullable;
+
 import static java.util.Collections.unmodifiableList;
 import static java.util.Objects.requireNonNull;
 
@@ -9,9 +12,11 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 
 public class ForeignKey implements Serializable {
 
-   private final RelId sourceRelationId;
+   private final @Nullable String constraintName;
 
-   private final RelId targetRelationId;
+   private final RelId foreignKeyRelationId; // child/referencing table
+
+   private final RelId primaryKeyRelationId; // parent/referenced table
 
    private final List<Component> foreignKeyComponents;
 
@@ -19,31 +24,36 @@ public class ForeignKey implements Serializable {
 
    public ForeignKey
       (
-         RelId sourceRelationId,
-         RelId targetRelationId,
+         @Nullable String constraintName,
+         RelId foreignKeyRelationId,
+         RelId primaryKeyRelationId,
          List<Component> foreignKeyComponents
       )
    {
-      this.sourceRelationId = requireNonNull(sourceRelationId);
-      this.targetRelationId = requireNonNull(targetRelationId);
+      this.constraintName = constraintName;
+      this.foreignKeyRelationId = requireNonNull(foreignKeyRelationId);
+      this.primaryKeyRelationId = requireNonNull(primaryKeyRelationId);
       this.foreignKeyComponents = unmodifiableList(new ArrayList<>(requireNonNull(foreignKeyComponents)));
    }
 
    ForeignKey()
    {
-      sourceRelationId = RelId.DUMMY_INSTANCE;
-      targetRelationId = RelId.DUMMY_INSTANCE;
-      foreignKeyComponents = Collections.emptyList();
+      this.constraintName = null;
+      this.foreignKeyRelationId = RelId.DUMMY_INSTANCE;
+      this.primaryKeyRelationId = RelId.DUMMY_INSTANCE;
+      this.foreignKeyComponents = Collections.emptyList();
    }
 
-   public RelId getSourceRelationId() { return sourceRelationId; }
+   public @Nullable String getConstraintName() { return constraintName; }
 
-   public RelId getTargetRelationId() { return targetRelationId; }
+   public RelId getForeignKeyRelationId() { return foreignKeyRelationId; }
+
+   public RelId getPrimaryKeyRelationId() { return primaryKeyRelationId; }
 
    public List<Component> getForeignKeyComponents() { return foreignKeyComponents; }
 
    @JsonIgnore()
-   public List<String> getSourceFieldNames()
+   public List<String> getChildFieldNames()
    {
       List<String> names = new ArrayList<>();
 
@@ -54,7 +64,7 @@ public class ForeignKey implements Serializable {
    }
 
    @JsonIgnore()
-   public List<String> getTargetFieldNames()
+   public List<String> getParentFieldNames()
    {
       List<String> names = new ArrayList<>();
 
@@ -66,17 +76,17 @@ public class ForeignKey implements Serializable {
 
    public String asEquation
       (
-         String src_rel_alias,
-         String tgt_rel_alias
+         String childRelAlias,
+         String parentRelAlias
       )
    {
-      return asEquation(src_rel_alias, tgt_rel_alias, EquationStyle.SOURCE_ON_LEFTHAND_SIDE);
+      return asEquation(childRelAlias, parentRelAlias, EquationStyle.SOURCE_ON_LEFTHAND_SIDE);
    }
 
    public String asEquation
       (
-         String srcRelAlias,
-         String tgtRelAlias,
+         String childRelAlias,
+         String parentRelAlias,
          EquationStyle style
       )
    {
@@ -89,10 +99,10 @@ public class ForeignKey implements Serializable {
          if ( sb.length() > 0 )
             sb.append(" and ");
 
-         String fstAlias = srcFirst ? srcRelAlias : tgtRelAlias;
+         String fstAlias = srcFirst ? childRelAlias : parentRelAlias;
          String fstFld = srcFirst ? fkc.getForeignKeyFieldName() : fkc.getPrimaryKeyFieldName();
 
-         String sndAlias = srcFirst ? tgtRelAlias : srcRelAlias;
+         String sndAlias = srcFirst ? parentRelAlias : childRelAlias;
          String sndFld = srcFirst ? fkc.getPrimaryKeyFieldName() : fkc.getForeignKeyFieldName();
 
          if ( fstAlias.length() > 0 )
@@ -115,17 +125,17 @@ public class ForeignKey implements Serializable {
       return sb.toString();
    }
 
-   public boolean sourceFieldNamesSetEqualsNormalizedNamesSet(Set<String> normdReqdFkFieldNames)
+   public boolean foreignKeyFieldNamesSetEquals(Set<String> normdReqdFkFieldNames)
    {
       if ( getForeignKeyComponents().size() != normdReqdFkFieldNames.size() )
          return false;
 
-      Set<String> childFkFieldNames = new HashSet<>();
+      Set<String> fkFieldNames = new HashSet<>();
 
       for ( ForeignKey.Component fk_comp: getForeignKeyComponents() )
-         childFkFieldNames.add(fk_comp.getForeignKeyFieldName());
+         fkFieldNames.add(fk_comp.getForeignKeyFieldName());
 
-      return childFkFieldNames.equals(normdReqdFkFieldNames);
+      return fkFieldNames.equals(normdReqdFkFieldNames);
    }
 
    public static class Component

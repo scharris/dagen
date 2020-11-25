@@ -1,6 +1,5 @@
 package org.sqljson;
 
-import java.io.InputStream;
 import java.io.PrintStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -12,14 +11,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 
-import org.sqljson.dbmd.DatabaseMetadata;
-import org.sqljson.dbmd.source_writers.JavaWriter;
-import org.sqljson.dbmd.source_writers.SourceCodeWriter;
-import org.sqljson.dbmd.source_writers.TypeScriptWriter;
 import org.sqljson.util.AppUtils.SplitArgs;
 import static org.sqljson.util.AppUtils.splitOptionsAndRequiredArgs;
 import static org.sqljson.util.AppUtils.throwError;
 import static org.sqljson.util.Nullables.ifPresent;
+import org.sqljson.dbmd.DatabaseMetadata;
+import org.sqljson.dbmd.source_writers.JavaWriter;
+import org.sqljson.dbmd.source_writers.SourceCodeWriter;
+import org.sqljson.dbmd.source_writers.TypeScriptWriter;
 
 
 public class DatabaseRelationClassesGeneratorMain
@@ -76,7 +75,7 @@ public class DatabaseRelationClassesGeneratorMain
          DatabaseMetadata dbmd = yamlMapper.readValue(dbmdIS, DatabaseMetadata.class);
 
          ifPresent(outputDir, path ->  {
-            if ( !Files.isDirectory(path) ) throwError("Source output base directory not found.");
+            if ( !Files.isDirectory(path) ) throwError("Source output directory not found.");
          });
 
          SourceCodeWriter srcWriter = getSourceCodeWriter(args, outputDir);

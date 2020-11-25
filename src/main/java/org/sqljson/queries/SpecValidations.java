@@ -1,8 +1,8 @@
 package org.sqljson.queries;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
@@ -40,21 +40,47 @@ public final class SpecValidations
       return relMd.getRelationId();
    }
 
-   public static void verifySimpleSelectFieldsExist
+   public static void verifyTableFieldExpressionsValid
       (
          TableJsonSpec tableSpec,
          @Nullable String defaultSchema,
          DatabaseMetadata dbmd,
-         SpecLocation stmtLoc
+         SpecLocation specLoc
       )
    {
-      List<String> simpleSelectFields =
-         tableSpec.getFieldExpressionsList().stream()
-         .filter(tfe -> tfe.getField() != null)
-         .map(tfe -> requireNonNull(tfe.getField()))
-         .collect(toList());
+      if ( tableSpec.getFieldExpressions() == null )
+         return;
 
-      verifyTableFieldsExist(tableSpec.getTable(), defaultSchema, simpleSelectFields, dbmd, stmtLoc);
+      var simpleSelectFields = new ArrayList<String>();
+
+      var fieldExprs = tableSpec.getFieldExpressionsList();
+      for ( int ix=0; ix < fieldExprs.size(); ++ix )
+      {
+         var fieldExpr = fieldExprs.get(ix);
+         @Nullable String field = fieldExpr.getField();
+         @Nullable String expr = fieldExpr.getExpression();
+
+         if ( expr != null && fieldExpr.getFieldTypeInGeneratedSource() == null )
+            throw new SpecError(specLoc,
+               "fieldExpressions entry #" + (ix+1) + " is invalid: " +
+                  "fieldTypeInGeneratedSource must be specified with the 'expression' property."
+            );
+
+         if ( (field == null) == (expr == null) )
+            throw new SpecError(specLoc,
+               "fieldExpressions entry #" + (ix+1) + " is invalid: " +
+               "exactly one of 'field' or 'expression' properties must be provided."
+            );
+
+         if (  field != null )
+            simpleSelectFields.add(field);
+      }
+
+      @Nullable RelMetadata relMd = dbmd.getRelationMetadata(dbmd.toRelId(tableSpec.getTable(), defaultSchema));
+      if ( relMd == null )
+         throw new SpecError(specLoc, "Table '" + tableSpec.getTable() + "' was not found in database metadata.");
+
+      verifyTableFieldsExist(relMd, simpleSelectFields, dbmd, specLoc);
    }
 
    public static void validateCustomJoinCondition
@@ -88,24 +114,6 @@ public final class SpecValidations
          .collect(toList());
 
       verifyTableFieldsExist(childMd, childMatchFields, dbmd, stmtLoc);
-   }
-
-   private static void verifyTableFieldsExist
-      (
-         String table, // maybe qualified
-         @Nullable String defaultSchema,
-         List<String> fieldNames,
-         DatabaseMetadata dbmd,
-         SpecLocation specLocation
-      )
-      throws SpecError
-   {
-      @Nullable RelMetadata relMd = dbmd.getRelationMetadata(dbmd.toRelId(table, defaultSchema));
-
-      if ( relMd == null )
-         throw new SpecError(specLocation, "Table '" + table + "' was not found in database metadata.");
-
-      verifyTableFieldsExist(relMd, fieldNames, dbmd, specLocation);
    }
 
    private static void verifyTableFieldsExist

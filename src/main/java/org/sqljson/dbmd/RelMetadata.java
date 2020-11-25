@@ -11,16 +11,14 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
-@JsonPropertyOrder({"relationId", "relationType", "relationComment", "fields"})
+@JsonPropertyOrder({"relationId", "relationType", "fields"})
 public class RelMetadata
 {
-   private RelId relationId;
+   private final RelId relationId;
 
-   private RelType relationType;
+   private final RelType relationType;
 
-   private @Nullable String relationComment;
-
-   private List<Field> fields;
+   private final List<Field> fields;
 
    public enum RelType { Table, View, Unknown }
 
@@ -29,13 +27,11 @@ public class RelMetadata
       (
          RelId relationId,
          RelType relationType,
-         @Nullable String relationComment,
          List<Field> fields
       )
    {
       this.relationId = requireNonNull(relationId);
       this.relationType = requireNonNull(relationType);
-      this.relationComment = relationComment;
       this.fields = unmodifiableList(new ArrayList<>(requireNonNull(fields)));
    }
 
@@ -49,8 +45,6 @@ public class RelMetadata
    public RelId getRelationId() { return relationId; }
 
    public RelType getRelationType() { return relationType; }
-
-   public @Nullable String getRelationComment() { return relationComment; }
 
    public List<Field> getFields() { return fields; }
 

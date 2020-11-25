@@ -9,7 +9,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
 @JsonPropertyOrder({
-   "name", "databaseType", "nullable", "primaryKeyPartNumber", "comment"
+   "name", "databaseType", "nullable", "primaryKeyPartNumber", "length", "precision", "precisionRadix"
 })
 public class Field {
 
@@ -23,13 +23,14 @@ public class Field {
 
    private @Nullable Integer precision;
 
+   private @Nullable Integer precisionRadix;
+
    private @Nullable Integer fractionalDigits;
 
    private @Nullable Boolean nullable;
 
    private @Nullable Integer primaryKeyPartNumber;
 
-   private @Nullable String comment;
 
    public Field
       (
@@ -38,10 +39,10 @@ public class Field {
          String databaseType,
          @Nullable Integer length,
          @Nullable Integer precision,
+         @Nullable Integer precisionRadix,
          @Nullable Integer fractionalDigits,
          @Nullable Boolean nullable,
-         @Nullable Integer primaryKeyPartNumber,
-         @Nullable String comment
+         @Nullable Integer primaryKeyPartNumber
       )
    {
       this.name = requireNonNull(name);
@@ -49,10 +50,10 @@ public class Field {
       this.databaseType = requireNonNull(databaseType);
       this.length = length;
       this.precision = precision;
+      this.precisionRadix = precisionRadix;
       this.fractionalDigits = fractionalDigits;
       this.nullable = nullable;
       this.primaryKeyPartNumber = primaryKeyPartNumber;
-      this.comment = comment;
    }
 
    Field()
@@ -73,11 +74,11 @@ public class Field {
 
    public @Nullable Integer getPrecision() { return precision; }
 
+   public @Nullable Integer getPrecisionRadix() { return precisionRadix; }
+
    public @Nullable Boolean getNullable() { return nullable; }
 
    public @Nullable Integer getPrimaryKeyPartNumber() { return primaryKeyPartNumber; }
-
-   public @Nullable String getComment() { return comment; }
 
    @JsonIgnore
    public boolean isNumericType() { return isJdbcTypeNumeric(jdbcTypeCode); }

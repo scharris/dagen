@@ -64,7 +64,7 @@ export interface TableFieldExpr {
     expression?: Nullable<string>;
     withTableAliasAs?: Nullable<string>;
     jsonProperty?: Nullable<string>;
-    generatedFieldType?: Nullable<string>;
+    fieldTypeInGeneratedSource?: Nullable<string>;
 }
 
 export interface TableJsonSpec {

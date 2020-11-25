@@ -203,20 +203,24 @@ public class QuerySqlGenerator
          SpecLocation specLoc
       )
    {
-      verifySimpleSelectFieldsExist(tableSpec, defaultSchema, dbmd, specLoc);
+      verifyTableFieldExpressionsValid(tableSpec, defaultSchema, dbmd, specLoc);
 
       @Nullable List<TableFieldExpr> fieldExprs = tableSpec.getFieldExpressions();
       if (  fieldExprs == null )
          return emptyList();
-      else return
-         fieldExprs.stream()
-         .map(tfe -> {
-            SpecLocation loc = specLoc.addPart("field expressions of table " + tableSpec.getTable());
+      else
+      {
+         var res = new ArrayList<SelectEntry>();
+         for (int ix=0; ix < fieldExprs.size(); ++ix)
+         {
+            var tfe = fieldExprs.get(ix);
+            var loc = specLoc.addPart("fieldExpressions entry #" + (ix+1) + " of table " + tableSpec.getTable());
             String propName = dbmd.quoteIfNeeded(this.jsonPropertyName(tfe, propNameFn, loc));
             String sqlExpr = this.tableFieldExpressionSql(tfe, alias, loc);
-            return new SelectEntry(sqlExpr, propName, NATIVE_FIELD);
-         })
-         .collect(toList());
+            res.add(new SelectEntry(sqlExpr, propName, NATIVE_FIELD));
+         }
+         return res;
+      }
    }
 
    private String tableFieldExpressionSql
@@ -250,9 +254,13 @@ public class QuerySqlGenerator
    {
       var sqlParts = new SqlParts(emptyList(), emptyList(), emptyList(), null, aliasesInScope);
 
-      for ( var parentSpec : tableSpec.getInlineParentTablesList() )
+      var parentSpecs = tableSpec.getInlineParentTablesList();
+      for (int ix=0; ix < parentSpecs.size(); ++ix )
       {
-         var parentLoc = specLoc.addPart("inline parent '" + parentSpec.getTableJson().getTable() + "'");
+         var parentSpec = parentSpecs.get(ix);
+         var parentLoc = specLoc.addPart(
+            "inlineParentTables entry #" + (ix+1) + ", '" + parentSpec.getTableJson().getTable() + "' table"
+         );
          sqlParts.addParts(
             inlineParentSqlParts(parentSpec, relId, alias, sqlParts.aliasesInScope, propNameFn, parentLoc)
          );
@@ -358,9 +366,13 @@ public class QuerySqlGenerator
    {
       var sqlParts = new SqlParts();
 
-      for ( var parentSpec : tableSpec.getReferencedParentTablesList() )
+      var parentSpecs = tableSpec.getReferencedParentTablesList();
+      for (int ix=0; ix < parentSpecs.size(); ++ix )
       {
-         SpecLocation parentLoc = specLoc.addPart("parent '" + parentSpec.getTableJson().getTable() + "'");
+         var parentSpec = parentSpecs.get(ix);
+         var parentLoc = specLoc.addPart(
+            "referencedParentTables entry #" + (ix+1) + ", '" + parentSpec.getTableJson().getTable() + "' table"
+         );
          sqlParts.addParts(
             referencedParentSqlParts(parentSpec, relId, alias, propNameFn, parentLoc)
          );

@@ -12,14 +12,14 @@ public class SpecError extends RuntimeException
          String problem
       )
     {
-       super("In statement \"" + specLocation.getStatementName() + "\" " +
-             "at " + specLocation.getStatementPart() + ": " + problem);
+       super("In statement \"" + specLocation.getQueryName() + "\" " +
+             "at " + specLocation.getQueryPart() + ": " + problem);
 
        this.specLocation = specLocation;
        this.problem = problem;
     }
 
-   public SpecLocation getStatementLocation() { return specLocation; }
+   public SpecLocation getSpecLocation() { return specLocation; }
 
    public String getProblem() { return problem; }
 

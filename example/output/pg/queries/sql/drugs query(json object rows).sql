@@ -10,12 +10,12 @@ select
     'marketEntryDate', q."marketEntryDate",
     'therapeuticIndications', q."therapeuticIndications",
     'cidPlus1000', q."cidPlus1000",
+    'registeredByAnalyst', q."registeredByAnalyst",
+    'compound', q.compound,
     'references', q.references,
     'brands', q.brands,
     'advisories', q.advisories,
-    'functionalCategories', q."functionalCategories",
-    'registeredByAnalyst', q."registeredByAnalyst",
-    'compound', q.compound
+    'functionalCategories', q."functionalCategories"
   ) json
 from (
   -- base query for table 'drug'
@@ -27,6 +27,71 @@ from (
     d.market_entry_date "marketEntryDate",
     d.therapeutic_indications "therapeuticIndications",
     d.cid + 1000 "cidPlus1000",
+    -- parent table 'analyst' referenced as 'registeredByAnalyst'
+    (
+      select
+        -- row object builder for table 'analyst'
+        jsonb_build_object(
+          'id', q.id,
+          'shortName', q."shortName"
+        ) json
+      from (
+        -- base query for table 'analyst'
+        select
+          a.id as id,
+          a.short_name "shortName"
+        from
+          analyst a
+        where (
+          d.registered_by = a.id
+        )
+      ) q
+    ) "registeredByAnalyst",
+    -- parent table 'compound' referenced as 'compound'
+    (
+      select
+        -- row object builder for table 'compound'
+        jsonb_build_object(
+          'displayName', q."displayName",
+          'nctrIsisId', q."nctrIsisId",
+          'cas', q.cas,
+          'entered', q.entered,
+          'enteredByAnalyst', q."enteredByAnalyst"
+        ) json
+      from (
+        -- base query for table 'compound'
+        select
+          c.display_name "displayName",
+          c.nctr_isis_id "nctrIsisId",
+          c.cas as cas,
+          c.entered as entered,
+          -- parent table 'analyst' referenced as 'enteredByAnalyst'
+          (
+            select
+              -- row object builder for table 'analyst'
+              jsonb_build_object(
+                'id', q.id,
+                'shortName', q."shortName"
+              ) json
+            from (
+              -- base query for table 'analyst'
+              select
+                a.id as id,
+                a.short_name "shortName"
+              from
+                analyst a
+              where (
+                c.entered_by = a.id
+              )
+            ) q
+          ) "enteredByAnalyst"
+        from
+          compound c
+        where (
+          d.compound_id = c.id
+        )
+      ) q
+    ) as compound,
     -- records from child table 'drug_reference' as collection 'references'
     (
       select
@@ -61,7 +126,7 @@ from (
         coalesce(jsonb_agg(jsonb_build_object(
           'brandName', q."brandName",
           'manufacturer', q.manufacturer
-        ) order by q."brandName" desc),'[]'::jsonb) json
+        )),'[]'::jsonb) json
       from (
         -- base query for table 'brand'
         select
@@ -94,7 +159,7 @@ from (
           'authorityName', q."authorityName",
           'authorityUrl', q."authorityUrl",
           'authorityDescription', q."authorityDescription"
-        ) order by q."advisoryType"),'[]'::jsonb) json
+        )),'[]'::jsonb) json
       from (
         -- base query for table 'advisory'
         select
@@ -181,76 +246,10 @@ from (
           dfc.drug_id = d.id
         )
       ) q
-    ) "functionalCategories",
-    -- parent table 'analyst' referenced as 'registeredByAnalyst'
-    (
-      select
-        -- row object builder for table 'analyst'
-        jsonb_build_object(
-          'id', q.id,
-          'shortName', q."shortName"
-        ) json
-      from (
-        -- base query for table 'analyst'
-        select
-          a.id as id,
-          a.short_name "shortName"
-        from
-          analyst a
-        where (
-          d.registered_by = a.id
-        )
-      ) q
-    ) "registeredByAnalyst",
-    -- parent table 'compound' referenced as 'compound'
-    (
-      select
-        -- row object builder for table 'compound'
-        jsonb_build_object(
-          'displayName', q."displayName",
-          'nctrIsisId', q."nctrIsisId",
-          'cas', q.cas,
-          'entered', q.entered,
-          'enteredByAnalyst', q."enteredByAnalyst"
-        ) json
-      from (
-        -- base query for table 'compound'
-        select
-          c.display_name "displayName",
-          c.nctr_isis_id "nctrIsisId",
-          c.cas as cas,
-          c.entered as entered,
-          -- parent table 'analyst' referenced as 'enteredByAnalyst'
-          (
-            select
-              -- row object builder for table 'analyst'
-              jsonb_build_object(
-                'id', q.id,
-                'shortName', q."shortName"
-              ) json
-            from (
-              -- base query for table 'analyst'
-              select
-                a.id as id,
-                a.short_name "shortName"
-              from
-                analyst a
-              where (
-                c.entered_by = a.id
-              )
-            ) q
-          ) "enteredByAnalyst"
-        from
-          compound c
-        where (
-          d.compound_id = c.id
-        )
-      ) q
-    ) as compound
+    ) "functionalCategories"
   from
     drug d
   where (
     (not d.id = 2)
   )
 ) q
-order by q.name desc

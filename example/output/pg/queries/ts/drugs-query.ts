@@ -6,8 +6,6 @@
 
 export const sqlResource = "drugs query(json object rows).sql";
 
-export const drugMeshIdListParam = 'drugMeshIdList';
-
 
 export interface Drug
 {

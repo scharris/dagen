@@ -20,7 +20,7 @@ public final class TableFieldExpr
    private @Nullable String expression;
    private @Nullable String withTableAliasAs;
    private @Nullable String jsonProperty;
-   private @Nullable String generatedFieldType;
+   private @Nullable String fieldTypeInGeneratedSource;
 
    private TableFieldExpr() {}
 
@@ -30,14 +30,14 @@ public final class TableFieldExpr
          @Nullable String expression,
          @Nullable String withTableAliasAs,
          @Nullable String jsonProperty,
-         @Nullable String generatedFieldType
+         @Nullable String fieldTypeInGeneratedSource
       )
    {
       this.field = field;
       this.expression = expression;
       this.withTableAliasAs = withTableAliasAs;
       this.jsonProperty = jsonProperty;
-      this.generatedFieldType = generatedFieldType;
+      this.fieldTypeInGeneratedSource = fieldTypeInGeneratedSource;
 
       if ( (field != null) == (expression != null) )
          throw new RuntimeException("Exactly one of database field name and value expression should be specified.");
@@ -53,7 +53,7 @@ public final class TableFieldExpr
 
    public @Nullable String getJsonProperty() { return jsonProperty; }
 
-   public @Nullable String getGeneratedFieldType() { return generatedFieldType; }
+   public @Nullable String getFieldTypeInGeneratedSource() { return fieldTypeInGeneratedSource; }
 }
 
 /// Allow simple String to be deserialized to TableFieldExpression with the value as the "field" property and other values null.
@@ -72,8 +72,8 @@ class TableFieldExprDeserializer extends JsonDeserializer<TableFieldExpr>
          @Nullable String expr = node.has("expression") ? node.get("expression").textValue(): null;
          @Nullable String withTableAliasAs = node.has("withTableAliasAs") ? node.get("withTableAliasAs").textValue(): null;
          @Nullable String jsonProperty = node.has("jsonProperty") ? node.get("jsonProperty").textValue(): null;
-         @Nullable String generatedFieldType = node.has("generatedFieldType") ? node.get("generatedFieldType").textValue(): null;
-         return new TableFieldExpr(field, expr, withTableAliasAs, jsonProperty, generatedFieldType);
+         @Nullable String genFieldType = node.has("fieldTypeInGeneratedSource") ? node.get("fieldTypeInGeneratedSource").textValue(): null;
+         return new TableFieldExpr(field, expr, withTableAliasAs, jsonProperty, genFieldType);
       }
    }
 }

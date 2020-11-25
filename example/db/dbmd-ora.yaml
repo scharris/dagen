@@ -1,22 +1,17 @@
 ---
-schemaName: "DRUGS"
 dbmsName: "Oracle"
 dbmsVersion: "Oracle Database 12c Enterprise Edition Release 12.2.0.1.0 - 64bit Production"
-dbmsMajorVersion: 12
-dbmsMinorVersion: 2
 caseSensitivity: "INSENSITIVE_STORED_UPPER"
 relationMetadatas:
 - relationId:
     schema: "DRUGS"
     name: "ADVISORY"
   relationType: "Table"
-  relationComment: null
   fields:
   - name: "ID"
     databaseType: "NUMBER"
     nullable: false
     primaryKeyPartNumber: 1
-    comment: null
     jdbcTypeCode: 2
     length: null
     precision: 38
@@ -25,7 +20,6 @@ relationMetadatas:
     databaseType: "NUMBER"
     nullable: false
     primaryKeyPartNumber: null
-    comment: null
     jdbcTypeCode: 2
     length: null
     precision: 38
@@ -34,7 +28,6 @@ relationMetadatas:
     databaseType: "NUMBER"
     nullable: false
     primaryKeyPartNumber: null
-    comment: null
     jdbcTypeCode: 2
     length: null
     precision: 38
@@ -43,7 +36,6 @@ relationMetadatas:
     databaseType: "VARCHAR2"
     nullable: false
     primaryKeyPartNumber: null
-    comment: null
     jdbcTypeCode: 12
     length: 2000
     precision: null
@@ -52,13 +44,11 @@ relationMetadatas:
     schema: "DRUGS"
     name: "ADVISORY_TYPE"
   relationType: "Table"
-  relationComment: null
   fields:
   - name: "ID"
     databaseType: "NUMBER"
     nullable: false
     primaryKeyPartNumber: 1
-    comment: null
     jdbcTypeCode: 2
     length: null
     precision: 38
@@ -67,7 +57,6 @@ relationMetadatas:
     databaseType: "VARCHAR2"
     nullable: false
     primaryKeyPartNumber: null
-    comment: null
     jdbcTypeCode: 12
     length: 50
     precision: null
@@ -76,7 +65,6 @@ relationMetadatas:
     databaseType: "NUMBER"
     nullable: false
     primaryKeyPartNumber: null
-    comment: null
     jdbcTypeCode: 2
     length: null
     precision: 38
@@ -85,13 +73,11 @@ relationMetadatas:
     schema: "DRUGS"
     name: "ANALYST"
   relationType: "Table"
-  relationComment: null
   fields:
   - name: "ID"
     databaseType: "NUMBER"
     nullable: false
     primaryKeyPartNumber: 1
-    comment: null
     jdbcTypeCode: 2
     length: null
     precision: 38
@@ -100,7 +86,6 @@ relationMetadatas:
     databaseType: "VARCHAR2"
     nullable: false
     primaryKeyPartNumber: null
-    comment: null
     jdbcTypeCode: 12
     length: 50
     precision: null
@@ -109,13 +94,11 @@ relationMetadatas:
     schema: "DRUGS"
     name: "AUTHORITY"
   relationType: "Table"
-  relationComment: null
   fields:
   - name: "ID"
     databaseType: "NUMBER"
     nullable: false
     primaryKeyPartNumber: 1
-    comment: null
     jdbcTypeCode: 2
     length: null
     precision: 38
@@ -124,7 +107,6 @@ relationMetadatas:
     databaseType: "VARCHAR2"
     nullable: false
     primaryKeyPartNumber: null
-    comment: null
     jdbcTypeCode: 12
     length: 200
     precision: null
@@ -133,7 +115,6 @@ relationMetadatas:
     databaseType: "VARCHAR2"
     nullable: true
     primaryKeyPartNumber: null
-    comment: null
     jdbcTypeCode: 12
     length: 500
     precision: null
@@ -142,7 +123,6 @@ relationMetadatas:
     databaseType: "VARCHAR2"
     nullable: true
     primaryKeyPartNumber: null
-    comment: null
     jdbcTypeCode: 12
     length: 2000
     precision: null
@@ -151,7 +131,6 @@ relationMetadatas:
     databaseType: "NUMBER"
     nullable: true
     primaryKeyPartNumber: null
-    comment: null
     jdbcTypeCode: 2
     length: null
     precision: 38
@@ -160,13 +139,11 @@ relationMetadatas:
     schema: "DRUGS"
     name: "BRAND"
   relationType: "Table"
-  relationComment: null
   fields:
   - name: "DRUG_ID"
     databaseType: "NUMBER"
     nullable: false
     primaryKeyPartNumber: 1
-    comment: null
     jdbcTypeCode: 2
     length: null
     precision: 38
@@ -175,7 +152,6 @@ relationMetadatas:
     databaseType: "VARCHAR2"
     nullable: false
     primaryKeyPartNumber: 2
-    comment: null
     jdbcTypeCode: 12
     length: 200
     precision: null
@@ -184,7 +160,6 @@ relationMetadatas:
     databaseType: "VARCHAR2"
     nullable: true
     primaryKeyPartNumber: null
-    comment: null
     jdbcTypeCode: 12
     length: 10
     precision: null
@@ -193,7 +168,6 @@ relationMetadatas:
     databaseType: "NUMBER"
     nullable: true
     primaryKeyPartNumber: null
-    comment: null
     jdbcTypeCode: 2
     length: null
     precision: 38
@@ -202,13 +176,11 @@ relationMetadatas:
     schema: "DRUGS"
     name: "COMPOUND"
   relationType: "Table"
-  relationComment: null
   fields:
   - name: "ID"
     databaseType: "NUMBER"
     nullable: false
     primaryKeyPartNumber: 1
-    comment: null
     jdbcTypeCode: 2
     length: null
     precision: 38
@@ -217,7 +189,6 @@ relationMetadatas:
     databaseType: "VARCHAR2"
     nullable: true
     primaryKeyPartNumber: null
-    comment: null
     jdbcTypeCode: 12
     length: 50
     precision: null
@@ -226,7 +197,6 @@ relationMetadatas:
     databaseType: "VARCHAR2"
     nullable: true
     primaryKeyPartNumber: null
-    comment: null
     jdbcTypeCode: 12
     length: 100
     precision: null
@@ -235,7 +205,6 @@ relationMetadatas:
     databaseType: "VARCHAR2"
     nullable: true
     primaryKeyPartNumber: null
-    comment: null
     jdbcTypeCode: 12
     length: 2000
     precision: null
@@ -244,7 +213,6 @@ relationMetadatas:
     databaseType: "VARCHAR2"
     nullable: true
     primaryKeyPartNumber: null
-    comment: null
     jdbcTypeCode: 12
     length: 2000
     precision: null
@@ -253,7 +221,6 @@ relationMetadatas:
     databaseType: "VARCHAR2"
     nullable: true
     primaryKeyPartNumber: null
-    comment: null
     jdbcTypeCode: 12
     length: 50
     precision: null
@@ -262,7 +229,6 @@ relationMetadatas:
     databaseType: "VARCHAR2"
     nullable: true
     primaryKeyPartNumber: null
-    comment: null
     jdbcTypeCode: 12
     length: 2000
     precision: null
@@ -271,7 +237,6 @@ relationMetadatas:
     databaseType: "NUMBER"
     nullable: true
     primaryKeyPartNumber: null
-    comment: null
     jdbcTypeCode: 2
     length: null
     precision: 38
@@ -280,7 +245,6 @@ relationMetadatas:
     databaseType: "TIMESTAMP WITH TIME ZONE"
     nullable: true
     primaryKeyPartNumber: null
-    comment: null
     jdbcTypeCode: 93
     length: null
     precision: null
@@ -289,7 +253,6 @@ relationMetadatas:
     databaseType: "CLOB"
     nullable: true
     primaryKeyPartNumber: null
-    comment: null
     jdbcTypeCode: 2005
     length: null
     precision: null
@@ -298,7 +261,6 @@ relationMetadatas:
     databaseType: "VARCHAR2"
     nullable: true
     primaryKeyPartNumber: null
-    comment: null
     jdbcTypeCode: 12
     length: 2000
     precision: null
@@ -307,7 +269,6 @@ relationMetadatas:
     databaseType: "VARCHAR2"
     nullable: true
     primaryKeyPartNumber: null
-    comment: null
     jdbcTypeCode: 12
     length: 27
     precision: null
@@ -316,7 +277,6 @@ relationMetadatas:
     databaseType: "VARCHAR2"
     nullable: true
     primaryKeyPartNumber: null
-    comment: null
     jdbcTypeCode: 12
     length: 2000
     precision: null
@@ -325,7 +285,6 @@ relationMetadatas:
     databaseType: "VARCHAR2"
     nullable: true
     primaryKeyPartNumber: null
-    comment: null
     jdbcTypeCode: 12
     length: 27
     precision: null
@@ -334,7 +293,6 @@ relationMetadatas:
     databaseType: "NUMBER"
     nullable: false
     primaryKeyPartNumber: null
-    comment: null
     jdbcTypeCode: 2
     length: null
     precision: 38
@@ -343,13 +301,11 @@ relationMetadatas:
     schema: "DRUGS"
     name: "DRUG"
   relationType: "Table"
-  relationComment: null
   fields:
   - name: "ID"
     databaseType: "NUMBER"
     nullable: false
     primaryKeyPartNumber: 1
-    comment: null
     jdbcTypeCode: 2
     length: null
     precision: 38
@@ -358,7 +314,6 @@ relationMetadatas:
     databaseType: "VARCHAR2"
     nullable: false
     primaryKeyPartNumber: null
-    comment: null
     jdbcTypeCode: 12
     length: 500
     precision: null
@@ -367,7 +322,6 @@ relationMetadatas:
     databaseType: "NUMBER"
     nullable: false
     primaryKeyPartNumber: null
-    comment: null
     jdbcTypeCode: 2
     length: null
     precision: 38
@@ -376,7 +330,6 @@ relationMetadatas:
     databaseType: "VARCHAR2"
     nullable: true
     primaryKeyPartNumber: null
-    comment: null
     jdbcTypeCode: 12
     length: 7
     precision: null
@@ -385,7 +338,6 @@ relationMetadatas:
     databaseType: "VARCHAR2"
     nullable: true
     primaryKeyPartNumber: null
-    comment: null
     jdbcTypeCode: 12
     length: 7
     precision: null
@@ -394,7 +346,6 @@ relationMetadatas:
     databaseType: "NUMBER"
     nullable: true
     primaryKeyPartNumber: null
-    comment: null
     jdbcTypeCode: 2
     length: null
     precision: 38
@@ -403,7 +354,6 @@ relationMetadatas:
     databaseType: "VARCHAR2"
     nullable: true
     primaryKeyPartNumber: null
-    comment: null
     jdbcTypeCode: 12
     length: 4000
     precision: null
@@ -412,7 +362,6 @@ relationMetadatas:
     databaseType: "TIMESTAMP WITH TIME ZONE"
     nullable: true
     primaryKeyPartNumber: null
-    comment: null
     jdbcTypeCode: 93
     length: null
     precision: null
@@ -421,7 +370,6 @@ relationMetadatas:
     databaseType: "NUMBER"
     nullable: false
     primaryKeyPartNumber: null
-    comment: null
     jdbcTypeCode: 2
     length: null
     precision: 38
@@ -430,7 +378,6 @@ relationMetadatas:
     databaseType: "date"
     nullable: true
     primaryKeyPartNumber: null
-    comment: null
     jdbcTypeCode: 91
     length: null
     precision: null
@@ -439,13 +386,11 @@ relationMetadatas:
     schema: "DRUGS"
     name: "DRUG_FUNCTIONAL_CATEGORY"
   relationType: "Table"
-  relationComment: null
   fields:
   - name: "DRUG_ID"
     databaseType: "NUMBER"
     nullable: false
     primaryKeyPartNumber: 1
-    comment: null
     jdbcTypeCode: 2
     length: null
     precision: 38
@@ -454,7 +399,6 @@ relationMetadatas:
     databaseType: "NUMBER"
     nullable: false
     primaryKeyPartNumber: 2
-    comment: null
     jdbcTypeCode: 2
     length: null
     precision: 38
@@ -463,7 +407,6 @@ relationMetadatas:
     databaseType: "NUMBER"
     nullable: false
     primaryKeyPartNumber: 3
-    comment: null
     jdbcTypeCode: 2
     length: null
     precision: 38
@@ -472,7 +415,6 @@ relationMetadatas:
     databaseType: "NUMBER"
     nullable: true
     primaryKeyPartNumber: null
-    comment: null
     jdbcTypeCode: 2
     length: null
     precision: 38
@@ -481,13 +423,11 @@ relationMetadatas:
     schema: "DRUGS"
     name: "DRUG_REFERENCE"
   relationType: "Table"
-  relationComment: null
   fields:
   - name: "DRUG_ID"
     databaseType: "NUMBER"
     nullable: false
     primaryKeyPartNumber: 1
-    comment: null
     jdbcTypeCode: 2
     length: null
     precision: 38
@@ -496,7 +436,6 @@ relationMetadatas:
     databaseType: "NUMBER"
     nullable: false
     primaryKeyPartNumber: 2
-    comment: null
     jdbcTypeCode: 2
     length: null
     precision: 38
@@ -505,7 +444,6 @@ relationMetadatas:
     databaseType: "NUMBER"
     nullable: true
     primaryKeyPartNumber: null
-    comment: null
     jdbcTypeCode: 2
     length: null
     precision: 38
@@ -514,13 +452,11 @@ relationMetadatas:
     schema: "DRUGS"
     name: "FUNCTIONAL_CATEGORY"
   relationType: "Table"
-  relationComment: null
   fields:
   - name: "ID"
     databaseType: "NUMBER"
     nullable: false
     primaryKeyPartNumber: 1
-    comment: null
     jdbcTypeCode: 2
     length: null
     precision: 38
@@ -529,7 +465,6 @@ relationMetadatas:
     databaseType: "VARCHAR2"
     nullable: false
     primaryKeyPartNumber: null
-    comment: null
     jdbcTypeCode: 12
     length: 500
     precision: null
@@ -538,7 +473,6 @@ relationMetadatas:
     databaseType: "VARCHAR2"
     nullable: true
     primaryKeyPartNumber: null
-    comment: null
     jdbcTypeCode: 12
     length: 2000
     precision: null
@@ -547,7 +481,6 @@ relationMetadatas:
     databaseType: "NUMBER"
     nullable: true
     primaryKeyPartNumber: null
-    comment: null
     jdbcTypeCode: 2
     length: null
     precision: 38
@@ -556,13 +489,11 @@ relationMetadatas:
     schema: "DRUGS"
     name: "MANUFACTURER"
   relationType: "Table"
-  relationComment: null
   fields:
   - name: "ID"
     databaseType: "NUMBER"
     nullable: false
     primaryKeyPartNumber: 1
-    comment: null
     jdbcTypeCode: 2
     length: null
     precision: 38
@@ -571,7 +502,6 @@ relationMetadatas:
     databaseType: "VARCHAR2"
     nullable: false
     primaryKeyPartNumber: null
-    comment: null
     jdbcTypeCode: 12
     length: 200
     precision: null
@@ -580,13 +510,11 @@ relationMetadatas:
     schema: "DRUGS"
     name: "REFERENCE"
   relationType: "Table"
-  relationComment: null
   fields:
   - name: "ID"
     databaseType: "NUMBER"
     nullable: false
     primaryKeyPartNumber: 1
-    comment: null
     jdbcTypeCode: 2
     length: null
     precision: 38
@@ -595,133 +523,132 @@ relationMetadatas:
     databaseType: "VARCHAR2"
     nullable: false
     primaryKeyPartNumber: null
-    comment: null
     jdbcTypeCode: 12
     length: 2000
     precision: null
     fractionalDigits: null
 foreignKeys:
-- sourceRelationId:
+- foreignKeyRelationId:
     schema: "DRUGS"
     name: "ADVISORY"
-  targetRelationId:
+  primaryKeyRelationId:
     schema: "DRUGS"
     name: "ADVISORY_TYPE"
   foreignKeyComponents:
   - foreignKeyFieldName: "ADVISORY_TYPE_ID"
     primaryKeyFieldName: "ID"
-- sourceRelationId:
+- foreignKeyRelationId:
     schema: "DRUGS"
     name: "ADVISORY"
-  targetRelationId:
+  primaryKeyRelationId:
     schema: "DRUGS"
     name: "DRUG"
   foreignKeyComponents:
   - foreignKeyFieldName: "DRUG_ID"
     primaryKeyFieldName: "ID"
-- sourceRelationId:
+- foreignKeyRelationId:
     schema: "DRUGS"
     name: "ADVISORY_TYPE"
-  targetRelationId:
+  primaryKeyRelationId:
     schema: "DRUGS"
     name: "AUTHORITY"
   foreignKeyComponents:
   - foreignKeyFieldName: "AUTHORITY_ID"
     primaryKeyFieldName: "ID"
-- sourceRelationId:
+- foreignKeyRelationId:
     schema: "DRUGS"
     name: "BRAND"
-  targetRelationId:
+  primaryKeyRelationId:
     schema: "DRUGS"
     name: "DRUG"
   foreignKeyComponents:
   - foreignKeyFieldName: "DRUG_ID"
     primaryKeyFieldName: "ID"
-- sourceRelationId:
+- foreignKeyRelationId:
     schema: "DRUGS"
     name: "BRAND"
-  targetRelationId:
+  primaryKeyRelationId:
     schema: "DRUGS"
     name: "MANUFACTURER"
   foreignKeyComponents:
   - foreignKeyFieldName: "MANUFACTURER_ID"
     primaryKeyFieldName: "ID"
-- sourceRelationId:
+- foreignKeyRelationId:
     schema: "DRUGS"
     name: "COMPOUND"
-  targetRelationId:
+  primaryKeyRelationId:
     schema: "DRUGS"
     name: "ANALYST"
   foreignKeyComponents:
   - foreignKeyFieldName: "ENTERED_BY"
     primaryKeyFieldName: "ID"
-- sourceRelationId:
+- foreignKeyRelationId:
     schema: "DRUGS"
     name: "DRUG"
-  targetRelationId:
+  primaryKeyRelationId:
     schema: "DRUGS"
     name: "ANALYST"
   foreignKeyComponents:
   - foreignKeyFieldName: "REGISTERED_BY"
     primaryKeyFieldName: "ID"
-- sourceRelationId:
+- foreignKeyRelationId:
     schema: "DRUGS"
     name: "DRUG"
-  targetRelationId:
+  primaryKeyRelationId:
     schema: "DRUGS"
     name: "COMPOUND"
   foreignKeyComponents:
   - foreignKeyFieldName: "COMPOUND_ID"
     primaryKeyFieldName: "ID"
-- sourceRelationId:
+- foreignKeyRelationId:
     schema: "DRUGS"
     name: "DRUG_FUNCTIONAL_CATEGORY"
-  targetRelationId:
+  primaryKeyRelationId:
     schema: "DRUGS"
     name: "AUTHORITY"
   foreignKeyComponents:
   - foreignKeyFieldName: "AUTHORITY_ID"
     primaryKeyFieldName: "ID"
-- sourceRelationId:
+- foreignKeyRelationId:
     schema: "DRUGS"
     name: "DRUG_FUNCTIONAL_CATEGORY"
-  targetRelationId:
+  primaryKeyRelationId:
     schema: "DRUGS"
     name: "DRUG"
   foreignKeyComponents:
   - foreignKeyFieldName: "DRUG_ID"
     primaryKeyFieldName: "ID"
-- sourceRelationId:
+- foreignKeyRelationId:
     schema: "DRUGS"
     name: "DRUG_FUNCTIONAL_CATEGORY"
-  targetRelationId:
+  primaryKeyRelationId:
     schema: "DRUGS"
     name: "FUNCTIONAL_CATEGORY"
   foreignKeyComponents:
   - foreignKeyFieldName: "FUNCTIONAL_CATEGORY_ID"
     primaryKeyFieldName: "ID"
-- sourceRelationId:
+- foreignKeyRelationId:
     schema: "DRUGS"
     name: "DRUG_REFERENCE"
-  targetRelationId:
+  primaryKeyRelationId:
     schema: "DRUGS"
     name: "DRUG"
   foreignKeyComponents:
   - foreignKeyFieldName: "DRUG_ID"
     primaryKeyFieldName: "ID"
-- sourceRelationId:
+- foreignKeyRelationId:
     schema: "DRUGS"
     name: "DRUG_REFERENCE"
-  targetRelationId:
+  primaryKeyRelationId:
     schema: "DRUGS"
     name: "REFERENCE"
   foreignKeyComponents:
   - foreignKeyFieldName: "REFERENCE_ID"
     primaryKeyFieldName: "ID"
-- sourceRelationId:
+- foreignKeyRelationId:
     schema: "DRUGS"
     name: "FUNCTIONAL_CATEGORY"
-  targetRelationId:
+  primaryKeyRelationId:
     schema: "DRUGS"
     name: "FUNCTIONAL_CATEGORY"
   foreignKeyComponents:

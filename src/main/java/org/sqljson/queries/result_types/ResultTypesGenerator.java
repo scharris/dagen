@@ -119,7 +119,7 @@ public class ResultTypesGenerator
          {
             Field dbField = requireNonNull(dbFieldsByName.get(dbmd.normalizeName(requireNonNull(tfe.getField()))),
                "no metadata for field " + relId + "." + tfe.getField());
-            fields.add(new SimpleTableFieldProperty(getOutputFieldName(tfe, dbField), dbField, tfe.getGeneratedFieldType()));
+            fields.add(new SimpleTableFieldProperty(getOutputFieldName(tfe, dbField), dbField, tfe.getFieldTypeInGeneratedSource()));
          }
       }
 
@@ -141,7 +141,7 @@ public class ResultTypesGenerator
             String jsonProperty = valueOrThrow(tfe.getJsonProperty(), () ->
                 new RuntimeException("Expression field " + relId + "." + tfe + " requires a json property.")
             );
-            fields.add(new TableExpressionProperty(jsonProperty, tfe.getExpression(), tfe.getGeneratedFieldType()));
+            fields.add(new TableExpressionProperty(jsonProperty, tfe.getExpression(), tfe.getFieldTypeInGeneratedSource()));
          }
       }
 
@@ -293,7 +293,7 @@ public class ResultTypesGenerator
 
       Map<String,Field> childFieldsByName = getTableFieldsByName(childRelId);
 
-      for ( String fkFieldName : fk.getSourceFieldNames() )
+      for ( String fkFieldName : fk.getChildFieldNames() )
       {
          Field fkField = valueOrThrow(childFieldsByName.get(fkFieldName), () ->
             new RuntimeException("foreign key not found")

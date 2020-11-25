@@ -200,7 +200,7 @@
                </nullableAnnotations>
                <nullabilityDefinition>nullAndUndefinedUnion</nullabilityDefinition>
                <customTypeAliases>
-                  <customTypeAlias>TableFieldExpr:{field?: string; expression?: string; withTableAliasAs?: string; jsonProperty?: string; generatedFieldType?: string;}</customTypeAlias>
+                  <customTypeAlias>TableFieldExpr:{field?: string; expression?: string; withTableAliasAs?: string; jsonProperty?: string; fieldTypeInGeneratedSource?: string;}</customTypeAlias>
                </customTypeAliases>
                <customTypeMappings>
                   <!-- Allow simple string to be used for TableFieldExpr as allowed by custom deserializer. -->

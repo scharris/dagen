@@ -49,7 +49,7 @@
                     "jsonProperty" : {
                       "type" : "string"
                     },
-                    "generatedFieldType" : {
+                    "fieldTypeInGeneratedSource" : {
                       "type" : "string"
                     }
                   }

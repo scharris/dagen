@@ -23,9 +23,9 @@ public class SpecLocation
       return new SpecLocation(queryName, joinPartDescriptions(queryPart, additionalPart));
    }
 
-   public String getStatementName() { return queryName; }
+   public String getQueryName() { return queryName; }
 
-   public String getStatementPart() { return queryPart; }
+   public String getQueryPart() { return queryPart; }
 
    private static String joinPartDescriptions(String part1, String part2)
    {

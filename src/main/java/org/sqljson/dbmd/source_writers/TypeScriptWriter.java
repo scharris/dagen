@@ -1,7 +1,6 @@
 package org.sqljson.dbmd.source_writers;
 
 import java.io.StringWriter;
-import java.nio.file.Files;
 import java.util.*;
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -54,9 +53,6 @@ public class TypeScriptWriter implements SourceCodeWriter
       )
       throws IOException
    {
-      if ( srcOutputDir != null )
-         Files.createDirectories(srcOutputDir);
-
       @Nullable Path outputPath = getOutputFilePath();
 
       BufferedWriter bw = newFileOrStdoutWriter(outputPath);
@@ -109,9 +105,9 @@ public class TypeScriptWriter implements SourceCodeWriter
 
       for ( Field f : relMd.getFields() )
       {
-         sw.write("   " + asStringLiteral(f.getName()) + ": {");
+         sw.write("   " + lit(f.getName()) + ": {");
          sw.write("\"type\": ");
-         sw.write(asStringLiteral(f.getDatabaseType()) + ", ");
+         sw.write(lit(f.getDatabaseType()) + ", ");
          sw.write("\"len\": ");
          sw.write(f.getLength() + ", ");
          sw.write("\"prec\":");
@@ -136,9 +132,8 @@ public class TypeScriptWriter implements SourceCodeWriter
       return applyIfPresent(srcOutputDir, d -> d.resolve("relations.ts"));
    }
 
-   private static String asStringLiteral(String s)
+   private static String lit(String s)
    {
       return "\"" + s.replace("\"", "\\\"") + "\"";
    }
 }
-

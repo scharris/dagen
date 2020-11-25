@@ -19,26 +19,20 @@ import static org.sqljson.dbmd.CaseSensitivity.INSENSITIVE_STORED_UPPER;
 import static org.sqljson.util.Nullables.valueOr;
 
 @JsonPropertyOrder({
-   "schemaName", "dbmsName", "dbmsVersion", "dbmsMajorVersion",
-   "dbmsMinorVersion", "caseSensitivity", "relationMetadatas", "foreignKeys"
+   "dbmsName", "dbmsVersion", "caseSensitivity", "relationMetadatas", "foreignKeys"
 })
 public class DatabaseMetadata
 {
-   private @Nullable String schemaName;
+   private final String dbmsName;
 
-   private List<RelMetadata> relationMetadatas;
+   private final String dbmsVersion;
 
-   private List<ForeignKey> foreignKeys;
+   private final CaseSensitivity caseSensitivity;
 
-   private CaseSensitivity caseSensitivity;
+   private final List<RelMetadata> relationMetadatas;
 
-   private String dbmsName;
+   private final List<ForeignKey> foreignKeys;
 
-   private String dbmsVersion;
-
-   private int dbmsMajorVersion;
-
-   private int dbmsMinorVersion;
 
    private static final Predicate<String> lc_ = Pattern.compile("^[a-z_]+$").asPredicate();
    private static final Predicate<String> uc_ = Pattern.compile("^[A-Z_]+$").asPredicate();
@@ -53,24 +47,18 @@ public class DatabaseMetadata
 
    public DatabaseMetadata
       (
-         @Nullable String schemaName,
          List<RelMetadata> relationMetadatas,
          List<ForeignKey> foreignKeys,
          CaseSensitivity caseSensitivity,
          String dbmsName,
-         String dbmsVersion,
-         int dbmsMajorVersion,
-         int dbmsMinorVersion
+         String dbmsVersion
       )
    {
-      this.schemaName = schemaName;
       this.relationMetadatas = sortedMds(requireNonNull(relationMetadatas));
       this.foreignKeys = sortedFks(requireNonNull(foreignKeys));
       this.caseSensitivity = requireNonNull(caseSensitivity);
       this.dbmsName = requireNonNull(dbmsName);
       this.dbmsVersion = requireNonNull(dbmsVersion);
-      this.dbmsMajorVersion = dbmsMajorVersion;
-      this.dbmsMinorVersion = dbmsMinorVersion;
    }
 
    DatabaseMetadata()
@@ -82,8 +70,6 @@ public class DatabaseMetadata
       dbmsVersion = "";
    }
 
-   public @Nullable String getSchemaName() { return schemaName; }
-
    public List<RelMetadata> getRelationMetadatas() { return relationMetadatas; }
 
    public List<ForeignKey> getForeignKeys() { return foreignKeys; }
@@ -93,11 +79,6 @@ public class DatabaseMetadata
    public String getDbmsName() { return dbmsName; }
 
    public String getDbmsVersion() { return dbmsVersion; }
-
-   public int getDbmsMajorVersion() { return dbmsMajorVersion; }
-
-   public int getDbmsMinorVersion() { return dbmsMinorVersion; }
-
 
    public @Nullable RelMetadata getRelationMetadata(RelId relId)
    {
@@ -144,8 +125,8 @@ public class DatabaseMetadata
          return
             res.stream()
             .filter(fk ->
-               getRelationMetadata(fk.getSourceRelationId()) != null &&
-               getRelationMetadata(fk.getTargetRelationId()) != null
+               getRelationMetadata(fk.getForeignKeyRelationId()) != null &&
+               getRelationMetadata(fk.getPrimaryKeyRelationId()) != null
             )
             .collect(toList());
       }
@@ -169,7 +150,7 @@ public class DatabaseMetadata
 
       for ( ForeignKey fk : getForeignKeysFromTo(fromRelId, toRelId, fkScope) )
       {
-         if ( normdFkFieldNames == null || fk.sourceFieldNamesSetEqualsNormalizedNamesSet(normdFkFieldNames) )
+         if ( normdFkFieldNames == null || fk.foreignKeyFieldNamesSetEquals(normdFkFieldNames) )
          {
             if ( soughtFk != null ) // already found an fk satisfying requirements?
                throw new IllegalArgumentException(
@@ -207,20 +188,20 @@ public class DatabaseMetadata
       List<ForeignKey> fks = new ArrayList<>(foreignKeys);
 
       fks.sort((fk1, fk2) -> {
-         int srcRelComp = fk1.getSourceRelationId().getIdString().compareTo(fk2.getSourceRelationId().getIdString());
+         int srcRelComp = fk1.getForeignKeyRelationId().getIdString().compareTo(fk2.getForeignKeyRelationId().getIdString());
          if (srcRelComp != 0)
             return srcRelComp;
 
-         int tgtRelComp = fk1.getTargetRelationId().getIdString().compareTo(fk2.getTargetRelationId().getIdString());
+         int tgtRelComp = fk1.getPrimaryKeyRelationId().getIdString().compareTo(fk2.getPrimaryKeyRelationId().getIdString());
          if (tgtRelComp != 0)
             return tgtRelComp;
 
-         int srcFieldsComp = compareStringListsLexicographically(fk1.getSourceFieldNames(), fk2.getSourceFieldNames());
+         int srcFieldsComp = compareStringListsLexicographically(fk1.getChildFieldNames(), fk2.getChildFieldNames());
 
          if (srcFieldsComp != 0)
             return srcFieldsComp;
          else
-            return compareStringListsLexicographically(fk1.getTargetFieldNames(), fk2.getTargetFieldNames());
+            return compareStringListsLexicographically(fk1.getParentFieldNames(), fk2.getParentFieldNames());
       });
 
       return unmodifiableList(fks);
@@ -286,8 +267,8 @@ public class DatabaseMetadata
 
       for ( ForeignKey fk : foreignKeys )
       {
-         RelId srcRelId = fk.getSourceRelationId();
-         RelId tgtRelId = fk.getTargetRelationId();
+         RelId srcRelId = fk.getForeignKeyRelationId();
+         RelId tgtRelId = fk.getPrimaryKeyRelationId();
 
          List<ForeignKey> fksFromChild = fksByChildRelId.computeIfAbsent(srcRelId, k -> new ArrayList<>());
          fksFromChild.add(fk);

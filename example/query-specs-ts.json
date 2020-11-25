@@ -17,7 +17,7 @@
                },
                {
                   "field": "cid",
-                  "generatedFieldType": "number | null"
+                  "fieldTypeInGeneratedSource": "number | null"
                },
                {
                   "field": "registered"
@@ -31,7 +31,7 @@
                {
                   "expression": "$$.cid + 1000",
                   "jsonProperty": "cidPlus1000",
-                  "generatedFieldType": "number | null"
+                  "fieldTypeInGeneratedSource": "number | null"
                }
             ],
             "childTableCollections": [
@@ -99,7 +99,7 @@
                                  {
                                     "expression": "(1 + 1)",
                                     "jsonProperty": "exprYieldingTwo",
-                                    "generatedFieldType": "number"
+                                    "fieldTypeInGeneratedSource": "number"
                                  }
                               ],
                               "inlineParentTables": [

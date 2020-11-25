@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 import static java.util.Objects.requireNonNull;
 
-import org.checkerframework.checker.nullness.qual.Nullable;
 
 class RelMetadataBuilder
 {
@@ -12,20 +11,16 @@ class RelMetadataBuilder
 
    private final RelMetadata.RelType relType;
 
-   private final @Nullable String relComment;
-
    private final List<Field> fields;
 
    public RelMetadataBuilder
       (
          RelId relId,
-         RelMetadata.RelType relType,
-         @Nullable String relComment
+         RelMetadata.RelType relType
       )
    {
       this.relId = requireNonNull(relId);
       this.relType = requireNonNull(relType);
-      this.relComment = relComment;
       this.fields = new ArrayList<>();
    }
 
@@ -35,7 +30,7 @@ class RelMetadataBuilder
 
    public RelMetadata build()
    {
-      return new RelMetadata(relId, relType, relComment, fields);
+      return new RelMetadata(relId, relType, fields);
    }
 }
 
