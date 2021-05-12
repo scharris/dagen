@@ -1,16 +1,33 @@
+Build the jar.
+```
+mvn clean package
+# produces target/dagen.jar
+```
 
+Create output directories for the examples that follow.
+```
+mkdir -p target/sql target/java/mypkg/myapp
+```
 
-# Generate database metadata.
-./mvn exec:java@dbmd -DpropsFile="example/db/dbmd-pg.props" -DoutputFile="../../tmp/dmbd.yaml"
+Create database metadata.
+```
+java -cp target/dagen.jar \
+  org.sqljson.DatabaseMetadataGeneratorMain \
+  example/db/dbmd-pg.props \
+  example/db/dbmd-pg.props \
+  target/dbmd.yaml
+```
 
-# Generate queries with Java types.
-./mvn exec:java@queries -Dlang=Java -Dpkg="gov.fda.nctr.myapp" -Ddbmd="example/output/pg/dbmd-pg.yaml" -Dspecs="example/query-specs-java.yaml" -DtypesDir="../../tmp" -DsqlDir="../../tmp"
-
-# Generate queries with TypeScript types.
-./mvn exec:java@queries -Dlang=TypeScript -Ddbmd="example/output/pg/dbmd-pg.yaml" -Dspecs="example/query-specs-java.yaml" -DtypesDir="../../tmp" -DsqlDir="../../tmp"
-
-# Generate TypeScript module representing query statement specification types.
-./mvn typescript-generator:generate@ts-spec-types
+Generate queries and result types from example query specifications.
+```
+java -cp target/dagen.jar org.sqljson.QueryGeneratorMain \
+  --types-language:Java \
+  --package:mypkg.myapp \
+  target/dbmd.yaml \
+  example/query-specs-java.yaml \
+  target/java \
+  target/sql
+```
 
 
 Github Pages Setup
