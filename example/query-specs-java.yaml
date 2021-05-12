@@ -22,7 +22,7 @@ querySpecs:
         - collectionName: references
           tableJson:
             table: drug_reference
-            inlineParentTables:
+            parentTables:
               - tableJson:
                   table: reference
                   fieldExpressions:
@@ -32,7 +32,7 @@ querySpecs:
             table: brand
             fieldExpressions:
               - field: brand_name
-            inlineParentTables:
+            parentTables:
               - tableJson:
                   table: manufacturer
                   fieldExpressions:
@@ -45,7 +45,7 @@ querySpecs:
             fieldExpressions:
               - field: text
                 jsonProperty: advisoryText
-            inlineParentTables:
+            parentTables:
               - tableJson:
                   table: advisory_type
                   fieldExpressions:
@@ -54,7 +54,7 @@ querySpecs:
                     - expression: "(1 + 1)"
                       jsonProperty: exprYieldingTwo
                       fieldTypeInGeneratedSource: long
-                  inlineParentTables:
+                  parentTables:
                     - tableJson:
                         table: authority
                         fieldExpressions:
@@ -68,7 +68,7 @@ querySpecs:
         - collectionName: functionalCategories
           tableJson:
             table: drug_functional_category
-            inlineParentTables:
+            parentTables:
               - tableJson:
                   table: functional_category
                   fieldExpressions:
@@ -84,7 +84,7 @@ querySpecs:
                       jsonProperty: authorityUrl
                     - field: description
                       jsonProperty: authorityDescription
-      referencedParentTables:
+      parentTables:
         - referenceName: registeredByAnalyst
           tableJson:
             table: analyst
@@ -101,7 +101,7 @@ querySpecs:
               - field: nctr_isis_id
               - field: cas
               - field: entered
-            referencedParentTables:
+            parentTables:
               - referenceName: enteredByAnalyst
                 tableJson:
                   table: analyst

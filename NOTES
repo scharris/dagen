@@ -1,4 +1,5 @@
 
+
 # Generate database metadata.
 ./mvn exec:java@dbmd -DpropsFile="example/db/dbmd-pg.props" -DoutputFile="../../tmp/dmbd.yaml"
 
@@ -8,10 +9,7 @@
 # Generate queries with TypeScript types.
 ./mvn exec:java@queries -Dlang=TypeScript -Ddbmd="example/output/pg/dbmd-pg.yaml" -Dspecs="example/query-specs-java.yaml" -DtypesDir="../../tmp" -DsqlDir="../../tmp"
 
-# Generate mod statements with TypeScript types.
-./mvn exec:java@mod-stmts -Dlang=TypeScript -Ddbmd="example/output/pg/dbmd-pg.yaml" -Dspecs="example/mod-specs.yaml" -DtypesDir="../../tmp" -DsqlDir="../../tmp"
-
-# Generate TypeScript module representing query and mod statement specification types.
+# Generate TypeScript module representing query statement specification types.
 ./mvn typescript-generator:generate@ts-spec-types
 
 

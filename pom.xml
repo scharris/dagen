@@ -187,7 +187,7 @@
             <configuration>
                <jsonLibrary>jackson2</jsonLibrary>
                <classPatterns>
-                  <classPattern>org.sqljson.queries.specs.**</classPattern>
+                  <classPattern>org.sqljson.query_specs.**</classPattern>
                   <classPattern>org.sqljson.mod_stmts.specs.**</classPattern>
                   <classPattern>org.sqljson.common.specs.**</classPattern>
                </classPatterns>
@@ -204,7 +204,7 @@
                </customTypeAliases>
                <customTypeMappings>
                   <!-- Allow simple string to be used for TableFieldExpr as allowed by custom deserializer. -->
-                  <mapping>org.sqljson.queries.specs.TableFieldExpr:(string | TableFieldExpr)</mapping>
+                  <mapping>org.sqljson.query_specs.TableFieldExpr:(string | TableFieldExpr)</mapping>
                 </customTypeMappings>
                <outputKind>module</outputKind>
                <outputFileType>implementationFile</outputFileType>
@@ -247,7 +247,7 @@
                <execution>
                   <id>dbmd</id>
                   <configuration>
-                     <mainClass>org.sqljson.DatabaseMetadataMain</mainClass>
+                     <mainClass>org.sqljson.DatabaseMetadataGeneratorMain</mainClass>
                      <arguments>
                         <argument>${propsFile}</argument>
                         <argument>${outputFile}</argument>

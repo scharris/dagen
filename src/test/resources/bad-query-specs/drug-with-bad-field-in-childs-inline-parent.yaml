@@ -15,10 +15,10 @@ querySpecs:
              unwrap: true
              tableJson:
                 table: advisory
-                inlineParentTables:
-                   - tableJson:
-                        table: advisory_type
-                        fieldExpressions:
-                           - field: namex
+                parentTables:
+                  - tableJson:
+                      table: advisory_type
+                      fieldExpressions:
+                        - field: namex
         recordCondition:
            sql: "$$.id = :id"

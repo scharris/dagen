@@ -180,7 +180,7 @@ querySpecs:
           unwrap: true
           tableJson:
             table: advisory
-            inlineParentTables:
+            parentTables:
               - tableJson:
                   table: advisory_type
                   fieldExpressions:
@@ -199,7 +199,7 @@ querySpecs:
         - field: id
         - field: drug_id
         - field: text
-      inlineParentTables:
+      parentTables:
         - tableJson:
             table: advisory_type
             fieldExpressions:
@@ -222,7 +222,7 @@ querySpecs:
         - field: id
         - field: drug_id
         - field: text
-      inlineParentTables:
+      parentTables:
         - tableJson:
             table: advisory_type
             fieldExpressions:
@@ -249,7 +249,7 @@ querySpecs:
         - field: id
         - field: name
         - field: mesh_id
-      referencedParentTables:
+      parentTables:
         - referenceName: registeredByAnalyst
           tableJson:
             table: analyst
@@ -270,7 +270,7 @@ querySpecs:
         - field: id
         - field: name
         - field: mesh_id
-      referencedParentTables:
+      parentTables:
         - referenceName: registeredByAnalyst
           tableJson:
             table: analyst
@@ -294,7 +294,7 @@ querySpecs:
         - field: id
         - field: name
         - field: mesh_id
-      referencedParentTables:
+      parentTables:
         - referenceName: compound
           viaForeignKeyFields:
             - compound_id

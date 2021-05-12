@@ -1,7 +1,7 @@
 $JAR="$PSScriptRoot/../target/dagen.jar"
 
 Write-Host Generating database metadata...
-java -cp $JAR org.sqljson.DatabaseMetadataMain `
+java -cp $JAR org.sqljson.DatabaseMetadataGeneratorMain `
   $PSScriptRoot/db/dbmd-pg.props `
   $PSScriptRoot/db/dbmd-pg.props `
   $PSScriptRoot/output/pg/dbmd-pg.yaml
@@ -20,7 +20,7 @@ Write-Host "  Done"
 
 Write-Host "Generating relation metadata Java types..."
 java -cp "$JAR" `
-  org.sqljson.DatabaseRelationClassesGeneratorMain `
+  org.sqljson.RelationMetadataSourceGeneratorMain `
   --types-language:Java `
   --package:org.relmds `
   $PSScriptRoot/output/pg/dbmd-pg.yaml `

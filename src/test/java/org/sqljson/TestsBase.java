@@ -22,7 +22,7 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.jdbc.datasource.SingleConnectionDataSource;
 import org.sqljson.dbmd.DatabaseMetadata;
-import org.sqljson.queries.specs.QueryGroupSpec;
+import org.sqljson.query_specs.QueryGroupSpec;
 
 
 public class TestsBase

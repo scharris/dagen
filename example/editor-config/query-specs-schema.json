@@ -55,47 +55,7 @@
                   }
                 }
               },
-              "inlineParentTables" : {
-                "type" : "array",
-                "items" : {
-                  "type" : "object",
-                  "id" : "urn:jsonschema:org:sqljson:queries:specs:InlineParentSpec",
-                  "properties" : {
-                    "tableJson" : {
-                      "type" : "object",
-                      "$ref" : "urn:jsonschema:org:sqljson:queries:specs:TableJsonSpec"
-                    },
-                    "viaForeignKeyFields" : {
-                      "type" : "array",
-                      "items" : {
-                        "type" : "string"
-                      }
-                    },
-                    "customJoinCondition" : {
-                      "type" : "object",
-                      "id" : "urn:jsonschema:org:sqljson:queries:specs:CustomJoinCondition",
-                      "properties" : {
-                        "equatedFields" : {
-                          "type" : "array",
-                          "items" : {
-                            "type" : "object",
-                            "id" : "urn:jsonschema:org:sqljson:queries:specs:CustomJoinCondition:FieldPair",
-                            "properties" : {
-                              "childField" : {
-                                "type" : "string"
-                              },
-                              "parentPrimaryKeyField" : {
-                                "type" : "string"
-                              }
-                            }
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              },
-              "referencedParentTables" : {
+              "parentTables" : {
                 "type" : "array",
                 "items" : {
                   "type" : "object",

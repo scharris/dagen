@@ -149,9 +149,10 @@ described below. These properties give a lot of flexibility because each allows
 inclusion of their own full `tableJson` specifications, recursively.
 
 For parent tables we have the option of including the parent's result fields
-*inline* together with the top table's own fields, via an entry as follows:
+*inline* together with the top table's own fields, via an entry not having 
+a reference name, as follows:
 ```
-        inlineParentTables: # "Inline" parent tables have their fields included directly with the current table's own fields.
+        parentTables: # "Inline" parent tables have their fields included directly with the current table's own fields.
           - tableJson:
               <TABLE-JSON-SPEC>
           ...
@@ -162,14 +163,14 @@ and child tables. The fields from the parent's `tableJson` specification will be
 appended to current table's json specification fields as if they had originated
 from the current table itself.
 
-Any number of parent tables whose fields are to be included inline can be
-specified under the `inlineParentTables` property.
+Any number of parent tables whose fields are to be included can be specified
+under the `parentTables` property.
 
 The other option for including parent table data is to specify a single field
 to reference a parent object containing its field data. This is done via the
-`referencedParentTables` property:
+same `parentTables` property but with referenceName specified:
 ```
-        referencedParentTables: # Referenced parent table records are wrapped in a json object.
+        parentTables:
           - referenceName: <json field name>
             tableJson:
               <TABLE-JSON-SPEC>

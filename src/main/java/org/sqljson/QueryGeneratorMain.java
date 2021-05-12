@@ -10,15 +10,14 @@ import static java.util.Objects.requireNonNull;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
 
-import org.sqljson.queries.QuerySqlGenerator;
-import org.sqljson.queries.result_types.ResultType;
-import org.sqljson.queries.result_types.ResultTypesGenerator;
-import org.sqljson.queries.source_writers.SourceCodeWriter;
-import org.sqljson.queries.source_writers.JavaWriter;
-import org.sqljson.queries.source_writers.TypeScriptWriter;
-import org.sqljson.queries.QueryReprSqlPath;
-import org.sqljson.queries.specs.*;
-import org.sqljson.queries.specs.SpecError;
+import org.sqljson.result_types.ResultType;
+import org.sqljson.result_types.ResultTypesGenerator;
+import org.sqljson.source_code_writers.SourceCodeWriter;
+import org.sqljson.source_code_writers.JavaWriter;
+import org.sqljson.source_code_writers.SourceCodeLanguage;
+import org.sqljson.source_code_writers.TypeScriptWriter;
+import org.sqljson.query_specs.*;
+import org.sqljson.query_specs.SpecError;
 import org.sqljson.util.AppUtils.SplitArgs;
 import org.sqljson.dbmd.DatabaseMetadata;
 import static org.sqljson.util.AppUtils.splitOptionsAndRequiredArgs;
@@ -209,7 +208,7 @@ public class QueryGeneratorMain
             throw new RuntimeException("Unrecognized option \"" + opt + "\".");
       }
 
-      var sourcesLanguage = SourcesLanguage.valueOf(langStr);
+      var sourcesLanguage = SourceCodeLanguage.valueOf(langStr);
 
       switch ( sourcesLanguage )
       {
@@ -278,10 +277,7 @@ public class QueryGeneratorMain
       for ( var childSpec: tableSpec.getChildTableCollectionsList() )
          paramNames.addAll(getParamNames(childSpec.getTableJson()));
 
-      for ( var parentSpec : tableSpec.getInlineParentTablesList() )
-         paramNames.addAll(getParamNames(parentSpec.getParentTableJsonSpec()));
-
-      for ( var parentSpec : tableSpec.getReferencedParentTablesList() )
+      for ( var parentSpec : tableSpec.getParentTablesList() )
          paramNames.addAll(getParamNames(parentSpec.getParentTableJsonSpec()));
 
       @Nullable RecordCondition recCond = tableSpec.getRecordCondition();
@@ -293,6 +289,6 @@ public class QueryGeneratorMain
 
    private static Function<String,String> getPropertyNamer(QueryGroupSpec queryGroupSpec)
    {
-      return queryGroupSpec.getOutputFieldNameDefault().toFunctionOfFieldName();
+      return queryGroupSpec.getPropertyNameDefault().toFunctionOfFieldName();
    }
 }

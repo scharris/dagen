@@ -7,16 +7,15 @@ import java.util.List;
 import java.util.Set;
 import static java.util.stream.Collectors.toSet;
 
+import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.sqljson.TestsBase.Params.params;
 
-import org.springframework.jdbc.core.namedparam.SqlParameterSource;
+import static org.sqljson.TestsBase.Params.params;
 import org.sqljson.dbmd.DatabaseMetadata;
-import org.sqljson.queries.QuerySqlGenerator;
-import org.sqljson.queries.specs.QueryGroupSpec;
+import org.sqljson.query_specs.QueryGroupSpec;
 
 import generated.query.*;
 
@@ -322,7 +321,7 @@ class QueryGeneratorTests extends TestsBase
             dbmd,
             queryGroupSpec.getDefaultSchema(),
             new HashSet<>(queryGroupSpec.getGenerateUnqualifiedNamesForSchemas()),
-            queryGroupSpec.getOutputFieldNameDefault().toFunctionOfFieldName()
+            queryGroupSpec.getPropertyNameDefault().toFunctionOfFieldName()
          );
       Throwable t = assertThrows(RuntimeException.class, () ->
          queryGenerator.generateSqls(queryGroupSpec.getQuerySpecs().get(0))
@@ -341,7 +340,7 @@ class QueryGeneratorTests extends TestsBase
             dbmd,
             queryGroupSpec.getDefaultSchema(),
             new HashSet<>(queryGroupSpec.getGenerateUnqualifiedNamesForSchemas()),
-            queryGroupSpec.getOutputFieldNameDefault().toFunctionOfFieldName()
+            queryGroupSpec.getPropertyNameDefault().toFunctionOfFieldName()
          );
       Throwable t = assertThrows(RuntimeException.class, () ->
          queryGenerator.generateSqls(queryGroupSpec.getQuerySpecs().get(0))
@@ -359,7 +358,7 @@ class QueryGeneratorTests extends TestsBase
             dbmd,
             queryGroupSpec.getDefaultSchema(),
             new HashSet<>(queryGroupSpec.getGenerateUnqualifiedNamesForSchemas()),
-            queryGroupSpec.getOutputFieldNameDefault().toFunctionOfFieldName()
+            queryGroupSpec.getPropertyNameDefault().toFunctionOfFieldName()
          );
       Throwable t = assertThrows(RuntimeException.class, () ->
          queryGenerator.generateSqls(queryGroupSpec.getQuerySpecs().get(0))
@@ -378,7 +377,7 @@ class QueryGeneratorTests extends TestsBase
             dbmd,
             queryGroupSpec.getDefaultSchema(),
             new HashSet<>(queryGroupSpec.getGenerateUnqualifiedNamesForSchemas()),
-            queryGroupSpec.getOutputFieldNameDefault().toFunctionOfFieldName()
+            queryGroupSpec.getPropertyNameDefault().toFunctionOfFieldName()
          );
       Throwable t = assertThrows(RuntimeException.class, () ->
          queryGenerator.generateSqls(queryGroupSpec.getQuerySpecs().get(0))
@@ -397,7 +396,7 @@ class QueryGeneratorTests extends TestsBase
             dbmd,
             queryGroupSpec.getDefaultSchema(),
             new HashSet<>(queryGroupSpec.getGenerateUnqualifiedNamesForSchemas()),
-            queryGroupSpec.getOutputFieldNameDefault().toFunctionOfFieldName()
+            queryGroupSpec.getPropertyNameDefault().toFunctionOfFieldName()
          );
       Throwable t = assertThrows(RuntimeException.class, () ->
          queryGenerator.generateSqls(queryGroupSpec.getQuerySpecs().get(0))
@@ -415,7 +414,7 @@ class QueryGeneratorTests extends TestsBase
             dbmd,
             queryGroupSpec.getDefaultSchema(),
             new HashSet<>(queryGroupSpec.getGenerateUnqualifiedNamesForSchemas()),
-            queryGroupSpec.getOutputFieldNameDefault().toFunctionOfFieldName()
+            queryGroupSpec.getPropertyNameDefault().toFunctionOfFieldName()
          );
       Throwable t = assertThrows(RuntimeException.class, () ->
          queryGenerator.generateSqls(queryGroupSpec.getQuerySpecs().get(0))
@@ -433,7 +432,7 @@ class QueryGeneratorTests extends TestsBase
             dbmd,
             queryGroupSpec.getDefaultSchema(),
             new HashSet<>(queryGroupSpec.getGenerateUnqualifiedNamesForSchemas()),
-            queryGroupSpec.getOutputFieldNameDefault().toFunctionOfFieldName()
+            queryGroupSpec.getPropertyNameDefault().toFunctionOfFieldName()
          );
       Throwable t = assertThrows(RuntimeException.class, () ->
          queryGenerator.generateSqls(queryGroupSpec.getQuerySpecs().get(0))

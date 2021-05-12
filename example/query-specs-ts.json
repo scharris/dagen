@@ -39,7 +39,7 @@
                   "collectionName": "references",
                   "tableJson": {
                      "table": "drug_reference",
-                     "inlineParentTables": [
+                     "parentTables": [
                         {
                            "tableJson": {
                               "table": "reference",
@@ -62,7 +62,7 @@
                            "field": "brand_name"
                         }
                      ],
-                     "inlineParentTables": [
+                     "parentTables": [
                         {
                            "tableJson": {
                               "table": "manufacturer",
@@ -87,7 +87,7 @@
                            "jsonProperty": "advisoryText"
                         }
                      ],
-                     "inlineParentTables": [
+                     "parentTables": [
                         {
                            "tableJson": {
                               "table": "advisory_type",
@@ -102,7 +102,7 @@
                                     "fieldTypeInGeneratedSource": "number"
                                  }
                               ],
-                              "inlineParentTables": [
+                              "parentTables": [
                                  {
                                     "tableJson": {
                                        "table": "authority",
@@ -132,7 +132,7 @@
                   "collectionName": "functionalCategories",
                   "tableJson": {
                      "table": "drug_functional_category",
-                     "inlineParentTables": [
+                     "parentTables": [
                         {
                            "tableJson": {
                               "table": "functional_category",
@@ -170,7 +170,7 @@
                   }
                }
             ],
-            "referencedParentTables": [
+            "parentTables": [
                {
                   "referenceName": "registeredByAnalyst",
                   "tableJson": {
@@ -206,7 +206,7 @@
                            "field": "entered"
                         }
                      ],
-                     "referencedParentTables": [
+                     "parentTables": [
                         {
                            "referenceName": "enteredByAnalyst",
                            "tableJson": {

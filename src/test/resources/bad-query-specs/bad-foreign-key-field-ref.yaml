@@ -10,7 +10,7 @@ querySpecs:
         - field: id
         - field: name
         - field: mesh_id
-      referencedParentTables:
+      parentTables:
         - referenceName: compound
           viaForeignKeyFields:
             # (fk field does not exist)
