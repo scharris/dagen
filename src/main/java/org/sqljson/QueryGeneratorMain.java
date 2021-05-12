@@ -78,7 +78,8 @@ public class QueryGeneratorMain
       }
 
       SplitArgs args = splitOptionsAndRequiredArgs(allArgs);
-      if ( args.required.size() != 4 ) throw new RuntimeException("expected 4 non-option arguments");
+      if ( args.required.size() != 4 )
+         throw new RuntimeException("expected 4 non-option arguments, got: "+ args.required.size());
 
       Path dbmdPath = Paths.get(args.required.get(0));
       if ( !Files.isRegularFile(dbmdPath) ) throwError("Database metadata file not found.");
