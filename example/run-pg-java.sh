@@ -6,7 +6,7 @@ JAR=../target/dagen.jar
 
 echo Generating database metadata...
 java -cp "$JAR" \
-  org.sqljson.DatabaseMetadataMain \
+  org.sqljson.DatabaseMetadataGeneratorMain \
   db/dbmd-pg.props \
   db/dbmd-pg.props \
   output/dbmd-pg.yaml
