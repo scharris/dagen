@@ -1,4 +1,5 @@
 insert into analyst values(1, 'jdoe');
+insert into analyst values(2, 'sch');
 
 insert into authority(id, name, url, description, weight)
   values(1, 'FDA', 'http://www.fda.gov', 'Food and Drug Administration', 100);
@@ -29,26 +30,28 @@ insert into manufacturer(id, name)
 insert into manufacturer(id, name)
   values(3, 'SellsAll Drug Co.');
 
-
-insert into compound(id, display_name, nctr_isis_id, cas, entered_by, entered)
+insert into compound(id, display_name, nctr_isis_id, cas, entered_by, entered, approved_by)
   select n,
     'Test Compound ' || n ,
     'ISIS-' || n ,
     '5'||n||n||n||n||'-'||n||n,
-    1,
-    current_timestamp
+    mod(n,2)+1,
+    current_timestamp,
+    mod(n+1,2) + 1
   from generate_series(1,5) n
 ;
 
-insert into drug(id, name, compound_id, therapeutic_indications, mesh_id, cid, registered_by, registered, market_entry_date)
+insert into drug(id, name, compound_id, category_code, descr, therapeutic_indications, mesh_id, cid, registered_by, registered, market_entry_date)
   select
     n,
     'Test Drug ' || n,
     n,
+    case when mod(n, 2) = 0 then 'A' else 'B' end category_code,
+    'This is drug number ' || n || '.',
     'Indication ' || n,
     'MESH' || n,
     n * 99,
-    1,
+    mod(n+1,2) + 1,
     current_timestamp,
     current_date - n * 100
   from generate_series(1,5) n

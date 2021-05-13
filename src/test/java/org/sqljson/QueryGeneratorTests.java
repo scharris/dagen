@@ -47,9 +47,9 @@ class QueryGeneratorTests extends TestsBase
       SqlParameterSource params = params(DrugFieldsQueryWithParam.idParam, 2L);
 
       doQuery(sql, params, rs -> {
-         assertEquals(rs.getLong(1), 2);
-         assertEquals(rs.getString(2), "Test Drug 2");
-         assertEquals(rs.getString(3), "MESH2");
+         assertEquals(2, rs.getLong(1));
+         assertEquals("Test Drug 2", rs.getString(2));
+         assertEquals("MESH2", rs.getString(3));
       });
    }
 
@@ -62,9 +62,9 @@ class QueryGeneratorTests extends TestsBase
       SqlParameterSource params = params("idMinusOne", 1L);
 
       doQuery(sql, params, rs -> {
-         assertEquals(rs.getLong(1), 2);
-         assertEquals(rs.getString(2), "Test Drug 2");
-         assertEquals(rs.getString(3), "MESH2");
+         assertEquals(2, rs.getLong(1));
+         assertEquals("Test Drug 2", rs.getString(2));
+         assertEquals("MESH2", rs.getString(3));
       });
    }
 
@@ -79,9 +79,9 @@ class QueryGeneratorTests extends TestsBase
 
       doQuery(sql, params, rs -> {
          DrugFieldsQueryWithParam.Drug res = readJson(rs.getString(1), DrugFieldsQueryWithParam.Drug.class);
-         assertEquals(res.id, 2);
-         assertEquals(res.name, "Test Drug 2");
-         assertEquals(res.meshId, "MESH2");
+         assertEquals(2, res.id);
+         assertEquals( "Test Drug 2", res.name);
+         assertEquals("MESH2", res.meshId);
       });
    }
 
@@ -95,7 +95,7 @@ class QueryGeneratorTests extends TestsBase
 
       doQuery(sql, params, rs -> {
          DrugFieldsCustomizedTypeQuery.Drug res = readJson(rs.getString(1), DrugFieldsCustomizedTypeQuery.Drug.class);
-         assertEquals(res.id, 2);
+         assertEquals(2, 2, res.id);
          assertTrue((res.cid instanceof java.math.BigDecimal));
       });
    }
@@ -110,8 +110,8 @@ class QueryGeneratorTests extends TestsBase
 
       doQuery(sql, params, rs -> {
          DrugWithFieldExpressionQuery.Drug res = readJson(rs.getString(1), DrugWithFieldExpressionQuery.Drug.class);
-         assertEquals(res.id, 2);
-         assertEquals(res.cidPlus1000, 198 + 1000);
+         assertEquals(2, res.id);
+         assertEquals(198 + 1000, res.cidPlus1000);
       });
    }
 
@@ -125,11 +125,11 @@ class QueryGeneratorTests extends TestsBase
 
       doQuery(sql, params, rs -> {
          DrugWithBrandsQuery.Drug res = readJson(rs.getString(1), DrugWithBrandsQuery.Drug.class);
-         assertEquals(res.id, 2);
+         assertEquals(2, res.id);
          List<DrugWithBrandsQuery.Brand> brands = res.brands;
-         assertEquals(brands.size(), 1);
-         assertEquals(brands.get(0).brandName, "Brand2(TM)");
-         assertEquals(brands.get(0).manufacturerId, 3L);
+         assertEquals(1, brands.size());
+         assertEquals("Brand2(TM)", brands.get(0).brandName);
+         assertEquals(3L, brands.get(0).manufacturerId);
       });
    }
 
@@ -143,11 +143,11 @@ class QueryGeneratorTests extends TestsBase
 
       doQuery(sql, params, rs -> {
          DrugWithBrandsCustomJoinQuery.Drug res = readJson(rs.getString(1), DrugWithBrandsCustomJoinQuery.Drug.class);
-         assertEquals(res.id, 2);
+         assertEquals(2, res.id);
          List<DrugWithBrandsCustomJoinQuery.Brand> brands = res.brands;
-         assertEquals(brands.size(), 1);
-         assertEquals(brands.get(0).brandName, "Brand2(TM)");
-         assertEquals(brands.get(0).manufacturerId, 3L);
+         assertEquals(1, brands.size());
+         assertEquals("Brand2(TM)", brands.get(0).brandName);
+         assertEquals(3L, brands.get(0).manufacturerId);
       });
    }
 
@@ -162,20 +162,20 @@ class QueryGeneratorTests extends TestsBase
 
       doQuery(sql, params, rs -> {
          DrugWithBrandsAndAdvisoriesQuery.Drug res = readJson(rs.getString(1), DrugWithBrandsAndAdvisoriesQuery.Drug.class);
-         assertEquals(res.id, 2);
+         assertEquals(2, res.id);
 
          List<DrugWithBrandsAndAdvisoriesQuery.Brand> brands = res.brands;
-         assertEquals(brands.size(), 1);
-         assertEquals(brands.get(0).brandName, "Brand2(TM)");
-         assertEquals(brands.get(0).manufacturerId, 3L);
+         assertEquals(1, brands.size());
+         assertEquals("Brand2(TM)", brands.get(0).brandName);
+         assertEquals(3L, brands.get(0).manufacturerId);
 
          List<DrugWithBrandsAndAdvisoriesQuery.Advisory> advisories = res.advisories;
-         assertEquals(advisories.size(), 3);
+         assertEquals(3, advisories.size());
          Set<String> expectedAdvisories = new HashSet<>();
          expectedAdvisories.add("Advisory concerning drug 2");
          expectedAdvisories.add("Caution concerning drug 2");
          expectedAdvisories.add("Heard this might be bad -anon2");
-         assertEquals(advisories.stream().map(a -> a.advisoryText).collect(toSet()), expectedAdvisories);
+         assertEquals(expectedAdvisories, advisories.stream().map(a -> a.advisoryText).collect(toSet()));
       });
    }
 
@@ -189,8 +189,8 @@ class QueryGeneratorTests extends TestsBase
 
       doQuery(sql, params, rs -> {
          DrugWithUnwrappedAdvisoryIdsQuery.Drug res = readJson(rs.getString(1), DrugWithUnwrappedAdvisoryIdsQuery.Drug.class);
-         assertEquals(res.id, 2);
-         assertEquals(new HashSet<>(res.advisoryIds), new HashSet<>(Arrays.asList(201L, 202L, 246L)));
+         assertEquals(2, res.id);
+         assertEquals(new HashSet<>(Arrays.asList(201L, 202L, 246L)), new HashSet<>(res.advisoryIds));
       });
    }
 
@@ -204,10 +204,10 @@ class QueryGeneratorTests extends TestsBase
 
       doQuery(sql, params, rs -> {
          DrugWithUnwrappedAdvisoryTextsQuery.Drug res = readJson(rs.getString(1), DrugWithUnwrappedAdvisoryTextsQuery.Drug.class);
-         assertEquals(res.id, 2);
+         assertEquals(2, res.id);
          assertEquals(
-            new HashSet<>(res.advisoryTexts),
-            new HashSet<>(Arrays.asList("Advisory concerning drug 2", "Heard this might be bad -anon2", "Caution concerning drug 2"))
+            new HashSet<>(Arrays.asList("Advisory concerning drug 2", "Heard this might be bad -anon2", "Caution concerning drug 2")),
+            new HashSet<>(res.advisoryTexts)
          );
       });
    }
@@ -222,10 +222,10 @@ class QueryGeneratorTests extends TestsBase
 
       doQuery(sql, params, rs -> {
          DrugWithUnwrappedAdvisoryTypeNamesQuery.Drug res = readJson(rs.getString(1), DrugWithUnwrappedAdvisoryTypeNamesQuery.Drug.class);
-         assertEquals(res.id, 2);
+         assertEquals(2, res.id);
          assertEquals(
-            new HashSet<>(res.advisoryTypeNames),
-            new HashSet<>(Arrays.asList("Caution", "Rumor", "Boxed Warning"))
+            new HashSet<>(Arrays.asList("Caution", "Rumor", "Boxed Warning")),
+            new HashSet<>(res.advisoryTypeNames)
          );
       });
    }
@@ -240,10 +240,10 @@ class QueryGeneratorTests extends TestsBase
 
       doQuery(sql, params, rs -> {
          AdvisoryWithInlineAdvisoryTypeQuery.Advisory res = readJson(rs.getString(1), AdvisoryWithInlineAdvisoryTypeQuery.Advisory.class);
-         assertEquals(res.id, 201);
-         assertEquals(res.drugId, 2);
-         assertEquals(res.advisoryType, "Boxed Warning");
-         assertEquals(res.exprYieldingTwo, 2L);
+         assertEquals(201, res.id);
+         assertEquals(2, res.drugId);
+         assertEquals("Boxed Warning", res.advisoryType);
+         assertEquals(2L, res.exprYieldingTwo);
       });
    }
 
@@ -257,10 +257,10 @@ class QueryGeneratorTests extends TestsBase
 
       doQuery(sql, params, rs -> {
          AdvisoryWithInlineCustomJoinedAdvisoryTypeQuery.Advisory res = readJson(rs.getString(1), AdvisoryWithInlineCustomJoinedAdvisoryTypeQuery.Advisory.class);
-         assertEquals(res.id, 201);
-         assertEquals(res.drugId, 2);
-         assertEquals(res.advisoryType, "Boxed Warning");
-         assertEquals(res.exprYieldingTwo, 2L);
+         assertEquals(201, res.id);
+         assertEquals(2, res.drugId);
+         assertEquals("Boxed Warning", res.advisoryType);
+         assertEquals(2L, res.exprYieldingTwo);
       });
    }
 
@@ -274,9 +274,9 @@ class QueryGeneratorTests extends TestsBase
 
       doQuery(sql, params, rs -> {
          DrugWithWrappedAnalystQuery.Drug res = readJson(rs.getString(1), DrugWithWrappedAnalystQuery.Drug.class);
-         assertEquals(res.id, 2);
-         assertEquals(res.registeredByAnalyst.id, 1);
-         assertEquals(res.registeredByAnalyst.shortName, "jdoe");
+         assertEquals(2, res.id);
+         assertEquals(2, res.registeredByAnalyst.id);
+         assertEquals("sch", res.registeredByAnalyst.shortName);
       });
    }
 
@@ -291,9 +291,9 @@ class QueryGeneratorTests extends TestsBase
       doQuery(sql, params, rs -> {
          DrugWithWrappedAnalystViaCustomJoinQuery.Drug res =
             readJson(rs.getString(1), DrugWithWrappedAnalystViaCustomJoinQuery.Drug.class);
-         assertEquals(res.id, 2);
-         assertEquals(res.registeredByAnalyst.id, 1);
-         assertEquals(res.registeredByAnalyst.shortName, "jdoe");
+         assertEquals(2, res.id);
+         assertEquals(2, res.registeredByAnalyst.id);
+         assertEquals("sch", res.registeredByAnalyst.shortName);
       });
    }
 
@@ -307,8 +307,8 @@ class QueryGeneratorTests extends TestsBase
 
       doQuery(sql, params, rs -> {
          DrugWithExplicitCompoundReferenceQuery.Drug res = readJson(rs.getString(1), DrugWithExplicitCompoundReferenceQuery.Drug.class);
-         assertEquals(res.id, 2);
-         assertEquals(res.compound.displayName, "Test Compound 2");
+         assertEquals(2, res.id );
+         assertEquals("Test Compound 2", res.compound.displayName);
       });
    }
 
